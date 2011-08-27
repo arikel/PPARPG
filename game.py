@@ -37,9 +37,10 @@ from pathFind import *
 
 from skyBox import SkyBox
 from lightManager import LightManager
-
 from mouseCursor import *
+
 from gui import *
+
 from dialog import *
 
 
@@ -53,7 +54,7 @@ class Clicker:
 		"""
 		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, 0))
 		self.picker = CollisionTraverser()
-		self.pq     = CollisionHandlerQueue()
+		self.pq = CollisionHandlerQueue()
 		self.pickerNode = CollisionNode('mouseRay')
 		self.pickerNP = camera.attachNewNode(self.pickerNode)
 		self.pickerNode.setFromCollideMask(BitMask32.bit(1))
@@ -762,7 +763,7 @@ class GameMap(DirectObject):
 				#elif npc.mode == "walk":
 					
 		return task.cont
-				
+	
 
 
 
