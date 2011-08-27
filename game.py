@@ -772,7 +772,7 @@ gamemap = GameMap(40,25)
 house = loader.loadModel("models/buildings/house")
 house.reparentTo(render)
 house.setPos(15,12,-2)
-house.setColor(1,1,1,0.5)
+#house.setColor(1,1,1,0.5)
 house.setTransparency(True)
 
 for i in [(15.5,20.5,-2), (12.5,15.5,-2), (8.5,4.5,-2)]:
