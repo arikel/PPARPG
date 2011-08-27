@@ -16,7 +16,7 @@ class Dialog:
 		self.gm = gm # game map
 		self.playerData = gm.player.data
 		
-		self.name = name
+		self.name = name # the name of the NPC running this dialog with the player
 		self.gui = DialogGui(0,-0.5,name)
 		self.intro()
 		
@@ -29,6 +29,12 @@ class Dialog:
 	
 	def setMenu(self, menu):
 		self.gui.setMenu(menu)
+		
+	def getQuestValue(self):
+		if self.name not in self.playerData:
+			return 0
+		else:
+			return self.playerData[self.name]
 		
 	def intro(self):
 		msg1 = "'Hello, " + self.name + "!'"
@@ -62,12 +68,6 @@ class Dialog:
 class DialogCamilla(Dialog):
 	def __init__(self, gm):
 		Dialog.__init__(self, gm, "Camilla")
-
-	def getQuestValue(self):
-		if self.name not in self.playerData:
-			return 0
-		else:
-			return self.playerData[self.name]
 			
 			
 		
