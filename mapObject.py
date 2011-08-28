@@ -7,15 +7,20 @@ from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.task import Task
 
+from gui import *
+
 import math, random
 
 
 class MapObject:
 	def __init__(self, gm, genre, name):
 		self.gm = gm # reference to the game map the object belongs to
-		self.genre = genre # NPC, building, 
+		self.genre = genre # NPC, building, decor, item, warp...
 		self.name = name
 		self.model = None
+		self.modelPath = None
+		self.texturePath = None
+		
 		self.state = None
 		self.data = {}
 		self.dialog = None
@@ -31,9 +36,11 @@ class MapObject:
 	def loadModel(self, modelPath, texturePath=None):
 		if self.model is not None:
 			self.model.remove()
+		self.modelPath = modelPath
 		self.model = loader.loadModel(modelPath)
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
+			self.texturePath = texturePath
 			self.model.setTexture(tex)
 		
 		
@@ -92,11 +99,7 @@ class NPC(MapObject):
 		self.model.setTexture(self.tex)
 		self.model.reparentTo(render)
 		
-		#self.colSphere = CollisionSphere(0,0,0.45,0.4)
-		self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.4)
-		self.colNodepath = CollisionNode(self.name)
-		self.colNode = self.model.attachNewNode(self.colNodepath)
-		self.colNode.node().addSolid(self.colSphere)
+		self.addCollision()
 		
 		self.speed = 0.4
 		
@@ -105,11 +108,25 @@ class NPC(MapObject):
 		self.setMode("idle")
 		
 		self.timer = random.random()*5.0
+		#self.timerMsg = makeMsg(0,0,"time")
+		self.timerMsg = TextNode(self.name)
+		self.timerLabel = render.attachNewNode(self.timerMsg)
+		self.timerLabel.reparentTo(self.model)
+		self.timerLabel.setPos(1,0,3)
+		self.timerLabel.setBillboardAxis()
+		
 		
 		self.data = {}
 		self.data["name"] = self.name
 		
 		self.task = taskMgr.add(self.update, self.name)
+		
+	def addCollision(self):
+		#self.colSphere = CollisionSphere(0,0,0,0.5)
+		self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.4)
+		self.colNodepath = CollisionNode(self.name)
+		self.colNode = self.model.attachNewNode(self.colNodepath)
+		self.colNode.node().addSolid(self.colSphere)
 		
 	def reparentToNPC(self, npc):
 		#print "%s is reparenting itself to parent : %s" % (self.name, npc.name)
@@ -127,7 +144,7 @@ class NPC(MapObject):
 				#self.sequence = None
 				#print "%s stopped walking" % (self.name)
 			#self.model.stop()
-		self.loop("idle")
+		self.setMode("idle")
 		
 	def setPos(self, *pos):
 		self.model.setPos(pos)
@@ -202,6 +219,28 @@ class NPC(MapObject):
 		dt = globalClock.getDt()
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
+		timer = str(round(self.timer, 2))
+		msg = self.name + "\n" + self.mode + " / " + timer
+		self.timerMsg.setText(msg)
+		
+		'''
+		pos = self.model.getPos()
+		
+		p3 = base.cam.getRelativePoint(render, Point3(pos))
+		p2 = Point2()
+		
+		
+		if base.camLens.project(p3, p2):
+			r2d = Point3(p2[0], 0, p2[1])
+			a2d = aspect2d.getRelativePoint(render2d, r2d) 
+			
+			msg = self.mode + " / " + str(self.timer)
+			
+			self.timerMsg.setText(msg)
+			self.timerMsg.setPos(a2d[0], a2d[1])
+		else:
+			self.timerMsg.setText("")
+		'''
 		return task.cont
 	
 	def destroy(self):
