@@ -11,6 +11,13 @@ from gui import *
 
 import math, random
 
+mapObjectDB = {} # genre : [modelPath, texturePath, collisionPos]
+mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (0,0,1,2)]
+mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.png", (5.2,-2.8,2,2)]
+
+mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
+mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
+
 
 class MapObject:
 	def __init__(self, gm, genre, name):
@@ -26,8 +33,12 @@ class MapObject:
 		self.dialog = None
 		self.task = None
 		
-	def addCollision(self):
-		self.colSphere = CollisionSphere(0,0,0,0.5)
+		if self.genre in mapObjectDB:
+			self.loadModel(mapObjectDB[self.genre][0], mapObjectDB[self.genre][1])
+			self.addCollision(mapObjectDB[self.genre][2])
+			
+	def addCollision(self, pos):
+		self.colSphere = CollisionSphere(pos[0],pos[1],pos[2],pos[3])
 		#self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.4)
 		self.colNodepath = CollisionNode(self.name)
 		self.colNode = self.model.attachNewNode(self.colNodepath)
@@ -78,7 +89,8 @@ class MapObject:
 	def destroy(self):
 		if self.task:
 			taskMgr.remove(self.task)
-		self.model.remove()
+		if self.model:
+			self.model.remove()
 		
 		
 
@@ -116,7 +128,7 @@ class NPC(MapObject):
 		#self.timerMsg.setTextColor(1,1,1,1)
 		
 		
-		self.timerMsg.setCardColor(1, 1, 1, 0.8)
+		self.timerMsg.setCardColor(1, 1, 1, 0.6)
 		self.timerMsg.setCardAsMargin(0.5, 0.5, 0, 0.5)
 		self.timerMsg.setCardDecal(True)
 		

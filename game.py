@@ -449,8 +449,12 @@ class CollisionGrid:
 				return x, y
 		return None
 	
-
-	
+	def destroy(self):
+		if self.np:
+			self.np.remove()
+		if self.terrainNP:
+			self.terrainNP.remove()
+			
 class GameMap(DirectObject):
 	def __init__(self, x, y, name, filename = None):
 		self.name = name
@@ -465,10 +469,21 @@ class GameMap(DirectObject):
 		self.NPCroot = NodePath("root")
 		self.NPCroot.reparentTo(render)
 		
-		self.collisionGrid = CollisionGrid(x, y, "the camp", "img/textures/sand2.jpg")
-		self.collisionGrid.fillBorder()
-		self.mapWall = MapWall(x, y, -3)
-		#self.load("mapCode.txt")
+		
+		
+		self.mapObjectRoot = NodePath("mapObjectRoot")
+		self.mapObjectRoot.reparentTo(render)
+		
+		self.mapObjects = {} # map objects
+		
+		self.mapWall = None
+		self.collisionGrid = None
+		
+		if self.filename is not None:
+			self.load()
+		
+		
+		
 		
 		self.clicker = Clicker()
 		
@@ -479,13 +494,10 @@ class GameMap(DirectObject):
 			self.addNPC(name, "male", "humanTex2.png", x,y)
 		
 		self.player = NPC("arikel", "male", "humanTex2.png")
-		self.player.setTilePos(1, 1)
+		self.player.setTilePos(5, 3)
 		self.player.reparentTo(render)
 		
-		self.modelRoot = NodePath("modelRoot")
-		self.modelRoot.reparentTo(render)
 		
-		self.mapObjects = {} # map objects
 		
 		
 		# light
@@ -514,20 +526,20 @@ class GameMap(DirectObject):
 		
 		self.accept(OPEN_EDITOR, self.toggle)
 		self.accept("quit", self.quit, [["this one is from GameMap", "this one too"]])
-		self.accept(SAVE_MAP, self.save, ["mapCode.txt"])
-		self.accept(LOAD_MAP, self.load, ["mapCode.txt"])
+		self.accept(SAVE_MAP, self.save, [self.filename])
+		self.accept(LOAD_MAP, self.load, [self.filename])
 		
 		self.accept(CLEAR_COLLISION, self.clearCollision, [])
 		self.accept(FILL_COLLISION, self.fillCollision, [])
 		
 		self.msg = makeMsg(-1.3,0.95,"...")
-		#self.msg2 = makeMsgLeft2(-0.8,0.7,"This is a new hope for PARPG...")
+		
 		self.msgTilePos = makeMsg(-1.2,0.95,"...")
 		self.cursor = MouseCursor()
 		
 		self.dialog = None # current dialog
 		
-		
+		#self.addMapObject("crate", "crate 1", 12.5, 32.5)
 		
 		taskMgr.add(self.update, "gameMapTask")
 		
@@ -558,14 +570,15 @@ class GameMap(DirectObject):
 		mapData = {}
 		mapData["collision"] = self.collisionGrid.data
 		mapData["mapObjects"] = []
-		for elem in self.mapObjects:
+		for elem in self.mapObjects.values():
 			model = elem.model
 			mapObjectData = []
 			mapObjectData.append(elem.name)
+			mapObjectData.append(elem.genre)
 			mapObjectData.append(model.getPos())
 			mapObjectData.append(model.getHpr())
 			mapObjectData.append(model.getScale())
-			mapData["models"].append(mapObjectData)
+			mapData["mapObjects"].append(mapObjectData)
 		
 		
 		f = open(filename, 'w')
@@ -573,17 +586,58 @@ class GameMap(DirectObject):
 		f.close()
 		print "map data saved as %s" % (filename)
 		
+	def destroy(self):
+		if self.mapWall:
+			self.mapWall.destroy()
+		if self.collisionGrid:
+			self.collisionGrid.destroy()
+		for mapObj in self.mapObjects.values():
+			self.removeMapObject(mapObj.name)
+			#mapObj.destroy()
+		#self.mapObjects = {}
 		
+	def load(self, filename=None):
+		if filename is None:
+			filename = self.filename
+		if filename is None:
+			return False
+		self.destroy()
 		
-	def load(self, filename):
+		self.collisionGrid = CollisionGrid(self.x, self.y, self.name, "img/textures/sand2.jpg")
+		self.mapWall = MapWall(self.x, self.y, -3)
+		
 		mapData = pickle.load(open(filename, 'r'))
 		self.collisionGrid.data = mapData["collision"]
 		self.collisionGrid.rebuild()
-		self.collisionGrid.fillBorder()
+		#self.collisionGrid.fillBorder()
 		
 		print "models in use : %s" % (mapData["mapObjects"])
-		#self.collisionGrid.update()
+		for data in mapData["mapObjects"]:
+			name = data[0]
+			genre = data[1]
+			pos = data[2]
+			hpr = data[3]
+			scale = data[4]
+			self.addMapObject(genre, name, pos.getX(), pos.getY())
 		
+	
+	def addMapObject(self, genre, name, x, y):
+		if name not in self.mapObjects:
+			mapObject = MapObject(self, genre, name)
+			mapObject.setPos(x, y, -self.collisionGrid.terrainScale/3.0)
+			mapObject.reparentTo(self.mapObjectRoot)
+			self.mapObjects[name] = mapObject
+		
+	def removeMapObject(self, name):
+		if name in self.mapObjects:
+			self.mapObjects[name].destroy()
+			del self.mapObjects[name]
+		
+	def setMapObjectPos(self, name, x, y, z=0):
+		if name in self.mapObjects:
+			self.mapObjects[name].setPos(x, y, z)
+			
+			
 	def clearCollision(self, args=[]):
 		if self.mode == "edit":
 			self.collisionGrid.clear()
@@ -620,13 +674,7 @@ class GameMap(DirectObject):
 			#self.collisionGrid.collisionShow()
 			#base.disableMouse()
 		
-	def addMapObject(self, genre, name, x, y):
-		mapObject = MapObject(self, genre, name)
-		mapObject.setPos(x, y, 0)
-		
-	def setMapObjectPos(self, name, x, y, z=0):
-		if name in self.mapObjects:
-			self.mapObjects[name].setPos(x, y, z)
+	
 		
 		
 	def addNPC(self, name, modelName, tex, x, y):
@@ -701,7 +749,27 @@ class GameMap(DirectObject):
 		else:
 			self.msg.setText("")
 		
+		# click on MapObject :
+		res = self.clicker.getMouseObject(self.mapObjectRoot)
 		
+		if res is not None:
+			#print "Found a name : %s " % (res.getIntoNodePath().getName())
+			name = res.getIntoNodePath().getName()
+			msg = "mapObject : " + name
+			self.msg.setText(msg)
+			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+			if self.keyDic["mouse1"]:# and name != self.player.name:
+				#self.openDialog(name)
+				print "map object left click"
+			
+			elif self.keyDic["mouse3"]:# and name != self.player.name:
+				#self.NPC[name].destroy()
+				self.removeMapObject(name)
+				print "map object right click"
+				
+				
+				
+				
 		pos = self.clicker.getMousePos(mpos)
 		if pos is None:
 			return task.cont
@@ -766,8 +834,9 @@ class GameMap(DirectObject):
 
 
 #gamemap = GameMap(40,25)
-gamemap = GameMap(250,120, "startVillage", "mapCode.txt")
+gamemap = GameMap(250,120, "startVillage", "maps/mapCode.txt")
 
+'''
 house = loader.loadModel("models/buildings/ruin_house")
 house.reparentTo(render)
 house.setPos(15,12,-2)
@@ -801,6 +870,8 @@ for i in [(10.5,14.5,-2), (14.5,11.5,-2), (11.5,9.5,-2)]:
 	barrel = loader.loadModel("models/buildings/barrel2")
 	barrel.reparentTo(render)
 	barrel.setPos(i)
+
+'''
 
 sky = SkyBox()
 #sky.load("hipshot1")

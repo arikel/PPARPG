@@ -23,6 +23,8 @@ class Dialog:
 	def destroy(self, args=[]):
 		self.gui.destroy()
 		self.gm.dialog = None
+		if self.name in self.gm.NPC:
+			self.gm.NPC[self.name].resetTimer()
 		
 	def setMainText(self, text):
 		self.gui.setMainText(text)

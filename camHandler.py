@@ -112,7 +112,13 @@ class CamHandler:
 			
 		elif self.mode == "edit":
 			base.camera.wrtReparentTo(self.editNp)
+			origHpr = base.camera.getHpr()
+			targetHpr = (0,-90,0)
+			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
+				fitDestAngle2Src(origHpr[1], targetHpr[1]),
+				fitDestAngle2Src(origHpr[2], targetHpr[2]))
+				
 			i1 = LerpPosInterval(base.camera, self.intervalSpeed, (0,0,0), blendType="easeInOut")
-			i2 = LerpHprInterval(base.camera, self.intervalSpeed, (0,-90,0), blendType="easeInOut")
+			i2 = LerpHprInterval(base.camera, self.intervalSpeed, targetHpr, blendType="easeInOut")
 			paral = Parallel(i1, i2)
 			paral.start()
