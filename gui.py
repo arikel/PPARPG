@@ -308,6 +308,12 @@ class DialogButtonList:
 	def moveIndex(self, n, extraArgs=[]):
 		self.setIndex(self.index + n)
 		
+	def hide(self):
+		self.frame.hide()
+		
+	def show(self):
+		self.frame.show()
+	
 	def destroy(self):
 		self.frame.destroy()
 		

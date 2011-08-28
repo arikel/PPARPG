@@ -68,8 +68,6 @@ class Dialog:
 class DialogCamilla(Dialog):
 	def __init__(self, gm):
 		Dialog.__init__(self, gm, "Camilla")
-			
-			
 		
 	def intro(self):
 		msg1 = "'Hello, " + self.name + "!'"
@@ -104,7 +102,7 @@ class DialogCamilla(Dialog):
 			self.playerData[self.name] = 1
 			self.setMainText(msg)
 			menu = [
-				["'Come on, you know *exactly* what i'm talking about...'", self.l_insist, []],
+				["'Come on, you know *exactly* what i mean...'", self.l_insist, []],
 				["'Ah, my bad, forget about that...'", self.l_close, []],
 			]
 			self.setMenu(menu)

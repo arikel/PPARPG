@@ -1,22 +1,29 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-from pandac.PandaModules import * 
+from config import *
+if CONFIG_FULLSCREEN:
+	fullscreen = "#t"
+else:
+	fullscreen = "#f"
+	
+from pandac.PandaModules import *
 
 loadPrcFileData("setup", """sync-video 0
 show-frame-rate-meter #t
 #win-size 800 600
-win-size 1024 768
+#win-size 1024 768
 #win-size 1280 960
 #win-size 1280 1024
+win-size %s %s
 win-fixed-size 1
 #yield-timeslice 0 
 #client-sleep 0 
 #multi-sleep 0
 basic-shaders-only #f
-fullscreen #f
+fullscreen %s
 #audio-library-name null
-""")
+""" % (CONFIG_W, CONFIG_H, fullscreen))
 
 
 import direct.directbase.DirectStart
@@ -39,7 +46,7 @@ from lightManager import LightManager
 from mouseCursor import *
 
 from gui import *
-from NPC import NPC
+from mapObject import *
 from dialog import *
 
 
@@ -258,7 +265,57 @@ class CollisionGrid:
 				i += 4
 			
 	def rebuild(self):
+		# Needed to update the map after it has been resized
+		if self.np:
+			self.np.remove()
+		if self.terrainNP:
+			self.terrainNP.remove()
+		self.y = len(self.data)
+		self.x = len(self.data[0])
+		
+		self.node = GeomNode("tiledMesh")
+		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
+		self.geom = Geom(self.gvd)
+		self.prim = GeomTriangles(Geom.UHStatic)
+		
 		self.update()
+		
+		i = 0
+		for x in range(self.x * self.y):
+			#self.prim.addVertices(i, i + 3, i + 2)
+			#self.prim.addVertices(i, i + 2, i + 1)
+			self.prim.addVertices(i, i + 2, i + 1)
+			self.prim.addVertices(i, i + 3, i + 2)
+			i += 4
+		
+		self.prim.closePrimitive()
+		self.geom.addPrimitive(self.prim)
+		self.node.addGeom(self.geom)
+		
+		self.np = NodePath(self.node)
+		self.np.reparentTo(render)
+		#self.np.setTwoSided(True)
+		self.np.setTexture(self.tex)
+		#self.np.setColor(0,0,1.0,0.1)
+		#self.np.setTransparency(True)
+		
+		self.terrain = GeoMipTerrain("ground")
+		self.terrain.setHeightfield("models/grounds/ground02.jpg")
+		#self.terrain.setMinLevel(2)
+		#self.terrain.setBruteforce(True)
+		self.terrainScale = 5.0
+		self.terrainImgSize = 65.0
+		self.terrainNP = self.terrain.getRoot()
+		self.terrainNP.reparentTo(render)
+		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
+		self.terrainNP.setPos(0,0,-self.terrainScale)
+		self.terrain.generate()
+		self.terrainNP.setTexture(loader.loadTexture("img/textures/ice01.jpg"))
+		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
+		self.terrainNP.flattenStrong()
+		#self.terrainNP.setCollideMask(BitMask32(1))
+		
+		
 
 		
 	def addWallTile(self, x, y):
@@ -395,12 +452,13 @@ class GameMap(DirectObject):
 		#self.floor = makeFloor(20, self.x, self.y)
 		#self.floor.reparentTo(render)
 		
-		self.root = NodePath("root")
-		self.root.reparentTo(render)
+		self.NPCroot = NodePath("root")
+		self.NPCroot.reparentTo(render)
 		
 		self.collisionGrid = CollisionGrid(x, y, "the camp", "img/textures/sand2.jpg")
 		self.collisionGrid.fillBorder()
 		self.mapWall = MapWall(x, y, -3)
+		#self.load("mapCode.txt")
 		
 		self.clicker = Clicker()
 		
@@ -410,24 +468,14 @@ class GameMap(DirectObject):
 			x, y = self.collisionGrid.getRandomTile()
 			self.addNPC(name, "male", "humanTex2.png", x,y)
 		
-		'''
-		for name in ["coco", "myrdhen", "noob"]:
-			x, y = self.collisionGrid.getRandomTile()
-			self.addNPC(name, "male", "humanTex2.png", x,y)
-		'''
-		
-		
-		'''
-		for i in range(50):
-			name = "noob" + str(i)
-			x, y = self.collisionGrid.getRandomTile()
-			self.addNPC(name, "male", "humanTex.png", x,y)
-		'''
-		
 		self.player = NPC("arikel", "male", "humanTex2.png")
 		self.player.setTilePos(1, 1)
 		
-		#npc.model.reparentTo(self.root)
+		self.modelRoot = NodePath("modelRoot")
+		self.modelRoot.reparentTo(render)
+		
+		self.mapObjects = {} # map objects
+		
 		
 		# light
 		self.light = LightManager()
@@ -436,7 +484,13 @@ class GameMap(DirectObject):
 		
 		
 		self.keyDic = {}
-		for key in ["mouse1", "mouse3", "z", "s", "q", "d", "a", "e", "r", "f"]:
+		for key in [
+			"mouse1", "mouse3",
+			FORWARD, BACKWARD,
+			STRAFE_LEFT, STRAFE_RIGHT,
+			TURN_LEFT, TURN_RIGHT,
+			UP, DOWN
+			]:
 			self.keyDic[key] = 0
 			self.accept(key, self.setKey, [key, 1])
 			keyUp = key + "-up"
@@ -446,18 +500,19 @@ class GameMap(DirectObject):
 		self.camHandler = CamHandler()
 		self.setMode("playing")
 		
-		self.accept("space", self.toggle)
+		self.accept(OPEN_EDITOR, self.toggle)
 		self.accept("quit", self.quit, [["this one is from GameMap", "this one too"]])
-		self.accept("m", self.save, ["mapCode.txt"])
-		self.accept("p", self.load, ["mapCode.txt"])
+		self.accept(SAVE_MAP, self.save, ["mapCode.txt"])
+		self.accept(LOAD_MAP, self.load, ["mapCode.txt"])
 		
-		self.msg = makeMsg(-1.3,0.95,"PPARPG : a new hope...")
+		self.msg = makeMsg(-1.3,0.95,"...")
 		#self.msg2 = makeMsgLeft2(-0.8,0.7,"This is a new hope for PARPG...")
+		self.msgTilePos = makeMsg(-1.2,0.95,"...")
 		self.cursor = MouseCursor()
 		
 		self.dialog = None # current dialog
 		
-		self.load("mapCode.txt")
+		
 		
 		taskMgr.add(self.update, "gameMapTask")
 		
@@ -468,6 +523,8 @@ class GameMap(DirectObject):
 			#self.dialog.destroy()
 			#print "a dialog is already open"
 			return False
+		if name in self.NPC:
+			self.NPC[name].stop()
 			
 		if name == "Camilla":
 			self.dialog = DialogCamilla(self)
@@ -485,7 +542,16 @@ class GameMap(DirectObject):
 	def save(self, filename):
 		mapData = {}
 		mapData["collision"] = self.collisionGrid.data
-		mapData["models"] = ["house", "barrel"]
+		mapData["models"] = []
+		for elem in self.mapObjects:
+			model = elem.model
+			modelData = []
+			modelData.append(elem.name)
+			modelData.append(model.getPos())
+			modelData.append(model.getHpr())
+			modelData.append(model.getScale())
+			mapData["models"].append(modelData)
+		
 		
 		f = open(filename, 'w')
 		pickle.dump(mapData, f)
@@ -497,8 +563,11 @@ class GameMap(DirectObject):
 	def load(self, filename):
 		mapData = pickle.load(open(filename, 'r'))
 		self.collisionGrid.data = mapData["collision"]
+		self.collisionGrid.rebuild()
+		self.collisionGrid.fillBorder()
+		
 		print "models in use : %s" % (mapData["models"])
-		self.collisionGrid.update()
+		#self.collisionGrid.update()
 		
 	def setKey(self, key, value):
 		self.keyDic[key] = value
@@ -506,7 +575,15 @@ class GameMap(DirectObject):
 	def setMode(self, mode):
 		self.mode = mode
 		self.camHandler.setMode(mode)
-		
+		if mode == "edit":
+			self.light.lightCenter.detachNode()
+			render.setShaderOff()
+			render.setLightOff()
+			
+		elif mode == "playing":
+			self.light.lightCenter.reparentTo(base.camera)
+			render.setShaderAuto()
+			
 	def toggle(self):
 		if self.mode == "edit":
 			self.mode = "playing"
@@ -520,11 +597,20 @@ class GameMap(DirectObject):
 			#self.collisionGrid.collisionShow()
 			#base.disableMouse()
 		
+	def addMapObject(self, genre, name, x, y):
+		mapObject = MapObject(self, genre, name)
+		mapObject.setPos(x, y, 0)
+		
+	def setMapObjectPos(self, name, x, y, z=0):
+		if name in self.mapObjects:
+			self.mapObjects[name].setPos(x, y, z)
+		
+		
 	def addNPC(self, name, modelName, tex, x, y):
 		npc = NPC(name, modelName, tex)
 		npc.setTilePos(x, y)
 		self.NPC[name] = npc
-		npc.model.reparentTo(self.root)
+		npc.reparentTo(self.NPCroot)
 		
 	def removeNPC(self, name):
 		if name in self.NPC:
@@ -575,17 +661,20 @@ class GameMap(DirectObject):
 		
 			
 		
-		#res = self.clicker.getMouseObject(self.root)
-		res = self.clicker.getMouseObject(render)
+		res = self.clicker.getMouseObject(self.NPCroot)
+		#res = self.clicker.getMouseObject(render)
 		if res is not None:
 			#print "Found a name : %s " % (res.getIntoNodePath().getName())
 			name = res.getIntoNodePath().getName()
-			msg = "Pointing on " + name
+			msg = "Talk to " + name
 			self.msg.setText(msg)
 			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
 			if self.keyDic["mouse1"] and name != self.player.name:
+				self.NPC[name].stop()
 				self.openDialog(name)
-			
+			elif self.keyDic["mouse3"] and name != self.player.name:
+				self.NPC[name].destroy()
+				
 		else:
 			self.msg.setText("")
 		
@@ -593,7 +682,9 @@ class GameMap(DirectObject):
 		pos = self.clicker.getMousePos(mpos)
 		if pos is None:
 			return task.cont
-		
+		else:
+			msg = "coord : " + str(pos[0]) + "/" + str(pos[1])
+			self.msgTilePos.setText(msg)
 		
 		if self.mode == "edit":
 			if self.keyDic["mouse1"]:
@@ -607,25 +698,25 @@ class GameMap(DirectObject):
 				#for name in self.NPC:
 				#	self.NPCGoto(name, pos[0], pos[1])
 		
-		if self.keyDic["z"]:
+		if self.keyDic[FORWARD]:
 			self.camHandler.forward(dt)
-		if self.keyDic["s"]:
+		if self.keyDic[BACKWARD]:
 			self.camHandler.backward(dt)
 		
-		if self.keyDic["q"]:
+		if self.keyDic[STRAFE_LEFT]:
 			self.camHandler.strafeLeft(dt)
 			
-		if self.keyDic["d"]:
+		if self.keyDic[STRAFE_RIGHT]:
 			self.camHandler.strafeRight(dt)
 			
-		if self.keyDic["a"]:
+		if self.keyDic[TURN_LEFT]:
 			self.camHandler.turnLeft(dt)
-		if self.keyDic["e"]:
+		if self.keyDic[TURN_RIGHT]:
 			self.camHandler.turnRight(dt)
 			
-		if self.keyDic["r"]:
+		if self.keyDic[UP]:
 			self.camHandler.lookUp(dt)
-		if self.keyDic["f"]:
+		if self.keyDic[DOWN]:
 			self.camHandler.lookDown(dt)
 		
 		
@@ -644,13 +735,27 @@ class GameMap(DirectObject):
 
 
 
-gamemap = GameMap(40,25)
+#gamemap = GameMap(40,25)
+gamemap = GameMap(150,120)
 
-house = loader.loadModel("models/buildings/house")
+house = loader.loadModel("models/buildings/ruin_house")
 house.reparentTo(render)
 house.setPos(15,12,-2)
-#house.setColor(1,1,1,0.5)
+house.setColor(1,1,1,0.5)
 house.setTransparency(True)
+
+house = loader.loadModel("models/buildings/ruin_house")
+house.reparentTo(render)
+house.setPos(35,12,-2)
+house.setColor(1,1,1,0.5)
+house.setTransparency(True)
+
+house = loader.loadModel("models/buildings/ruin_house")
+house.reparentTo(render)
+house.setPos(5,22,-2)
+house.setColor(1,1,1,0.5)
+house.setTransparency(True)
+
 
 for i in [(15.5,20.5,-2), (12.5,15.5,-2), (8.5,4.5,-2)]:
 	barrel = loader.loadModel("models/buildings/crate1")

@@ -61,6 +61,7 @@ class CamHandler:
 	def turnRight(self, dt):
 		if self.mode == "playing":
 			self.playingNp.setH(self.playingNp, -dt*self.speed*10)
+			self.update()
 		elif self.mode == "edit":
 			self.editNp.setH(self.editNp, -dt*self.speed*10)
 			
@@ -80,6 +81,16 @@ class CamHandler:
 		elif self.mode == "edit":
 			self.editNp.setPos(self.editNp, (0,0,-dt*self.speed*10))
 	
+	def update(self):
+		while self.playingNp.getH()<-180.0:
+			self.playingNp.setH(self.playingNp.getH()+360.0)
+		while self.playingNp.getH()>180.0:
+			self.playingNp.setH(self.playingNp.getH()-360.0)
+		while self.editNp.getH()<-180.0:
+			self.editNp.setH(self.editNp.getH()+360.0)
+		while self.editNp.getH()>180.0:
+			self.editNp.setH(self.editNp.getH()-360.0)
+			
 	def setMode(self, mode):
 		self.mode = mode
 		if self.mode == "playing":
