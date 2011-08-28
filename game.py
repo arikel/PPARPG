@@ -83,7 +83,7 @@ class Clicker:
 			#	print "y'a rien eu..."
 		return None
 		
-	def getMousePos(self, mpos=None):
+	def getMouseTilePos(self, mpos=None):
 		if mpos is None:
 			if base.mouseWatcherNode.hasMouse():
 				mpos = base.mouseWatcherNode.getMouse()
@@ -103,7 +103,25 @@ class Clicker:
 			return int(x), int(y)
 		return None
 
-
+	def getMousePos(self, mpos=None):
+		if mpos is None:
+			if base.mouseWatcherNode.hasMouse():
+				mpos = base.mouseWatcherNode.getMouse()
+			else:
+				return None
+			
+		pos3d = Point3()
+		nearPoint = Point3()
+		farPoint = Point3()
+		base.camLens.extrude(mpos, nearPoint, farPoint)
+		if self.plane.intersectsLine(pos3d,
+				render.getRelativePoint(camera, nearPoint),
+				render.getRelativePoint(camera, farPoint)):
+			
+			x = pos3d.getX()
+			y = pos3d.getY()
+			return x, y
+		return None
 
 		
 		
@@ -119,7 +137,7 @@ def makeFloor(nbCases, scalex, scaley, texpath):
 	
 	card.setTexture(img)
 	card.setScale(scalex,1,scaley)
-	card.setPos(0,0,-0.01)
+	card.setPos(0,0,0.0)
 	card.setHpr(0,-90,0)
 	#card.setTwoSided(True)
 	#card.setTransparency(TransparencyAttrib.MAlpha)
@@ -252,12 +270,23 @@ class CollisionGrid:
 		self.terrainNP = self.terrain.getRoot()
 		self.terrainNP.reparentTo(render)
 		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		self.terrainNP.setPos(0,0,-self.terrainScale)
+		#self.terrainNP.setPos(0,0,-self.terrainScale)
 		self.terrain.generate()
 		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
 		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
 		self.terrainNP.flattenStrong()
 		#self.terrainNP.setCollideMask(BitMask32(1))
+		
+	def removeGeoMip(self):
+		if self.terrainNP:
+			self.terrainNP.remove()
+			self.hasGeoMip = False
+			self.terrain = None
+			self.terrainNP = None
+			self.terrainScale = 0
+			self.ground = makeFloor(8, self.x, self.y, self.texPath)
+			self.ground.reparentTo(render)
+			self.update()
 		
 	def addGeoMip(self, geomipPath, texPath="img/textures/ice01.jpg", imgSize = 65.0, scale = 5.0):
 		if self.terrainNP:
@@ -278,7 +307,7 @@ class CollisionGrid:
 		self.terrainNP = self.terrain.getRoot()
 		self.terrainNP.reparentTo(render)
 		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		self.terrainNP.setPos(0,0,-self.terrainScale)
+		#self.terrainNP.setPos(0,0,-self.terrainScale)
 		self.terrain.generate()
 		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
 		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
@@ -293,11 +322,12 @@ class CollisionGrid:
 	def getTileHeight(self, x, y):
 		if not self.hasGeoMip:
 			return 0
-		if not (0<=x<self.x): return - self.terrainScale
-		if not (0<=y<self.y): return - self.terrainScale
+		if not (0<=x<self.x): return 0 #- self.terrainScale
+		if not (0<=y<self.y): return 0 #- self.terrainScale
+		
 		xPx = int(float(x)/self.x*self.terrainImgSize)
 		yPx = int(float(y)/self.y*self.terrainImgSize)
-		height = self.terrain.getElevation(xPx, yPx) * self.terrainScale - self.terrainScale
+		height = self.terrain.getElevation(xPx, yPx) * self.terrainScale# - self.terrainScale
 		#print "Terrain height in %s / %s : %s" % (x, y, height)
 		return height
 		
@@ -353,34 +383,16 @@ class CollisionGrid:
 		
 		if self.hasGeoMip:
 			self.initGeoMip()
-		'''
-		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield("models/grounds/ground02.jpg")
-		#self.terrain.setMinLevel(2)
-		#self.terrain.setBruteforce(True)
-		self.terrainScale = 5.0
-		self.terrainImgSize = 65.0
-		self.terrainNP = self.terrain.getRoot()
-		self.terrainNP.reparentTo(render)
-		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		self.terrainNP.setPos(0,0,-self.terrainScale)
-		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture("img/textures/ice01.jpg"))
-		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
-		self.terrainNP.flattenStrong()
-		#self.terrainNP.setCollideMask(BitMask32(1))
-		'''
 		
-
 		
 	def addWallTile(self, x, y):
 		
 		norm, norm2 = random.random()/2.0, random.random()/2.0
 		#z = 0
-		z1 = self.getTileHeight(x, y) + 0.35
-		z2 = self.getTileHeight(x, y+1) + 0.35
-		z3 = self.getTileHeight(x+1, y+1) + 0.35
-		z4 = self.getTileHeight(x+1, y) + 0.35
+		z1 = self.getTileHeight(x, y) + 0.01
+		z2 = self.getTileHeight(x, y+1) + 0.01
+		z3 = self.getTileHeight(x+1, y+1) + 0.01
+		z4 = self.getTileHeight(x+1, y) + 0.01
 		
 		self.vertex.addData3f(x, y, z1)
 		self.texcoord.addData2f(0, 0)
@@ -526,6 +538,7 @@ class GameMap(DirectObject):
 		
 		self.mapObjectRoot = NodePath("mapObjectRoot")
 		self.mapObjectRoot.reparentTo(render)
+		#self.mapObjectRoot.setTransparency(True)
 		
 		self.mapObjects = {} # map objects
 		
@@ -564,7 +577,7 @@ class GameMap(DirectObject):
 			FORWARD, BACKWARD,
 			STRAFE_LEFT, STRAFE_RIGHT,
 			TURN_LEFT, TURN_RIGHT,
-			UP, DOWN
+			UP, DOWN,"h", "b"
 			]:
 			self.keyDic[key] = 0
 			self.accept(key, self.setKey, [key, 1])
@@ -582,6 +595,8 @@ class GameMap(DirectObject):
 		
 		self.accept(CLEAR_COLLISION, self.clearCollision, [])
 		self.accept(FILL_COLLISION, self.fillCollision, [])
+		self.accept("t", self.collisionGrid.removeGeoMip)
+		
 		
 		self.msg = makeMsg(-1.3,0.95,"...")
 		
@@ -592,8 +607,21 @@ class GameMap(DirectObject):
 		
 		#self.addMapObject("crate", "crate 1", 12.5, 32.5)
 		
+		self.draggingObject = False
+		self.draggedObject = None
+		
 		taskMgr.add(self.update, "gameMapTask")
 		
+	def mapObjectMoveZ(self, obj, dt):
+		obj.setZ(obj.getZ()+dt)
+		
+	def startDrag(self, mapObj):
+		self.draggingObject = True
+		self.draggedObject = mapObj
+		
+	def stopDrag(self):
+		self.draggingObject = False
+		self.draggedObject = None
 		
 	def openDialog(self, name):
 		if self.dialog:
@@ -670,7 +698,7 @@ class GameMap(DirectObject):
 		else:
 			self.collisionGrid = CollisionGrid(self.x, self.y, self.name)
 			
-		self.mapWall = MapWall(self.x, self.y, -3)
+		self.mapWall = MapWall(self.x, self.y, 0)
 		
 		self.collisionGrid.data = mapData["collision"]
 		self.collisionGrid.rebuild()
@@ -683,13 +711,13 @@ class GameMap(DirectObject):
 			pos = data[2]
 			hpr = data[3]
 			scale = data[4]
-			self.addMapObject(genre, name, pos.getX(), pos.getY())
+			self.addMapObject(genre, name, pos.getX(), pos.getY(), pos.getZ())
 		
 	
-	def addMapObject(self, genre, name, x, y):
+	def addMapObject(self, genre, name, x, y, z=0):
 		if name not in self.mapObjects:
 			mapObject = MapObject(self, genre, name)
-			mapObject.setPos(x, y, -self.collisionGrid.terrainScale/3.0)
+			mapObject.setPos(x, y, z) #-self.collisionGrid.terrainScale/3.0)
 			mapObject.reparentTo(self.mapObjectRoot)
 			self.mapObjects[name] = mapObject
 		
@@ -718,13 +746,21 @@ class GameMap(DirectObject):
 		self.mode = mode
 		self.camHandler.setMode(mode)
 		if mode == "edit":
-			if CONFIG_LIGHT: self.light.lightCenter.detachNode()
-			render.setShaderOff()
-			render.setLightOff()
+			for obj in self.mapObjects.values():
+				obj.model.setColor(1,1,1,0.5)
+				obj.model.setTransparency(TransparencyAttrib.MAlpha)
+				
+			#if CONFIG_LIGHT: self.light.lightCenter.detachNode()
+			#render.setShaderOff()
+			#render.setLightOff()
 			
 		elif mode == "playing":
-			if CONFIG_LIGHT: self.light.lightCenter.reparentTo(base.camera)
-			render.setShaderAuto()
+			for obj in self.mapObjects.values():
+				obj.model.setColor(1,1,1,1.0)
+				obj.model.setTransparency(TransparencyAttrib.MAlpha)
+				
+			#if CONFIG_LIGHT: self.light.lightCenter.reparentTo(base.camera)
+			#render.setShaderAuto()
 			
 	def toggle(self):
 		if self.mode == "edit":
@@ -808,8 +844,8 @@ class GameMap(DirectObject):
 			if self.keyDic["mouse1"]:# and name != self.player.name:
 				self.openDialog(name)
 			elif self.keyDic["mouse3"]:# and name != self.player.name:
-				#self.NPC[name].destroy()
-				self.removeNPC(name)
+				pass
+				#self.removeNPC(name)
 				
 		else:
 			self.msg.setText("")
@@ -825,23 +861,33 @@ class GameMap(DirectObject):
 			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
 			if self.keyDic["mouse1"]:# and name != self.player.name:
 				#self.openDialog(name)
+				if not self.draggingObject:
+					self.startDrag(self.mapObjects[name])
 				print "map object left click"
 			
-			elif self.keyDic["mouse3"]:# and name != self.player.name:
+				
+			if self.keyDic["mouse3"]:# and name != self.player.name:
 				#self.NPC[name].destroy()
-				self.removeMapObject(name)
+				#self.removeMapObject(name)
 				print "map object right click"
+		
+			if self.keyDic["h"]:
+				self.mapObjectMoveZ(self.mapObjects[name], dt)
+			elif self.keyDic["b"]:
+				self.mapObjectMoveZ(self.mapObjects[name], -dt)
 				
-				
-				
-				
-		pos = self.clicker.getMousePos(mpos)
+		if self.draggingObject and not self.keyDic["mouse1"]:
+			self.stopDrag()
+		
+		pos = self.clicker.getMouseTilePos(mpos)
 		if pos is None:
 			return task.cont
 		else:
 			msg = "coord : " + str(pos[0]) + "/" + str(pos[1])
 			self.msgTilePos.setText(msg)
-		
+			if self.draggingObject:		
+				self.draggedObject.setTilePos(pos[0], pos[1])
+			
 		if self.mode == "edit":
 			if self.keyDic["mouse1"]:
 				self.collisionGrid.showTile(pos[0], pos[1])
@@ -887,6 +933,8 @@ class GameMap(DirectObject):
 							tile = self.collisionGrid.getRandomTile()
 							if tile is not None:
 								self.NPCGoto(name, tile[0], tile[1])
+							else:
+								npc.resetTimer()
 					else:
 						tile = self.collisionGrid.getRandomTile()
 						if tile is not None:
@@ -895,8 +943,10 @@ class GameMap(DirectObject):
 		return task.cont
 		
 
-
-
+class GameManager(FSM):
+	def __init__(self):
+		FSM.__init__(self, 'Game')
+		
 
 #gamemap = GameMap(40,25)
 gamemap = GameMap(250,120, "startVillage", "maps/mapCode.txt")

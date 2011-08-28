@@ -49,6 +49,7 @@ class MapObject:
 			self.model.remove()
 		self.modelPath = modelPath
 		self.model = loader.loadModel(modelPath)
+		self.model.setTransparency(True)
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
 			self.texturePath = texturePath
@@ -60,6 +61,7 @@ class MapObject:
 			self.model.remove()
 		
 		self.model = Actor(modelPath, animDic)
+		self.model.setTransparency(True)
 		
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
@@ -70,6 +72,16 @@ class MapObject:
 		
 	def setPos(self, *pos):
 		self.model.setPos(pos)
+	
+	def setZ(self, z):
+		self.model.setZ(z)
+		
+	def getZ(self):
+		return self.model.getZ()
+		
+	def getTilePos(self):
+		return int(self.model.getX()), int(self.model.getY())
+	
 		
 	def setHpr(self, *hpr):
 		self.model.setHpr(hpr)
@@ -81,7 +93,7 @@ class MapObject:
 		self.model.setScale(scale)
 		
 	def setTilePos(self, x, y):
-		self.setPos(x+0.5, y+0.5, 0)
+		self.setPos(x+0.5, y+0.5, self.model.getZ())
 		
 	def getTilePos(self):
 		return int(self.model.getX()), int(self.model.getY())
@@ -172,14 +184,6 @@ class NPC(MapObject):
 			#self.model.stop()
 		self.setMode("idle")
 		
-	def setPos(self, *pos):
-		self.model.setPos(pos)
-		
-	def setTilePos(self, x, y):
-		self.setPos(x+0.5, y+0.5, 0)
-		
-	def getTilePos(self):
-		return int(self.model.getX()), int(self.model.getY())
 		
 	def lookAt(self, x, y):
 		#self.model.lookAt(self.model, (-x,-y,0))
