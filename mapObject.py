@@ -89,16 +89,18 @@ class MapObject:
 class NPC(MapObject):
 	def __init__(self, name, modelName, tex):
 		self.name = name
+		
+		# actor
+		self.model = None
 		path = "models/characters/" + modelName
-		self.model = Actor(path, {
+		animDic = {
 			"walk":"models/characters/male-walk",
 			"idle": "models/characters/male-idle"
-		})
+		}
 		texPath = "models/characters/" + tex
-		self.tex = loader.loadTexture(texPath)
-		self.model.setTexture(self.tex)
-		self.model.reparentTo(render)
+		self.loadActor(path, animDic, texPath)
 		
+		# collision
 		self.addCollision()
 		
 		self.speed = 0.4
@@ -190,7 +192,7 @@ class NPC(MapObject):
 			
 		self.path = path
 		self.sequence = Sequence()
-		self.timer = random.random()*15.0
+		self.resetTimer()
 		# lookAt for first move
 		a, b = self.getTilePos()
 		x = path[0][0] - a
@@ -219,6 +221,9 @@ class NPC(MapObject):
 		self.sequence.append(f)
 		
 		self.sequence.start()
+		
+	def resetTimer(self, args=[]):
+		self.timer = random.random()*15.0
 		
 	def setMode(self, mode):
 		self.mode = mode
@@ -259,5 +264,6 @@ class NPC(MapObject):
 		if self.sequence:
 			self.sequence.pause()
 		taskMgr.remove(self.task)
+		self.model.cleanup()
 		self.model.remove()
 		

@@ -480,6 +480,7 @@ class GameMap(DirectObject):
 		
 		self.player = NPC("arikel", "male", "humanTex2.png")
 		self.player.setTilePos(1, 1)
+		self.player.reparentTo(render)
 		
 		self.modelRoot = NodePath("modelRoot")
 		self.modelRoot.reparentTo(render)
