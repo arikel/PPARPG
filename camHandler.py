@@ -3,6 +3,7 @@
 
 from pandac.PandaModules import * 
 from direct.interval.IntervalGlobal import *
+from direct.showbase.PythonUtil import fitDestAngle2Src 
 
 class CamHandler:
 	def __init__(self):
@@ -90,13 +91,22 @@ class CamHandler:
 			self.editNp.setH(self.editNp.getH()+360.0)
 		while self.editNp.getH()>180.0:
 			self.editNp.setH(self.editNp.getH()-360.0)
-			
+		
 	def setMode(self, mode):
 		self.mode = mode
 		if self.mode == "playing":
 			base.camera.wrtReparentTo(self.playingNp)
+			
+			origHpr = base.camera.getHpr()
+			targetHpr = (0,-45,0)
+			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
+				fitDestAngle2Src(origHpr[1], targetHpr[1]),
+				fitDestAngle2Src(origHpr[2], targetHpr[2]))
+			
 			i1 = LerpPosInterval(base.camera, self.intervalSpeed, (0,0,0), blendType="easeInOut")
-			i2 = LerpHprInterval(base.camera, self.intervalSpeed, (0,-45,0), blendType="easeInOut")
+			#i2 = LerpHprInterval(base.camera, self.intervalSpeed, (0,-45,0), blendType="easeInOut")
+			i2 = LerpHprInterval(base.camera, self.intervalSpeed, targetHpr, blendType="easeInOut")
+			
 			paral = Parallel(i1, i2)
 			paral.start()
 			
