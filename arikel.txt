@@ -1,4 +1,0 @@
-name : arikel
-sex : M
-age : 33
-HP : 250
