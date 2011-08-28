@@ -107,23 +107,22 @@ class Clicker:
 
 		
 		
-def makeFloor(nbCases, scalex, scaley):
+def makeFloor(nbCases, scalex, scaley, texpath):
 	cm = CardMaker('card')
-	cm.setUvRange(Point2(scalex/2,scaley/2), Point2(0,0))
+	cm.setUvRange(Point2(scalex/nbCases,scaley/nbCases), Point2(0,0))
 	cm.setHasNormals(True)
 	#card = render.attachNewNode(cm2.generate())
 	card = NodePath(cm.generate())
-	img = loader.loadTexture("img/textures/floor01.png")
+	img = loader.loadTexture(texpath)
 	img.setWrapU(Texture.WMRepeat)
 	img.setWrapV(Texture.WMRepeat)
 	
 	card.setTexture(img)
-	#card2.setScale(512.0/512.0, 1, 512.0/384.0)
 	card.setScale(scalex,1,scaley)
 	card.setPos(0,0,-0.01)
 	card.setHpr(0,-90,0)
 	#card.setTwoSided(True)
-	card.setTransparency(TransparencyAttrib.MAlpha)
+	#card.setTransparency(TransparencyAttrib.MAlpha)
 	return card
 	
 def makeWall(scalex, scaley, scaleTex):
@@ -178,11 +177,13 @@ class MapWall:
 # CollisionGrid
 #-----------------------------------------------------------------------
 class CollisionGrid:
-	def __init__(self, x=50, y=30, name=None, texPath=None):
+	def __init__(self, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", geoMipPath = None):
 		self.name = name
 		
 		self.x = x
 		self.y = y
+		self.texPath = texPath
+		self.geoMipPath = geoMipPath
 		
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
@@ -213,13 +214,37 @@ class CollisionGrid:
 		self.np.reparentTo(render)
 		#self.np.setTwoSided(True)
 		#self.np.setTransparency(True)
-		self.tex = loader.loadTexture(texPath)
-		self.np.setTexture(self.tex)
+		if self.texPath is not None:
+			self.tex = loader.loadTexture(self.texPath)
+		self.colTex = loader.loadTexture("img/textures/collision.png")
+		self.np.setTexture(self.colTex)
 		#self.np.setColor(0,0,1.0,0.1)
-		#self.np.setTransparency(True)
+		self.np.setTransparency(True)
 		
+		self.hasGeoMip = False
+		self.terrain = None
+		self.terrainNP = None
+		self.terrainScale = 0
+		
+		if self.geoMipPath is not None:
+			self.ground = None
+			self.initGeoMip()
+			
+		else:
+			
+			self.ground = makeFloor(8, self.x, self.y, self.texPath)
+			self.ground.reparentTo(render)
+			
+	def initGeoMip(self):
+		if self.ground:
+			self.ground.remove()
+			
+		if self.terrainNP:
+			self.terrainNP.remove()
+			
+		self.hasGeoMip = True
 		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield("models/grounds/ground02.jpg")
+		self.terrain.setHeightfield(self.geoMipPath)
 		#self.terrain.setMinLevel(2)
 		#self.terrain.setBruteforce(True)
 		self.terrainScale = 5.0
@@ -229,10 +254,35 @@ class CollisionGrid:
 		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
 		self.terrainNP.setPos(0,0,-self.terrainScale)
 		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture("img/textures/ice01.jpg"))
+		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
 		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
 		self.terrainNP.flattenStrong()
 		#self.terrainNP.setCollideMask(BitMask32(1))
+		
+	def addGeoMip(self, geomipPath, texPath="img/textures/ice01.jpg", imgSize = 65.0, scale = 5.0):
+		if self.terrainNP:
+			self.terrainNP.remove()
+		if self.ground:
+			self.ground.remove()
+		
+		self.geoMipPath = geomipPath
+		self.texPath = texPath
+		
+		self.hasGeoMip = True
+		self.terrain = GeoMipTerrain("ground")
+		self.terrain.setHeightfield(self.geoMipPath)
+		#self.terrain.setMinLevel(2)
+		#self.terrain.setBruteforce(True)
+		self.terrainScale = scale
+		self.terrainImgSize = imgSize
+		self.terrainNP = self.terrain.getRoot()
+		self.terrainNP.reparentTo(render)
+		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
+		self.terrainNP.setPos(0,0,-self.terrainScale)
+		self.terrain.generate()
+		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
+		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
+		self.terrainNP.flattenStrong()
 		
 	def collisionHide(self):
 		self.np.hide()
@@ -241,6 +291,8 @@ class CollisionGrid:
 		self.np.show()
 		
 	def getTileHeight(self, x, y):
+		if not self.hasGeoMip:
+			return 0
 		if not (0<=x<self.x): return - self.terrainScale
 		if not (0<=y<self.y): return - self.terrainScale
 		xPx = int(float(x)/self.x*self.terrainImgSize)
@@ -295,10 +347,13 @@ class CollisionGrid:
 		self.np = NodePath(self.node)
 		self.np.reparentTo(render)
 		#self.np.setTwoSided(True)
-		self.np.setTexture(self.tex)
+		self.np.setTexture(self.colTex)
 		#self.np.setColor(0,0,1.0,0.1)
-		#self.np.setTransparency(True)
+		self.np.setTransparency(True)
 		
+		if self.hasGeoMip:
+			self.initGeoMip()
+		'''
 		self.terrain = GeoMipTerrain("ground")
 		self.terrain.setHeightfield("models/grounds/ground02.jpg")
 		#self.terrain.setMinLevel(2)
@@ -314,7 +369,7 @@ class CollisionGrid:
 		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
 		self.terrainNP.flattenStrong()
 		#self.terrainNP.setCollideMask(BitMask32(1))
-		
+		'''
 		
 
 		
@@ -469,8 +524,6 @@ class GameMap(DirectObject):
 		self.NPCroot = NodePath("root")
 		self.NPCroot.reparentTo(render)
 		
-		
-		
 		self.mapObjectRoot = NodePath("mapObjectRoot")
 		self.mapObjectRoot.reparentTo(render)
 		
@@ -481,10 +534,8 @@ class GameMap(DirectObject):
 		
 		if self.filename is not None:
 			self.load()
-		
-		
-		
-		
+			#self.collisionGrid.addGeoMip("models/grounds/ground01.jpg")
+			
 		self.clicker = Clicker()
 		
 		# NPCs
@@ -552,14 +603,17 @@ class GameMap(DirectObject):
 			return False
 		if name in self.NPC:
 			self.NPC[name].stop()
+			if name in dialogDic:
+				self.dialog = dialogDic[name](self, name)
 		
+		'''		
 		if name == "Camilla":
 			self.dialog = DialogCamilla(self)
 		else:
 			self.dialog = Dialog(self, name)
-			
-		msg = "You are now talking to " + name
-		self.dialog.setMainText(msg)
+		'''	
+		
+		
 		
 	def quit(self, args=[], extraArgs=[]):
 		print "Quit has really been fired from an event, baby! args were : \n- %s\nExtra args were:\n%s" % (str(args), str(extraArgs))
@@ -569,6 +623,9 @@ class GameMap(DirectObject):
 	def save(self, filename):
 		mapData = {}
 		mapData["collision"] = self.collisionGrid.data
+		if self.collisionGrid.hasGeoMip:
+			mapData["geomip"] = [self.collisionGrid.texPath, self.collisionGrid.geoMipPath]
+			
 		mapData["mapObjects"] = []
 		for elem in self.mapObjects.values():
 			model = elem.model
@@ -603,10 +660,18 @@ class GameMap(DirectObject):
 			return False
 		self.destroy()
 		
-		self.collisionGrid = CollisionGrid(self.x, self.y, self.name, "img/textures/sand2.jpg")
-		self.mapWall = MapWall(self.x, self.y, -3)
+		
 		
 		mapData = pickle.load(open(filename, 'r'))
+		if "geomip" in mapData:
+			tex = mapData["geomip"][0]
+			geomipTex = mapData["geomip"][1]
+			self.collisionGrid = CollisionGrid(self.x, self.y, self.name, tex, geomipTex)
+		else:
+			self.collisionGrid = CollisionGrid(self.x, self.y, self.name)
+			
+		self.mapWall = MapWall(self.x, self.y, -3)
+		
 		self.collisionGrid.data = mapData["collision"]
 		self.collisionGrid.rebuild()
 		#self.collisionGrid.fillBorder()

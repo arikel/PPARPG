@@ -189,8 +189,10 @@ class NPC(MapObject):
 		
 	def setPath(self, path):
 		if path == []:
-			if self.sequence.isPlaying():
-				self.sequence.pause()
+			#if self.sequence.isPlaying():
+			#	self.sequence.pause()
+			self.stop()
+			self.resetTimer()
 			return
 			
 		if len(self.path)>1 and len(path)>1:

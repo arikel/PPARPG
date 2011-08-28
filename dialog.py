@@ -39,6 +39,9 @@ class Dialog:
 			return self.playerData[self.name]
 		
 	def intro(self):
+		msg = "You are talking to " + self.name
+		self.setMainText(msg)
+		
 		msg1 = "'Hello, " + self.name + "!'"
 		msg2 = "'So " + self.name + " is your name, huh?'"
 		
@@ -68,12 +71,21 @@ class Dialog:
 		return 1
 		
 class DialogCamilla(Dialog):
-	def __init__(self, gm):
+	def __init__(self, gm, name = "Camilla"):
 		Dialog.__init__(self, gm, "Camilla")
 		
 	def intro(self):
+		if self.getQuestValue()>1:
+			msg = "Camilla is looking at you suspiciously...\n\nCarmilla : 'What is it you want now, " + self.playerData["name"] + "?'"
+		else:
+			msg = "Camilla looks kindly at you."
+			
+		self.setMainText(msg)
+		
 		msg1 = "'Hello, " + self.name + "!'"
 		msg2 = "'Camilla, you seem to know a lot of stuff about what's going on here...'"
+		
+		
 		
 		menu = [
 			[msg1, self.l_hello, []],
@@ -118,3 +130,8 @@ class DialogCamilla(Dialog):
 		return 1
 		
 	
+dialogDic = {}
+dialogDic["Camilla"] = DialogCamilla
+for name in ["Kimmo", "ula2", "Drunkard"]:
+	dialogDic[name] = Dialog
+
