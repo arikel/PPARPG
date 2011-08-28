@@ -435,17 +435,22 @@ class CollisionGrid:
 		self.update()
 		
 	def getRandomTile(self):
-		while True:
+		#while True:
+		for i in range(10):# if no success after ten tries, give up and wait
 			x = random.randint(1,self.x-1)
 			y = random.randint(1,self.y-1)
 			if self.data[y][x]==0:
 				#print "returning random free tile : %s %s" % (x, y)
 				return x, y
+		return None
 	
 
 	
 class GameMap(DirectObject):
-	def __init__(self, x, y):
+	def __init__(self, x, y, name, filename = None):
+		self.name = name
+		self.filename = filename
+		
 		self.x = x
 		self.y = y
 		
@@ -478,9 +483,10 @@ class GameMap(DirectObject):
 		
 		
 		# light
-		self.light = LightManager()
-		self.light.lightCenter.setPos(0,0,0)
-		self.light.lightCenter.reparentTo(base.camera)
+		if CONFIG_LIGHT:
+			self.light = LightManager()
+			self.light.lightCenter.setPos(0,0,0)
+			self.light.lightCenter.reparentTo(base.camera)
 		
 		
 		self.keyDic = {}
@@ -505,6 +511,9 @@ class GameMap(DirectObject):
 		self.accept(SAVE_MAP, self.save, ["mapCode.txt"])
 		self.accept(LOAD_MAP, self.load, ["mapCode.txt"])
 		
+		self.accept(CLEAR_COLLISION, self.clearCollision, [])
+		self.accept(FILL_COLLISION, self.fillCollision, [])
+		
 		self.msg = makeMsg(-1.3,0.95,"...")
 		#self.msg2 = makeMsgLeft2(-0.8,0.7,"This is a new hope for PARPG...")
 		self.msgTilePos = makeMsg(-1.2,0.95,"...")
@@ -525,7 +534,7 @@ class GameMap(DirectObject):
 			return False
 		if name in self.NPC:
 			self.NPC[name].stop()
-			
+		
 		if name == "Camilla":
 			self.dialog = DialogCamilla(self)
 		else:
@@ -542,15 +551,15 @@ class GameMap(DirectObject):
 	def save(self, filename):
 		mapData = {}
 		mapData["collision"] = self.collisionGrid.data
-		mapData["models"] = []
+		mapData["mapObjects"] = []
 		for elem in self.mapObjects:
 			model = elem.model
-			modelData = []
-			modelData.append(elem.name)
-			modelData.append(model.getPos())
-			modelData.append(model.getHpr())
-			modelData.append(model.getScale())
-			mapData["models"].append(modelData)
+			mapObjectData = []
+			mapObjectData.append(elem.name)
+			mapObjectData.append(model.getPos())
+			mapObjectData.append(model.getHpr())
+			mapObjectData.append(model.getScale())
+			mapData["models"].append(mapObjectData)
 		
 		
 		f = open(filename, 'w')
@@ -566,8 +575,16 @@ class GameMap(DirectObject):
 		self.collisionGrid.rebuild()
 		self.collisionGrid.fillBorder()
 		
-		print "models in use : %s" % (mapData["models"])
+		print "models in use : %s" % (mapData["mapObjects"])
 		#self.collisionGrid.update()
+		
+	def clearCollision(self, args=[]):
+		if self.mode == "edit":
+			self.collisionGrid.clear()
+		
+	def fillCollision(self, args=[]):
+		if self.mode == "edit":
+			self.collisionGrid.fill()
 		
 	def setKey(self, key, value):
 		self.keyDic[key] = value
@@ -576,12 +593,12 @@ class GameMap(DirectObject):
 		self.mode = mode
 		self.camHandler.setMode(mode)
 		if mode == "edit":
-			self.light.lightCenter.detachNode()
+			if CONFIG_LIGHT: self.light.lightCenter.detachNode()
 			render.setShaderOff()
 			render.setLightOff()
 			
 		elif mode == "playing":
-			self.light.lightCenter.reparentTo(base.camera)
+			if CONFIG_LIGHT: self.light.lightCenter.reparentTo(base.camera)
 			render.setShaderAuto()
 			
 	def toggle(self):
@@ -660,7 +677,7 @@ class GameMap(DirectObject):
 		
 		
 			
-		
+		# click on NPC :
 		res = self.clicker.getMouseObject(self.NPCroot)
 		#res = self.clicker.getMouseObject(render)
 		if res is not None:
@@ -669,11 +686,11 @@ class GameMap(DirectObject):
 			msg = "Talk to " + name
 			self.msg.setText(msg)
 			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
-			if self.keyDic["mouse1"] and name != self.player.name:
-				self.NPC[name].stop()
+			if self.keyDic["mouse1"]:# and name != self.player.name:
 				self.openDialog(name)
-			elif self.keyDic["mouse3"] and name != self.player.name:
-				self.NPC[name].destroy()
+			elif self.keyDic["mouse3"]:# and name != self.player.name:
+				#self.NPC[name].destroy()
+				self.removeNPC(name)
 				
 		else:
 			self.msg.setText("")
@@ -719,24 +736,31 @@ class GameMap(DirectObject):
 		if self.keyDic[DOWN]:
 			self.camHandler.lookDown(dt)
 		
-		
+		#-------------------------------------------------
+		# NPC random movement
 		for name in self.NPC:
 			npc = self.NPC[name]
 			if npc.timer <= 0:
 				if npc.mode == "idle":
-					#print "Sending NPC to random pos"
-					x, y = self.collisionGrid.getRandomTile()
-					self.NPCGoto(name, x, y)
-				#elif npc.mode == "walk":
-					
+					if self.dialog:
+						if self.dialog.name != name:
+							#print "Sending NPC to random pos"
+							tile = self.collisionGrid.getRandomTile()
+							if tile is not None:
+								self.NPCGoto(name, tile[0], tile[1])
+					else:
+						tile = self.collisionGrid.getRandomTile()
+						if tile is not None:
+							self.NPCGoto(name, tile[0], tile[1])
+		
 		return task.cont
-				
+		
 
 
 
 
 #gamemap = GameMap(40,25)
-gamemap = GameMap(150,120)
+gamemap = GameMap(250,120, "startVillage", "mapCode.txt")
 
 house = loader.loadModel("models/buildings/ruin_house")
 house.reparentTo(render)

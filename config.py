@@ -17,6 +17,8 @@ DOWN = "f"
 OPEN_EDITOR = "control-e"
 SAVE_MAP = "control-s"
 LOAD_MAP = "control-o"
+CLEAR_COLLISION = "control-c"
+FILL_COLLISION = "control-f"
 
 CONFIG_LIGHT = True
 #CONFIG_W, CONFIG_H = 800, 600

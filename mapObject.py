@@ -110,11 +110,23 @@ class NPC(MapObject):
 		self.timer = random.random()*5.0
 		#self.timerMsg = makeMsg(0,0,"time")
 		self.timerMsg = TextNode(self.name)
+		self.timerMsg.setFont(FONT)
+		#self.timerMsg.setTextColor(1,1,1,1)
+		
+		
+		self.timerMsg.setCardColor(1, 1, 1, 0.8)
+		self.timerMsg.setCardAsMargin(0.5, 0.5, 0, 0.5)
+		self.timerMsg.setCardDecal(True)
+		
 		self.timerLabel = render.attachNewNode(self.timerMsg)
 		self.timerLabel.reparentTo(self.model)
 		self.timerLabel.setPos(1,0,3)
 		self.timerLabel.setBillboardAxis()
-		
+		self.timerLabel.setLightOff()
+		#self.timerLabel.clearTexture(TextureStage.getDefault())
+		self.timerLabel.setTexture(loader.loadTexture("img/generic/label.png"))
+		#self.timerLabel.setColor(1,1,1,0.2)
+		#self.timerLabel.setTransparency(True)
 		
 		self.data = {}
 		self.data["name"] = self.name
@@ -219,7 +231,7 @@ class NPC(MapObject):
 		dt = globalClock.getDt()
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
-		timer = str(round(self.timer, 2))
+		timer = str(round(self.timer, 1))
 		msg = self.name + "\n" + self.mode + " / " + timer
 		self.timerMsg.setText(msg)
 		
