@@ -419,8 +419,13 @@ class CollisionGrid:
 	def clear(self):
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
+			tmp = []
 			for x in range(self.x):
-				self.data[y][x] = 0
+				tmp.append(0)
+			self.data.append(tmp)
+		#for y in range(self.y):
+		#	for x in range(self.x):
+		#		self.data[y][x] = 0
 		self.update()
 	
 	def fillBorder(self):
