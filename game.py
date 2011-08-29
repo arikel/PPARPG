@@ -523,12 +523,12 @@ class CollisionGrid:
 			self.terrainNP.remove()
 			
 class GameMap(DirectObject):
-	def __init__(self, x, y, name, filename = None):
-		self.name = name
+	def __init__(self, filename = None):
+		self.name = None
 		self.filename = filename
 		
-		self.x = x
-		self.y = y
+		self.x = 0
+		self.y = 0
 		
 		#self.floor = makeFloor(20, self.x, self.y)
 		#self.floor.reparentTo(render)
@@ -539,6 +539,7 @@ class GameMap(DirectObject):
 		self.mapObjectRoot = NodePath("mapObjectRoot")
 		self.mapObjectRoot.reparentTo(render)
 		#self.mapObjectRoot.setTransparency(True)
+		self.mapObjectRoot.setTransparency(TransparencyAttrib.MAlpha)
 		
 		self.mapObjects = {} # map objects
 		
@@ -577,7 +578,7 @@ class GameMap(DirectObject):
 			FORWARD, BACKWARD,
 			STRAFE_LEFT, STRAFE_RIGHT,
 			TURN_LEFT, TURN_RIGHT,
-			UP, DOWN,"h", "b"
+			UP, DOWN,"h", "b", "t", "g"
 			]:
 			self.keyDic[key] = 0
 			self.accept(key, self.setKey, [key, 1])
@@ -595,7 +596,8 @@ class GameMap(DirectObject):
 		
 		self.accept(CLEAR_COLLISION, self.clearCollision, [])
 		self.accept(FILL_COLLISION, self.fillCollision, [])
-		self.accept("t", self.collisionGrid.removeGeoMip)
+		
+		
 		
 		
 		self.msg = makeMsg(-1.3,0.95,"...")
@@ -605,16 +607,14 @@ class GameMap(DirectObject):
 		
 		self.dialog = None # current dialog
 		
-		#self.addMapObject("crate", "crate 1", 12.5, 32.5)
+		#self.addMapObject("crate1", "crate 1", 12.5, 32.5)
+		#self.addMapObject("aldea", "aldea 1", 28.5, 35.5)
 		
 		self.draggingObject = False
 		self.draggedObject = None
 		
 		taskMgr.add(self.update, "gameMapTask")
-		
-	def mapObjectMoveZ(self, obj, dt):
-		obj.setZ(obj.getZ()+dt)
-		
+	
 	def startDrag(self, mapObj):
 		self.draggingObject = True
 		self.draggedObject = mapObj
@@ -634,14 +634,6 @@ class GameMap(DirectObject):
 			if name in dialogDic:
 				self.dialog = dialogDic[name](self, name)
 		
-		'''		
-		if name == "Camilla":
-			self.dialog = DialogCamilla(self)
-		else:
-			self.dialog = Dialog(self, name)
-		'''	
-		
-		
 		
 	def quit(self, args=[], extraArgs=[]):
 		print "Quit has really been fired from an event, baby! args were : \n- %s\nExtra args were:\n%s" % (str(args), str(extraArgs))
@@ -650,6 +642,9 @@ class GameMap(DirectObject):
 		
 	def save(self, filename):
 		mapData = {}
+		mapData["name"] = self.name
+		mapData["X"] = self.x
+		mapData["Y"] = self.y
 		mapData["collision"] = self.collisionGrid.data
 		if self.collisionGrid.hasGeoMip:
 			mapData["geomip"] = [self.collisionGrid.texPath, self.collisionGrid.geoMipPath]
@@ -691,6 +686,14 @@ class GameMap(DirectObject):
 		
 		
 		mapData = pickle.load(open(filename, 'r'))
+		if "name" in mapData:
+			self.name = mapData["name"]
+			print "Loading map named %s" % (self.name)
+		if "X" in mapData:
+			self.x = mapData["X"]	
+		if "Y" in mapData:
+			self.y = mapData["Y"]
+		
 		if "geomip" in mapData:
 			tex = mapData["geomip"][0]
 			geomipTex = mapData["geomip"][1]
@@ -711,13 +714,22 @@ class GameMap(DirectObject):
 			pos = data[2]
 			hpr = data[3]
 			scale = data[4]
-			self.addMapObject(genre, name, pos.getX(), pos.getY(), pos.getZ())
+			self.addMapObject(
+				genre,
+				name,
+				(pos.getX(), pos.getY(), pos.getZ()),
+				(hpr.getX(), hpr.getY(), hpr.getZ()),
+				(scale.getX(), scale.getY(), scale.getZ())
+				)
+			
 		
 	
-	def addMapObject(self, genre, name, x, y, z=0):
+	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
 		if name not in self.mapObjects:
 			mapObject = MapObject(self, genre, name)
-			mapObject.setPos(x, y, z) #-self.collisionGrid.terrainScale/3.0)
+			mapObject.setPos(pos) #-self.collisionGrid.terrainScale/3.0)
+			mapObject.setHpr(hpr)
+			mapObject.setScale(scale)
 			mapObject.reparentTo(self.mapObjectRoot)
 			self.mapObjects[name] = mapObject
 		
@@ -747,7 +759,8 @@ class GameMap(DirectObject):
 		self.camHandler.setMode(mode)
 		if mode == "edit":
 			for obj in self.mapObjects.values():
-				obj.model.setColor(1,1,1,0.5)
+				obj.model.clearColor()
+				obj.model.setColorScale(1,1,1,1)
 				obj.model.setTransparency(TransparencyAttrib.MAlpha)
 				
 			#if CONFIG_LIGHT: self.light.lightCenter.detachNode()
@@ -756,7 +769,8 @@ class GameMap(DirectObject):
 			
 		elif mode == "playing":
 			for obj in self.mapObjects.values():
-				obj.model.setColor(1,1,1,1.0)
+				obj.model.clearColor()
+				obj.model.setColorScale(1,1,1,1.0)
 				obj.model.setTransparency(TransparencyAttrib.MAlpha)
 				
 			#if CONFIG_LIGHT: self.light.lightCenter.reparentTo(base.camera)
@@ -872,9 +886,22 @@ class GameMap(DirectObject):
 				print "map object right click"
 		
 			if self.keyDic["h"]:
-				self.mapObjectMoveZ(self.mapObjects[name], dt)
+				#self.mapObjectMoveZ(self.mapObjects[name], dt)
+				self.mapObjects[name].moveZ(dt)
+				
 			elif self.keyDic["b"]:
-				self.mapObjectMoveZ(self.mapObjects[name], -dt)
+				#self.mapObjectMoveZ(self.mapObjects[name], -dt)
+				self.mapObjects[name].moveZ(-dt)
+				
+			if self.keyDic["t"]:
+				#self.mapObjectMoveScale(self.mapObjects[name], dt)
+				#self.mapObjects[name].scale(dt)
+				self.mapObjects[name].rotate(dt)
+				
+			elif self.keyDic["g"]:
+				#self.mapObjectMoveScale(self.mapObjects[name], -dt)
+				#self.mapObjects[name].scale(-dt)
+				self.mapObjects[name].rotate(-dt)
 				
 		if self.draggingObject and not self.keyDic["mouse1"]:
 			self.stopDrag()
@@ -894,7 +921,7 @@ class GameMap(DirectObject):
 			elif self.keyDic["mouse3"]:
 				self.collisionGrid.hideTile(pos[0], pos[1])
 		elif self.mode == "playing":
-			if self.keyDic["mouse1"]:
+			if self.keyDic["mouse1"] and not self.draggingObject:
 				self.playerGoto(pos[0], pos[1])
 				
 				#for name in self.NPC:
@@ -946,52 +973,24 @@ class GameMap(DirectObject):
 class GameManager(FSM):
 	def __init__(self):
 		FSM.__init__(self, 'Game')
+		self.clicker = Clicker()
 		
-
+		# light
+		if CONFIG_LIGHT:
+			self.light = LightManager()
+			self.light.lightCenter.setPos(0,0,0)
+			self.light.lightCenter.reparentTo(base.camera)
+		
+	def loadGameMap(self, filename):
+		self.map = GameMap(filename)
+		
 #gamemap = GameMap(40,25)
-gamemap = GameMap(250,120, "startVillage", "maps/mapCode.txt")
-
-'''
-house = loader.loadModel("models/buildings/ruin_house")
-house.reparentTo(render)
-house.setPos(15,12,-2)
-house.setColor(1,1,1,0.5)
-house.setTransparency(True)
-
-house = loader.loadModel("models/buildings/ruin_house")
-house.reparentTo(render)
-house.setPos(35,12,-2)
-house.setColor(1,1,1,0.5)
-house.setTransparency(True)
-
-house = loader.loadModel("models/buildings/ruin_house")
-house.reparentTo(render)
-house.setPos(5,22,-2)
-house.setColor(1,1,1,0.5)
-house.setTransparency(True)
-
-
-for i in [(15.5,20.5,-2), (12.5,15.5,-2), (8.5,4.5,-2)]:
-	barrel = loader.loadModel("models/buildings/crate1")
-	barrel.reparentTo(render)
-	barrel.setPos(i)
-
-for i in [(12.5,18.5,-2), (14.5,15.5,-2), (9.5,6.5,-2)]:
-	barrel = loader.loadModel("models/buildings/barrel")
-	barrel.reparentTo(render)
-	barrel.setPos(i)
-
-for i in [(10.5,14.5,-2), (14.5,11.5,-2), (11.5,9.5,-2)]:
-	barrel = loader.loadModel("models/buildings/barrel2")
-	barrel.reparentTo(render)
-	barrel.setPos(i)
-
-'''
+gamemap = GameMap("maps/mapCode.txt")
 
 sky = SkyBox()
 #sky.load("hipshot1")
 sky.load("teal1")
-sky.set("teal1")
+#sky.set("teal1")
 
 #button = MainButton(-0.5,0.8, u"PPARPG coming...")
 #dg = DialogGui(0,-0.5,"Kimmo")
@@ -1014,6 +1013,7 @@ bgMusic.play()
 #messenger.send("quit", [["and", "a", "shit", "load", "of", "other", "things"]])
 
 render.setShaderAuto()
+render.setTransparency(TransparencyAttrib.MAlpha)
 #render.setAntialias(AntialiasAttrib.MMultisample)
 #render.setAntialias(AntialiasAttrib.MAuto)
 

@@ -13,7 +13,9 @@ import math, random
 
 mapObjectDB = {} # genre : [modelPath, texturePath, collisionPos]
 mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (0,0,1,2)]
-mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.png", (5.2,-2.8,2,2)]
+mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.jpg", (5.2,-2.8,2,2)]
+
+mapObjectDB["aldea"] = ["models/buildings/aldea", "models/buildings/aldea.jpg", (5.2,-2.8,2,2)]
 
 mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
 mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
@@ -49,7 +51,8 @@ class MapObject:
 			self.model.remove()
 		self.modelPath = modelPath
 		self.model = loader.loadModel(modelPath)
-		self.model.setTransparency(True)
+		self.model.setTransparency(TransparencyAttrib.MAlpha)
+		
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
 			self.texturePath = texturePath
@@ -69,34 +72,54 @@ class MapObject:
 		
 	def reparentTo(self, np):
 		self.model.reparentTo(np)
-		
-	def setPos(self, *pos):
-		self.model.setPos(pos)
 	
+	#-------------------------------------------------------------------
+	# Pos
+	def setPos(self, pos):
+		#self.model.setPos(pos[0], pos[1], pos[2])
+		self.model.setPos(pos)
+		
 	def setZ(self, z):
 		self.model.setZ(z)
 		
 	def getZ(self):
 		return self.model.getZ()
+	
+	def setTilePos(self, x, y):
+		self.setPos((x+0.5, y+0.5, self.model.getZ()))
 		
 	def getTilePos(self):
 		return int(self.model.getX()), int(self.model.getY())
 	
+	def moveZ(self, dt=0.01):
+		self.model.setZ(self.model.getZ()+dt)
 		
-	def setHpr(self, *hpr):
+	#-------------------------------------------------------------------
+	# Hpr
+	def setHpr(self, hpr):
 		self.model.setHpr(hpr)
 		
 	def setRot(self, n):
 		self.model.setH(n)
-		
-	def setScale(self, *scale):
+	
+	def rotate(self, dt=0.01):
+		self.model.setH(self.model.getH()+dt*50)
+	
+	#-------------------------------------------------------------------
+	# Scale
+	def setScale(self, scale):
 		self.model.setScale(scale)
 		
-	def setTilePos(self, x, y):
-		self.setPos(x+0.5, y+0.5, self.model.getZ())
+	def getScale(self):
+		return self.model.getScale()
+	
+	def getScaleX(self):
+		return self.model.getSx()
 		
-	def getTilePos(self):
-		return int(self.model.getX()), int(self.model.getY())
+	def scale(self, dt=0.01):
+		self.model.setScale(self.model.getSx() + dt)
+		
+	
 		
 	def destroy(self):
 		if self.task:
@@ -151,6 +174,7 @@ class NPC(MapObject):
 		self.timerLabel.setLightOff()
 		#self.timerLabel.clearTexture(TextureStage.getDefault())
 		self.timerLabel.setTexture(loader.loadTexture("img/generic/label.png"))
+		self.timerLabel.setScale(0.4)
 		#self.timerLabel.setColor(1,1,1,0.2)
 		#self.timerLabel.setTransparency(True)
 		
