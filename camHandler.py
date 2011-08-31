@@ -62,26 +62,35 @@ class CamHandler:
 	def turnRight(self, dt):
 		if self.mode == "playing":
 			self.playingNp.setH(self.playingNp, -dt*self.speed*10)
-			self.update()
 		elif self.mode == "edit":
 			self.editNp.setH(self.editNp, -dt*self.speed*10)
 			
 	def lookUp(self, dt):
 		if self.mode == "playing":
 			base.camera.setP(base.camera, dt*self.speed*5)
-			if base.camera.getP()>90:
-				base.camera.setP(90)
-		elif self.mode == "edit":
-			self.editNp.setPos(self.editNp, (0,0,dt*self.speed*10))
+			#if base.camera.getP()>90:
+			#	base.camera.setP(90)
+		#elif self.mode == "edit":
+		#	self.editNp.setPos(self.editNp, (0,0,dt*self.speed*10))
 		
 	def lookDown(self, dt):
 		if self.mode == "playing":
 			base.camera.setP(base.camera, -dt*self.speed*5)
-			if base.camera.getP()<-90:
-				base.camera.setP(-90)
-		elif self.mode == "edit":
-			self.editNp.setPos(self.editNp, (0,0,-dt*self.speed*10))
+			#if base.camera.getP()<-90:
+			#	base.camera.setP(-90)
+		#elif self.mode == "edit":
+		#	self.editNp.setPos(self.editNp, (0,0,-dt*self.speed*10))
 	
+	def moveHeight(self, dt):
+		if self.mode == "playing":
+			self.playingNp.setPos(self.playingNp, (0,0,dt*self.speed*10))
+			if self.playingNp.getZ()<0:
+				self.playingNp.setZ(0)
+		elif self.mode == "edit":
+			self.editNp.setPos(self.editNp, (0,0,dt*self.speed*10))
+			if self.editNp.getZ()<0:
+				self.editNp.setZ(0)
+				
 	def update(self):
 		while self.playingNp.getH()<-180.0:
 			self.playingNp.setH(self.playingNp.getH()+360.0)
@@ -91,9 +100,12 @@ class CamHandler:
 			self.editNp.setH(self.editNp.getH()+360.0)
 		while self.editNp.getH()>180.0:
 			self.editNp.setH(self.editNp.getH()-360.0)
-		
+	
+	
 	def setMode(self, mode):
 		self.mode = mode
+		self.update()
+		
 		if self.mode == "playing":
 			base.camera.wrtReparentTo(self.playingNp)
 			

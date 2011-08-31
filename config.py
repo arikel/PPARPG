@@ -4,7 +4,7 @@
 # config.py
 
 
-# keyboard control
+# camera control
 FORWARD = "z"
 BACKWARD = "s"
 STRAFE_LEFT = "q"
@@ -14,6 +14,7 @@ TURN_RIGHT = "e"
 UP = "f"
 DOWN = "c"
 
+# editor commands
 OPEN_EDITOR = "control-e"
 SAVE_MAP = "control-s"
 LOAD_MAP = "control-o"

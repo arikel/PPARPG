@@ -78,7 +78,12 @@ class MapObject:
 	def setPos(self, pos):
 		#self.model.setPos(pos[0], pos[1], pos[2])
 		self.model.setPos(pos)
-		
+	
+	def getPos(self):
+		if self.model: return self.model.getPos()
+		else: return None
+			
+	
 	def setZ(self, z):
 		self.model.setZ(z)
 		

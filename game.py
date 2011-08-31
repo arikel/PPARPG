@@ -34,8 +34,9 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.filter.CommonFilters import CommonFilters
 from direct.fsm.FSM import FSM
 
-import sys, random
+import sys
 import cPickle as pickle
+
 
 from camHandler import CamHandler
 from pathFind import *
@@ -48,6 +49,7 @@ from mouseCursor import *
 from gui import *
 from mapObject import *
 from dialog import *
+from mapUtils import *
 
 #-----------------------------------------------------------------------
 # Clicker
@@ -70,8 +72,9 @@ class Clicker:
 		
 	def getMouseObject(self, np=render):
 		if base.mouseWatcherNode.hasMouse():
-			mpos = base.mouseWatcherNode.getMouse()
+			self.picker.showCollisions(np)
 			
+			mpos = base.mouseWatcherNode.getMouse()
 			self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())
 			self.picker.traverse(np)
 			if self.pq.getNumEntries() > 0:
@@ -126,408 +129,6 @@ class Clicker:
 		return None
 
 #-----------------------------------------------------------------------
-# Decor building functions and classes
-#-----------------------------------------------------------------------
-
-def makeFloor(nbCases, scalex, scaley, texpath):
-	cm = CardMaker('card')
-	cm.setUvRange(Point2(scalex/nbCases,scaley/nbCases), Point2(0,0))
-	cm.setHasNormals(True)
-	#card = render.attachNewNode(cm2.generate())
-	card = NodePath(cm.generate())
-	img = loader.loadTexture(texpath)
-	img.setWrapU(Texture.WMRepeat)
-	img.setWrapV(Texture.WMRepeat)
-	
-	card.setTexture(img)
-	card.setScale(scalex,1,scaley)
-	card.setPos(0,0,0.0)
-	card.setHpr(0,-90,0)
-	#card.setTwoSided(True)
-	#card.setTransparency(TransparencyAttrib.MAlpha)
-	return card
-	
-def makeWall(scalex, scaley, scaleTex):
-	cm = CardMaker('card')
-	cm.setUvRange((scalex/scaleTex,0), (0,scaley/scaleTex))
-	cm.setHasNormals(True)
-	card = NodePath(cm.generate())
-	img = loader.loadTexture("img/textures/oldstone4.jpg")
-	card.setTexture(img)
-	card.setScale(scalex,1,scaley)
-	#card.setHpr(0,0,0)
-	card.setTwoSided(True)
-	card.setTransparency(TransparencyAttrib.MAlpha)
-	return card
-
-class MapWall:
-	def __init__(self, x, y,z=0):
-		self.walls = []
-		
-		height = 6.0
-		texScale = 5.0
-		
-		wall1 = makeWall(x, height, texScale)
-		wall1.reparentTo(render)
-		wall1.setPos(0,y,z)
-		self.walls.append(wall1)
-		
-		wall1 = makeWall(x, height, texScale)
-		wall1.reparentTo(render)
-		wall1.setPos(x,0,z)
-		wall1.setHpr(180,0,0)
-		self.walls.append(wall1)
-		
-		wall1 = makeWall(y, height, texScale)
-		wall1.reparentTo(render)
-		wall1.setPos(0,0,z)
-		wall1.setHpr(90,0,0)
-		self.walls.append(wall1)
-		
-		wall1 = makeWall(y, height, texScale)
-		wall1.reparentTo(render)
-		wall1.setPos(x,y,z)
-		wall1.setHpr(-90,0,0)
-		self.walls.append(wall1)
-		
-	def destroy(self):
-		for wall in self.walls:
-			wall.remove()
-	
-		
-#-----------------------------------------------------------------------
-# CollisionGrid
-#-----------------------------------------------------------------------
-class CollisionGrid:
-	def __init__(self, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", geoMipPath = None):
-		self.name = name
-		
-		self.x = x
-		self.y = y
-		self.texPath = texPath
-		self.geoMipPath = geoMipPath
-		
-		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
-		for y in range(self.y):
-			tmp = []
-			for x in range(self.x):
-				tmp.append(0)
-			self.data.append(tmp)
-				
-		
-		self.node = GeomNode("tiledMesh")
-		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
-		self.geom = Geom(self.gvd)
-		self.prim = GeomTriangles(Geom.UHStatic)
-		
-		self.update()
-		
-		i = 0
-		for x in range(self.x * self.y):
-			self.prim.addVertices(i, i + 3, i + 2)
-			self.prim.addVertices(i, i + 2, i + 1)
-			i += 4
-		
-		self.prim.closePrimitive()
-		self.geom.addPrimitive(self.prim)
-		self.node.addGeom(self.geom)
-		
-		self.np = NodePath(self.node)
-		self.np.reparentTo(render)
-		#self.np.setTwoSided(True)
-		#self.np.setTransparency(True)
-		if self.texPath is not None:
-			self.tex = loader.loadTexture(self.texPath)
-		self.colTex = loader.loadTexture("img/textures/collision.png")
-		self.np.setTexture(self.colTex)
-		#self.np.setColor(0,0,1.0,0.1)
-		self.np.setTransparency(True)
-		
-		self.hasGeoMip = False
-		self.terrain = None
-		self.terrainNP = None
-		self.terrainScale = 0
-		
-		if self.geoMipPath is not None:
-			self.ground = None
-			self.initGeoMip()
-			
-		else:
-			
-			self.ground = makeFloor(8, self.x, self.y, self.texPath)
-			self.ground.reparentTo(render)
-			
-	def initGeoMip(self):
-		if self.ground:
-			self.ground.remove()
-			
-		if self.terrainNP:
-			self.terrainNP.remove()
-			
-		self.hasGeoMip = True
-		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield(self.geoMipPath)
-		#self.terrain.setMinLevel(2)
-		#self.terrain.setBruteforce(True)
-		self.terrainScale = 5.0
-		self.terrainImgSize = 65.0
-		self.terrainNP = self.terrain.getRoot()
-		self.terrainNP.reparentTo(render)
-		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		#self.terrainNP.setPos(0,0,-self.terrainScale)
-		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
-		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
-		self.terrainNP.flattenStrong()
-		#self.terrainNP.setCollideMask(BitMask32(1))
-		
-	def removeGeoMip(self):
-		if self.terrainNP:
-			self.terrainNP.remove()
-			self.hasGeoMip = False
-			self.terrain = None
-			self.terrainNP = None
-			self.terrainScale = 0
-			self.ground = makeFloor(8, self.x, self.y, self.texPath)
-			self.ground.reparentTo(render)
-			self.update()
-		
-	def addGeoMip(self, geomipPath, texPath="img/textures/ice01.jpg", imgSize = 65.0, scale = 5.0):
-		if self.terrainNP:
-			self.terrainNP.remove()
-		if self.ground:
-			self.ground.remove()
-		
-		self.geoMipPath = geomipPath
-		self.texPath = texPath
-		
-		self.hasGeoMip = True
-		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield(self.geoMipPath)
-		#self.terrain.setMinLevel(2)
-		#self.terrain.setBruteforce(True)
-		self.terrainScale = scale
-		self.terrainImgSize = imgSize
-		self.terrainNP = self.terrain.getRoot()
-		self.terrainNP.reparentTo(render)
-		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		#self.terrainNP.setPos(0,0,-self.terrainScale)
-		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
-		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
-		self.terrainNP.flattenStrong()
-		
-	def collisionHide(self):
-		self.np.hide()
-		
-	def collisionShow(self):
-		self.np.show()
-		
-	def getTileHeight(self, x, y):
-		if not self.hasGeoMip:
-			return 0
-		if not (0<=x<self.x): return 0 #- self.terrainScale
-		if not (0<=y<self.y): return 0 #- self.terrainScale
-		
-		xPx = int(float(x)/self.x*self.terrainImgSize)
-		yPx = int(float(y)/self.y*self.terrainImgSize)
-		height = self.terrain.getElevation(xPx, yPx) * self.terrainScale# - self.terrainScale
-		#print "Terrain height in %s / %s : %s" % (x, y, height)
-		return height
-		
-	def update(self):
-		self.vertex = GeomVertexWriter(self.gvd, 'vertex')
-		self.texcoord = GeomVertexWriter(self.gvd, 'texcoord')
-		self.color = GeomVertexWriter(self.gvd, 'color')
-		self.normal = GeomVertexWriter(self.gvd, 'normal')
-		
-		i = 0
-		for y in range(self.y):
-			for x in range(self.x):
-				if self.data[y][x] == 1:
-					self.addWallTile(x, y)
-				else:
-					self.addEmptyTile(x, y)
-				i += 4
-			
-	def rebuild(self):
-		# Needed to update the map after it has been resized
-		if self.np:
-			self.np.remove()
-		if self.terrainNP:
-			self.terrainNP.remove()
-		self.y = len(self.data)
-		self.x = len(self.data[0])
-		
-		self.node = GeomNode("tiledMesh")
-		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
-		self.geom = Geom(self.gvd)
-		self.prim = GeomTriangles(Geom.UHStatic)
-		
-		self.update()
-		
-		i = 0
-		for x in range(self.x * self.y):
-			#self.prim.addVertices(i, i + 3, i + 2)
-			#self.prim.addVertices(i, i + 2, i + 1)
-			self.prim.addVertices(i, i + 2, i + 1)
-			self.prim.addVertices(i, i + 3, i + 2)
-			i += 4
-		
-		self.prim.closePrimitive()
-		self.geom.addPrimitive(self.prim)
-		self.node.addGeom(self.geom)
-		
-		self.np = NodePath(self.node)
-		self.np.reparentTo(render)
-		#self.np.setTwoSided(True)
-		self.np.setTexture(self.colTex)
-		#self.np.setColor(0,0,1.0,0.1)
-		self.np.setTransparency(True)
-		
-		if self.hasGeoMip:
-			self.initGeoMip()
-		
-		
-	def addWallTile(self, x, y):
-		
-		norm, norm2 = random.random()/2.0, random.random()/2.0
-		#z = 0
-		z1 = self.getTileHeight(x, y) + 0.01
-		z2 = self.getTileHeight(x, y+1) + 0.01
-		z3 = self.getTileHeight(x+1, y+1) + 0.01
-		z4 = self.getTileHeight(x+1, y) + 0.01
-		
-		self.vertex.addData3f(x, y, z1)
-		self.texcoord.addData2f(0, 0)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(norm,norm2,1)
-		
-		self.vertex.addData3f(x, y+1, z2)
-		self.texcoord.addData2f(0, 1)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(norm,norm2,1)
-		
-		self.vertex.addData3f(x+1, y+1, z3)
-		self.texcoord.addData2f(1, 1)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(norm,norm2,1)
-		
-		self.vertex.addData3f(x+1, y, z4)
-		self.texcoord.addData2f(1, 0)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(norm,norm2,1)
-
-	def addEmptyTile(self, x, y):
-		#z = random()/100.0
-		z = 0
-		self.vertex.addData3f(x, y, z)
-		self.texcoord.addData2f(0, 0)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(0,0,1)
-		
-		self.vertex.addData3f(x, y, z)
-		self.texcoord.addData2f(0, 1)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(0,0,1)
-		
-		self.vertex.addData3f(x, y, z)
-		self.texcoord.addData2f(1, 1)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(0,0,1)
-		
-		self.vertex.addData3f(x, y, z)
-		self.texcoord.addData2f(1, 0)
-		self.color.addData4f(1, 1, 1, 1)
-		self.normal.addData3f(0,0,1)
-		
-	def hideTile(self, x, y):
-		if (0<=x<self.x) and (0<=y<self.y):
-			if self.data[y][x]!=0:
-				self.data[y][x] = 0
-				row = (self.x*y + x)*4
-				
-				self.vertex = GeomVertexWriter(self.gvd, 'vertex')
-				self.texcoord = GeomVertexWriter(self.gvd, 'texcoord')
-				self.color = GeomVertexWriter(self.gvd, 'color')
-				self.normal = GeomVertexWriter(self.gvd, 'normal')
-				
-				self.vertex.setRow(row)
-				self.texcoord.setRow(row)
-				self.color.setRow(row)
-				self.normal.setRow(row)
-				
-				self.addEmptyTile(x, y)
-				#self.update()
-	
-	def showTile(self, x, y):
-		if (0<=x<self.x) and (0<=y<self.y):
-			if self.data[y][x]!=1:
-				self.data[y][x] = 1
-				row = (self.x*y + x)*4
-				
-				self.vertex = GeomVertexWriter(self.gvd, 'vertex')
-				self.texcoord = GeomVertexWriter(self.gvd, 'texcoord')
-				self.color = GeomVertexWriter(self.gvd, 'color')
-				self.normal = GeomVertexWriter(self.gvd, 'normal')
-				
-				self.vertex.setRow(row)
-				self.texcoord.setRow(row)
-				self.color.setRow(row)
-				self.normal.setRow(row)
-				
-				self.addWallTile(x, y)
-				
-				#self.update()
-		
-		
-	def fill(self):
-		for y in range(self.y):
-			for x in range(self.x):
-				self.data[y][x] = 1
-		self.update()
-		
-	def clear(self):
-		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
-		for y in range(self.y):
-			tmp = []
-			for x in range(self.x):
-				tmp.append(0)
-			self.data.append(tmp)
-		#for y in range(self.y):
-		#	for x in range(self.x):
-		#		self.data[y][x] = 0
-		self.update()
-	
-	def fillBorder(self):
-		for y in range(self.y):
-			for x in range(self.x):
-				if self.data[y][x] == 0:
-					if (x==0) or (y==0):
-						self.data[y][x] = 1
-					if (x==self.x-1) or (y==self.y-1):
-						self.data[y][x] = 1
-					
-		self.update()
-		
-	def getRandomTile(self):
-		#while True:
-		for i in range(10):# if no success after ten tries, give up and wait
-			x = random.randint(1,self.x-1)
-			y = random.randint(1,self.y-1)
-			if self.data[y][x]==0:
-				#print "returning random free tile : %s %s" % (x, y)
-				return x, y
-		return None
-	
-	def destroy(self):
-		if self.np:
-			self.np.remove()
-		if self.terrainNP:
-			self.terrainNP.remove()
-
-
-#-----------------------------------------------------------------------
 # Map
 #-----------------------------------------------------------------------
 class Map(DirectObject):
@@ -544,7 +145,7 @@ class Map(DirectObject):
 		self.mapObjectRoot = NodePath("mapObjectRoot")
 		self.mapObjectRoot.reparentTo(render)
 		#self.mapObjectRoot.setTransparency(True)
-		self.mapObjectRoot.setTransparency(TransparencyAttrib.MAlpha)
+		#self.mapObjectRoot.setTransparency(TransparencyAttrib.MAlpha)
 		
 		self.mapObjects = {} # map objects
 		
@@ -553,23 +154,7 @@ class Map(DirectObject):
 		
 		if self.filename is not None:
 			self.load()
-			#self.collisionGrid.addGeoMip("models/grounds/ground01.jpg")
-		
-		
-		#self.msg = makeMsg(-1.3,0.95,"...")
-		
-		#self.msgTilePos = makeMsg(-1.2,0.95,"...")
-		#self.cursor = MouseCursor()
-		
-		#self.dialog = None # current dialog
-		
-		#self.addMapObject("crate1", "crate 1", 12.5, 32.5)
-		#self.addMapObject("aldea", "aldea 1", 28.5, 35.5)
-		
-		#self.draggingObject = False
-		#self.draggedObject = None
-		
-		#taskMgr.add(self.update, "gameMapTask")
+
 	
 	def startDrag(self, mapObj):
 		self.draggingObject = True
@@ -613,8 +198,7 @@ class Map(DirectObject):
 			self.collisionGrid.destroy()
 		for mapObj in self.mapObjects.values():
 			self.removeMapObject(mapObj.name)
-			#mapObj.destroy()
-		#self.mapObjects = {}
+
 		
 	def load(self, filename=None):
 		if filename is None:
@@ -645,7 +229,6 @@ class Map(DirectObject):
 		
 		self.collisionGrid.data = mapData["collision"]
 		self.collisionGrid.rebuild()
-		#self.collisionGrid.fillBorder()
 		
 		print "models in use : %s" % (mapData["mapObjects"])
 		for data in mapData["mapObjects"]:
@@ -844,7 +427,7 @@ class MapManagerBase(DirectObject):
 		self.camHandler = self.gm.camHandler
 		
 		self.keyDic = {}
-		self.startAccept()
+		
 		
 	def startAccept(self):
 		for key in [
@@ -858,16 +441,42 @@ class MapManagerBase(DirectObject):
 			self.accept(key, self.setKey, [key, 1])
 			keyUp = key + "-up"
 			self.accept(keyUp, self.setKey, [key, 0])
-		
+	'''	
 	def stopAccept(self):
 		self.ignoreAll()
-		
+	'''
 	def setKey(self, key, value):
 		#print "MapManagerBase received %s" % (key)
 		self.keyDic[key] = value
 		
 	def setMap(self, map):
 		self.map = map
+	
+	def getHoverObjectName(self):
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+			res = self.clicker.getMouseObject(self.map.mapObjectRoot)
+			if res is not None:
+				#print "Found a name : %s " % (res.getIntoNodePath().getName())
+				name = res.getIntoNodePath().getName()
+				
+				return name
+		
+		#self.msg.setText("")
+		return None
+	
+	def getHoverNPCName(self):
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+			res = self.clicker.getMouseObject(self.map.NPCroot)
+			if res is not None:
+				name = res.getIntoNodePath().getName()
+				return name
+		
+		#self.msg.setText("")
+		return None
 	
 	def updateCam(self, dt=0.01):
 		if self.keyDic[FORWARD]:
@@ -896,6 +505,8 @@ class MapManagerBase(DirectObject):
 #-----------------------------------------------------------------------
 class MapManager(MapManagerBase):
 	def __init__(self, gm):
+		self.mode = "move" # talk, fight
+		
 		MapManagerBase.__init__(self, gm)
 		
 		# NPCs
@@ -924,10 +535,84 @@ class MapManager(MapManagerBase):
 	
 	def start(self):
 		self.task = taskMgr.add(self.update, "MapManagerTask")
-	
+		self.startAccept()
+		
 	def stop(self):
 		taskMgr.remove(self.task)
+		self.ignoreAll()
 	
+	def startAccept(self):
+		for key in [
+			"mouse1", "mouse3",
+			FORWARD, BACKWARD,
+			STRAFE_LEFT, STRAFE_RIGHT,
+			TURN_LEFT, TURN_RIGHT,
+			UP, DOWN,"h", "b", "t", "g"
+			]:
+			self.keyDic[key] = 0
+			self.accept(key, self.setKey, [key, 1])
+			keyUp = key + "-up"
+			self.accept(keyUp, self.setKey, [key, 0])
+		self.setMode(self.mode)
+		
+	def setMode(self, mode="move"):
+		'''
+		if mode == self.mode:
+			print "Map Manager already in mode %s" % (self.mode)
+			return False
+		'''
+		if mode == "move":
+			print "Map Manager switched to move mode"
+			self.mode = "move"
+			self.accept("mouse1", self.onClickObject) # left click
+			#self.accept("mouse2", self.onClickObject2) # scroll click
+			#self.accept("mouse3", self.onClickObject3) # right click
+			self.accept("wheel_up", self.camHandler.moveHeight, [-0.05])
+			self.accept("wheel_down", self.camHandler.moveHeight, [0.05])
+				
+		elif mode == "talk":
+			print "Map manager switched to talk mode"
+			self.mode = "talk"
+			self.ignore("mouse1")
+			self.ignore("mouse2")
+			self.ignore("mouse3")
+			
+		elif mode == "fight":
+			print "Map Manager switched to fight mode"
+			self.mode = "fight"
+			self.accept("mouse1", self.onClickObject) # left click
+			#self.accept("mouse2", self.onClickObject2) # scroll click
+			#self.accept("mouse3", self.onClickObject3) # right click
+		
+		modeMsg = "Game mode : " + self.mode
+		self.msgTilePos.setText(modeMsg)
+	
+			
+		
+	
+	def onClickObject(self):
+		# click on MapObject :
+		name = self.getHoverNPCName()
+		if name is not None:
+			print "map manager : left click on NPC : %s, opening dialog" % (name)
+			self.openDialog(name)
+			return
+		
+		name = self.getHoverObjectName()
+		if name is not None:
+			print "map manager : left click on map object : %s" % (name)
+			return
+			
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+			self.playerGoto(pos[0], pos[1])
+			print "Player goto %s/%s" % (pos[0], pos[1])
+			return
+		# and this should never happen
+		print "WARNING : map manager : left click on nothing?!"
+		return False
+			
 	def addNPC(self, name, modelName, tex, x, y):
 		npc = NPC(name, modelName, tex)
 		npc.setTilePos(x, y)
@@ -976,7 +661,7 @@ class MapManager(MapManagerBase):
 		if self.dialog:
 			#print "There was dialog garbage left, %s got his/her dialog shut unpolitely." % (self.dialog.name)
 			#self.dialog.destroy()
-			#print "a dialog is already open"
+			print "... but a dialog is already open for %s, aborting." % self.dialog.name
 			return False
 		if name in self.NPC:
 			self.NPC[name].stop()
@@ -984,7 +669,10 @@ class MapManager(MapManagerBase):
 				self.dialog = dialogDic[name](self, name)
 			else:
 				self.dialog = Dialog(self, name)
-	
+		else:
+			print "Error, dialog called for unknown NPC : %s" % (name)
+			
+		
 	def update(self, task):
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
@@ -995,8 +683,23 @@ class MapManager(MapManagerBase):
 			pos = None
 			#return task.cont
 		
+		if self.mode == "move" and mpos is not None:
+			name = self.getHoverObjectName()
+			if name is not None:
+				msg = "in game object : " + name
+				self.msg.setText(msg)
+				self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+				
+			else:
+				name = self.getHoverNPCName()
+				if name is not None:
+					msg = "talk to : " + name
+					self.msg.setText(msg)
+					self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+				else:
+					self.msg.setText("")
 		
-			
+		'''	
 		# click on NPC :
 		res = self.clicker.getMouseObject(self.map.NPCroot)
 		#res = self.clicker.getMouseObject(render)
@@ -1027,6 +730,8 @@ class MapManager(MapManagerBase):
 			msg = "mapObject : " + name
 			self.msg.setText(msg)
 			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+			
+			
 			if self.keyDic["mouse1"]:# and name != self.player.name:
 				print "map object left click from game map manager"
 			
@@ -1036,7 +741,7 @@ class MapManager(MapManagerBase):
 				#self.removeMapObject(name)
 				print "map object right click from game map manager"
 
-		
+		'''
 		if self.keyDic[FORWARD]:
 			self.camHandler.forward(dt)
 		if self.keyDic[BACKWARD]:
@@ -1084,14 +789,165 @@ class MapManager(MapManagerBase):
 #-----------------------------------------------------------------------
 class MapEditor(MapManagerBase):
 	def __init__(self, gm):
+		self.mode = "collision"
+		
 		MapManagerBase.__init__(self, gm)
+		
+		# while self.mode == "edit", self.objectMode can become :
+		# selected, dragging, rotating, scaling
+		self.objectMode = None
+		
+		self.msg = makeMsg(-1.3,0.95,"...")
+		
+		self.msgTilePos = makeMsg(-1.2,0.95,"...")
+	
+	#-----------------------------
+	# modes and input
 	
 	def start(self):
+		print "Starting editor"
+		self.msg.show()
+		self.msgTilePos.show()
+		self.startAccept()
 		self.task = taskMgr.add(self.update, "MapEditorTask")
 	
 	def stop(self):
-		taskMgr.remove(self.task)
+		print "Stopping editor"
+		self.msg.hide()
+		self.msgTilePos.hide()
 		
+		taskMgr.remove(self.task)
+		self.ignoreAll()
+		
+	def startAccept(self):
+		for key in [
+			"mouse1", "mouse3",
+			FORWARD, BACKWARD,
+			STRAFE_LEFT, STRAFE_RIGHT,
+			TURN_LEFT, TURN_RIGHT,
+			UP, DOWN,"h", "b", "t", "g"
+			]:
+			self.keyDic[key] = 0
+			self.accept(key, self.setKey, [key, 1])
+			keyUp = key + "-up"
+			self.accept(keyUp, self.setKey, [key, 0])
+		
+		'''
+		if self.mode == "object":
+			print "Editor switched to object mode"
+			self.mode = "object"
+			self.accept("mouse1", self.onClickObject) # left click
+			self.accept("mouse2", self.onClickObject2) # scroll click
+			self.accept("mouse3", self.onClickObject3) # right click
+		
+		elif self.mode == "collision":
+			self.accept("mouse2", self.onClickObject2)
+		'''
+		self.setMode(self.mode)
+		self.accept("space", self.toggle)
+		
+	def setMode(self, mode="collision"):
+		'''
+		if mode == self.mode:
+			print "already in mode %s" % (self.mode)
+			return False
+		'''
+		if mode == "collision":
+			print "Editor switched to collision mode"
+			self.mode = "collision"
+			self.msg.setText("")
+			
+			for key in ["mouse1", "mouse2", "mouse3"]:
+				self.keyDic[key] = 0
+				self.accept(key, self.setKey, [key, 1])
+				keyUp = key + "-up"
+				self.accept(keyUp, self.setKey, [key, 0])
+				
+		elif mode == "object":
+			print "Editor switched to object mode"
+			self.mode = "object"
+			self.accept("mouse1", self.onClickObject) # left click
+			self.accept("mouse2", self.onClickObject2) # scroll click
+			self.accept("mouse3", self.onClickObject3) # right click
+		
+		self.accept("wheel_up", self.camHandler.moveHeight, [-0.2])
+		self.accept("wheel_down", self.camHandler.moveHeight, [0.2])
+		
+		modeMsg = "Editor mode : " + self.mode
+		self.msgTilePos.setText(modeMsg)
+		
+	def toggle(self):
+		if self.mode == "collision":
+			self.setMode("object")
+		elif self.mode == "object":
+			self.setMode("collision")
+		
+	#-----------------------------
+	# map objects
+	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
+		if name not in self.mapObjects:
+			mapObject = MapObject(self, genre, name)
+			mapObject.setPos(pos) #-self.collisionGrid.terrainScale/3.0)
+			mapObject.setHpr(hpr)
+			mapObject.setScale(scale)
+			mapObject.reparentTo(self.mapObjectRoot)
+			self.mapObjects[name] = mapObject
+		
+	def removeMapObject(self, name):
+		if name in self.mapObjects:
+			self.mapObjects[name].destroy()
+			del self.mapObjects[name]
+		
+	def setMapObjectPos(self, name, x, y, z=0):
+		if name in self.mapObjects:
+			self.mapObjects[name].setPos(x, y, z)
+	
+	
+	def onClickObject(self):
+		# click on MapObject :
+		name = self.getHoverObjectName()
+		if name is not None:
+			print "map editor : left click on %s" % (name)
+		else:
+			print "map editor : left click on nothing"
+			
+	def onClickObject2(self):
+		# click on MapObject :
+		name = self.getHoverObjectName()
+		if name is not None:
+			print "map editor : middle click on %s" % (name)
+		else:
+			print "map editor : middle click on nothing"
+	
+	
+	def onClickObject3(self):
+		# click on MapObject :
+		name = self.getHoverObjectName()
+		if name is not None:
+			print "map editor : right click on %s" % (name)
+		else:
+			print "map editor : right click on nothing"
+
+	
+	#-----------------------------
+	# map collisions	
+	def clearCollision(self, args=[]):
+		if self.mode == "edit":
+			self.collisionGrid.clear()
+		
+	def fillCollision(self, args=[]):
+		if self.mode == "edit":
+			self.collisionGrid.fill()
+		
+	def addCollision(self, x, y):
+		self.map.collisionGrid.showTile(x, y)
+		
+	def removeCollision(self, x, y):
+		self.map.collisionGrid.hideTile(x, y)
+		
+		
+	#-----------------------------
+	# editor update task
 	def update(self, task):
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
@@ -1101,6 +957,26 @@ class MapEditor(MapManagerBase):
 			mpos = None
 			pos = None
 		
+		# collision editing
+		if self.mode == "collision" and self.keyDic["mouse1"] and pos is not None:
+			self.addCollision(pos[0], pos[1])
+		
+		elif self.mode == "collision" and self.keyDic["mouse3"] and pos is not None:
+			self.removeCollision(pos[0], pos[1])
+		
+		# map objects control
+		
+		if self.mode == "object" and mpos is not None:
+			name = self.getHoverObjectName()
+			if name is not None:
+				msg = "mapObject : " + name
+				self.msg.setText(msg)
+				self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+				
+			else:
+				self.msg.setText("")
+		
+		# camera control
 		if self.keyDic[FORWARD]:
 			self.camHandler.forward(dt)
 		if self.keyDic[BACKWARD]:
