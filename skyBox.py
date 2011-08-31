@@ -15,6 +15,7 @@ class SkyBox:
 		self.models = {}
 		self.currentModel = None
 		self.intervals = {}
+		self.task = None
 		
 	def load(self, name):
 		path = "models/skies/" + str(name) + "/generic_skybox"
@@ -31,25 +32,10 @@ class SkyBox:
 		if name in self.models:
 			self.models[name].detachNode()
 			del self.models[name]
-			
-	def start(self):
-		if not (taskMgr.hasTaskNamed("skyTask")):
-			taskMgr.add(self.task, "skyTask")
-		
-				
-	def stop(self):
-		if (taskMgr.hasTaskNamed("skyTask")):
-			#print("Stopping skyTask")
-			taskMgr.remove("skyTask")
-		if self.currentModel:
-			self.currentModel.detachNode()
-		
-	def task(self, task):
-		self.currentModel.setPos(base.camera.getPos(render))
-		return Task.cont
-			
+
 	def set(self, name):
 		if name in self.models:
+			self.name = name
 			if self.currentModel:
 				self.currentModel.detachNode()
 			self.currentModel = self.models[name]
@@ -63,9 +49,12 @@ class SkyBox:
 			print("Error : skybox %s not found." % (name))
 			return False
 			
+	def destroy(self):
+		for name in self.models:
+			self.models[name].remove()
+		
+		#if self.model:
+		#	self.model.remove()
+		
 			
-	def clear(self, extraArgs=[]):
-		#self.currentModel.detachNode()
-		self.stop()
-
 
