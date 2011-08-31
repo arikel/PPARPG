@@ -49,7 +49,9 @@ from gui import *
 from mapObject import *
 from dialog import *
 
-
+#-----------------------------------------------------------------------
+# Clicker
+#-----------------------------------------------------------------------
 class Clicker:
 	def __init__(self):
 		"""
@@ -123,8 +125,10 @@ class Clicker:
 			return x, y
 		return None
 
-		
-		
+#-----------------------------------------------------------------------
+# Decor building functions and classes
+#-----------------------------------------------------------------------
+
 def makeFloor(nbCases, scalex, scaley, texpath):
 	cm = CardMaker('card')
 	cm.setUvRange(Point2(scalex/nbCases,scaley/nbCases), Point2(0,0))
@@ -521,17 +525,18 @@ class CollisionGrid:
 			self.np.remove()
 		if self.terrainNP:
 			self.terrainNP.remove()
-			
-class GameMap(DirectObject):
+
+
+#-----------------------------------------------------------------------
+# Map
+#-----------------------------------------------------------------------
+class Map(DirectObject):
 	def __init__(self, filename = None):
 		self.name = None
 		self.filename = filename
 		
 		self.x = 0
 		self.y = 0
-		
-		#self.floor = makeFloor(20, self.x, self.y)
-		#self.floor.reparentTo(render)
 		
 		self.NPCroot = NodePath("root")
 		self.NPCroot.reparentTo(render)
@@ -549,71 +554,22 @@ class GameMap(DirectObject):
 		if self.filename is not None:
 			self.load()
 			#self.collisionGrid.addGeoMip("models/grounds/ground01.jpg")
-			
-		self.clicker = Clicker()
-		
-		# NPCs
-		self.NPC = {}
-		for name in ["ula2", "Kimmo", "Drunkard", "Camilla"]:
-			x, y = self.collisionGrid.getRandomTile()
-			self.addNPC(name, "male", "humanTex2.png", x,y)
-		
-		self.player = NPC("arikel", "male", "humanTex2.png")
-		self.player.setTilePos(5, 3)
-		self.player.reparentTo(render)
 		
 		
+		#self.msg = makeMsg(-1.3,0.95,"...")
 		
+		#self.msgTilePos = makeMsg(-1.2,0.95,"...")
+		#self.cursor = MouseCursor()
 		
-		# light
-		if CONFIG_LIGHT:
-			self.light = LightManager()
-			self.light.lightCenter.setPos(0,0,0)
-			self.light.lightCenter.reparentTo(base.camera)
-		
-		
-		self.keyDic = {}
-		for key in [
-			"mouse1", "mouse3",
-			FORWARD, BACKWARD,
-			STRAFE_LEFT, STRAFE_RIGHT,
-			TURN_LEFT, TURN_RIGHT,
-			UP, DOWN,"h", "b", "t", "g"
-			]:
-			self.keyDic[key] = 0
-			self.accept(key, self.setKey, [key, 1])
-			keyUp = key + "-up"
-			self.accept(keyUp, self.setKey, [key, 0])
-		
-		
-		self.camHandler = CamHandler()
-		self.setMode("playing")
-		
-		self.accept(OPEN_EDITOR, self.toggle)
-		self.accept("quit", self.quit, [["this one is from GameMap", "this one too"]])
-		self.accept(SAVE_MAP, self.save, [self.filename])
-		self.accept(LOAD_MAP, self.load, [self.filename])
-		
-		self.accept(CLEAR_COLLISION, self.clearCollision, [])
-		self.accept(FILL_COLLISION, self.fillCollision, [])
-		
-		
-		
-		
-		self.msg = makeMsg(-1.3,0.95,"...")
-		
-		self.msgTilePos = makeMsg(-1.2,0.95,"...")
-		self.cursor = MouseCursor()
-		
-		self.dialog = None # current dialog
+		#self.dialog = None # current dialog
 		
 		#self.addMapObject("crate1", "crate 1", 12.5, 32.5)
 		#self.addMapObject("aldea", "aldea 1", 28.5, 35.5)
 		
-		self.draggingObject = False
-		self.draggedObject = None
+		#self.draggingObject = False
+		#self.draggedObject = None
 		
-		taskMgr.add(self.update, "gameMapTask")
+		#taskMgr.add(self.update, "gameMapTask")
 	
 	def startDrag(self, mapObj):
 		self.draggingObject = True
@@ -622,23 +578,7 @@ class GameMap(DirectObject):
 	def stopDrag(self):
 		self.draggingObject = False
 		self.draggedObject = None
-		
-	def openDialog(self, name):
-		if self.dialog:
-			#print "There was dialog garbage left, %s got his/her dialog shut unpolitely." % (self.dialog.name)
-			#self.dialog.destroy()
-			#print "a dialog is already open"
-			return False
-		if name in self.NPC:
-			self.NPC[name].stop()
-			if name in dialogDic:
-				self.dialog = dialogDic[name](self, name)
-		
-		
-	def quit(self, args=[], extraArgs=[]):
-		print "Quit has really been fired from an event, baby! args were : \n- %s\nExtra args were:\n%s" % (str(args), str(extraArgs))
-		
-		
+	
 		
 	def save(self, filename):
 		mapData = {}
@@ -752,91 +692,13 @@ class GameMap(DirectObject):
 			self.collisionGrid.fill()
 		
 	def setKey(self, key, value):
+		print "GameMap received %s" % (key)
 		self.keyDic[key] = value
-		
-	def setMode(self, mode):
-		self.mode = mode
-		self.camHandler.setMode(mode)
-		if mode == "edit":
-			for obj in self.mapObjects.values():
-				obj.model.clearColor()
-				obj.model.setColorScale(1,1,1,1)
-				obj.model.setTransparency(TransparencyAttrib.MAlpha)
-				
-			#if CONFIG_LIGHT: self.light.lightCenter.detachNode()
-			#render.setShaderOff()
-			#render.setLightOff()
-			
-		elif mode == "playing":
-			for obj in self.mapObjects.values():
-				obj.model.clearColor()
-				obj.model.setColorScale(1,1,1,1.0)
-				obj.model.setTransparency(TransparencyAttrib.MAlpha)
-				
-			#if CONFIG_LIGHT: self.light.lightCenter.reparentTo(base.camera)
-			#render.setShaderAuto()
-			
-	def toggle(self):
-		if self.mode == "edit":
-			self.mode = "playing"
-			#self.collisionGrid.collisionHide()
-			self.camHandler.setMode("playing")
-			#base.enableMouse()
-			
-		else:
-			self.mode = "edit"
-			self.camHandler.setMode("edit")
-			#self.collisionGrid.collisionShow()
-			#base.disableMouse()
-		
 	
-		
-		
-	def addNPC(self, name, modelName, tex, x, y):
-		npc = NPC(name, modelName, tex)
-		npc.setTilePos(x, y)
-		self.NPC[name] = npc
-		npc.reparentTo(self.NPCroot)
-		
-	def removeNPC(self, name):
-		if name in self.NPC:
-			self.NPC[name].destroy()
-			del self.NPC[name]
-		
-	def playerGoto(self, x, y):
-		start = (self.player.getTilePos())
-		end = (x, y)
-		data = self.collisionGrid.data
-		path = astar(start, end, data)
-		if path is []:
-			#print "... but no good path found"
-			return False
-		newPath = []
-		for tile in path:
-			newPath.append((tile[0], tile[1], self.collisionGrid.getTileHeight(tile[0], tile[1])))
-		self.player.setPath(newPath)
-		return True
 	
-	def NPCGoto(self, name, x, y):
-		#print "NPCGoto called!"
-		if name not in self.NPC:
-			#print "%s is not a known NPC" % (name)	
-			return False
-		start = (self.NPC[name].getTilePos())
-		end = (x, y)
-		data = self.collisionGrid.data
-		path = astar(start, end, data)
-		if path is []:
-			#print "... but no good path found"
-			return False
-		#else:
-		#	print "NPCGoto : path found : %s" % (path)
-		newPath = []
-		for tile in path:
-			newPath.append((tile[0], tile[1], self.collisionGrid.getTileHeight(tile[0], tile[1])))
-		self.NPC[name].setPath(newPath)
-		
-		
+	
+	
+	'''
 	def update(self, task):
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
@@ -845,7 +707,7 @@ class GameMap(DirectObject):
 			return task.cont
 		
 		
-			
+		
 		# click on NPC :
 		res = self.clicker.getMouseObject(self.NPCroot)
 		#res = self.clicker.getMouseObject(render)
@@ -968,12 +830,324 @@ class GameMap(DirectObject):
 							self.NPCGoto(name, tile[0], tile[1])
 		
 		return task.cont
-		
+	'''
 
-class GameManager(FSM):
-	def __init__(self):
-		FSM.__init__(self, 'Game')
+
+#-----------------------------------------------------------------------
+# MapManagerBase, for MapManager and MapEditor
+#-----------------------------------------------------------------------
+class MapManagerBase(DirectObject):
+	def __init__(self, gm):
+		self.gm = gm # Game
 		self.clicker = Clicker()
+		self.map = self.gm.map
+		self.camHandler = self.gm.camHandler
+		
+		self.keyDic = {}
+		self.startAccept()
+		
+	def startAccept(self):
+		for key in [
+			"mouse1", "mouse3",
+			FORWARD, BACKWARD,
+			STRAFE_LEFT, STRAFE_RIGHT,
+			TURN_LEFT, TURN_RIGHT,
+			UP, DOWN,"h", "b", "t", "g"
+			]:
+			self.keyDic[key] = 0
+			self.accept(key, self.setKey, [key, 1])
+			keyUp = key + "-up"
+			self.accept(keyUp, self.setKey, [key, 0])
+		
+	def stopAccept(self):
+		self.ignoreAll()
+		
+	def setKey(self, key, value):
+		#print "MapManagerBase received %s" % (key)
+		self.keyDic[key] = value
+		
+	def setMap(self, map):
+		self.map = map
+	
+	def updateCam(self, dt=0.01):
+		if self.keyDic[FORWARD]:
+			self.camHandler.forward(dt)
+		if self.keyDic[BACKWARD]:
+			self.camHandler.backward(dt)
+		
+		if self.keyDic[STRAFE_LEFT]:
+			self.camHandler.strafeLeft(dt)
+			
+		if self.keyDic[STRAFE_RIGHT]:
+			self.camHandler.strafeRight(dt)
+			
+		if self.keyDic[TURN_LEFT]:
+			self.camHandler.turnLeft(dt)
+		if self.keyDic[TURN_RIGHT]:
+			self.camHandler.turnRight(dt)
+			
+		if self.keyDic[UP]:
+			self.camHandler.lookUp(dt)
+		if self.keyDic[DOWN]:
+			self.camHandler.lookDown(dt)
+	
+#-----------------------------------------------------------------------
+# MapManager : handles the map while in game
+#-----------------------------------------------------------------------
+class MapManager(MapManagerBase):
+	def __init__(self, gm):
+		MapManagerBase.__init__(self, gm)
+		
+		# NPCs
+		self.NPC = {}
+		for name in ["ula2", "Kimmo", "Drunkard", "Camilla"]:
+			x, y = self.map.collisionGrid.getRandomTile()
+			self.addNPC(name, "models/characters/male", "models/characters/humanTex2.png", x,y)
+		
+		name = self.gm.playerData["name"]
+		sex = self.gm.playerData["sex"]
+		
+		if sex == "male":
+			pass
+		modelPath = "models/characters/male"
+		
+		self.player = NPC(name, modelPath)
+		
+		self.player.setTilePos(5, 3)
+		self.player.reparentTo(render)
+		
+		self.dialog = None # current dialog
+		
+		self.msg = makeMsg(-1.3,0.95,"...")
+		
+		self.msgTilePos = makeMsg(-1.2,0.95,"...")
+	
+	def start(self):
+		self.task = taskMgr.add(self.update, "MapManagerTask")
+	
+	def stop(self):
+		taskMgr.remove(self.task)
+	
+	def addNPC(self, name, modelName, tex, x, y):
+		npc = NPC(name, modelName, tex)
+		npc.setTilePos(x, y)
+		self.NPC[name] = npc
+		npc.reparentTo(self.map.NPCroot)
+	
+	def removeNPC(self, name):
+		if name in self.NPC:
+			self.NPC[name].destroy()
+			del self.NPC[name]
+		
+	def playerGoto(self, x, y):
+		start = (self.player.getTilePos())
+		end = (x, y)
+		data = self.map.collisionGrid.data
+		path = astar(start, end, data)
+		if path is []:
+			#print "... but no good path found"
+			return False
+		newPath = []
+		for tile in path:
+			newPath.append((tile[0], tile[1], self.map.collisionGrid.getTileHeight(tile[0], tile[1])))
+		self.player.setPath(newPath)
+		return True
+	
+	def NPCGoto(self, name, x, y):
+		#print "NPCGoto called!"
+		if name not in self.NPC:
+			#print "%s is not a known NPC" % (name)	
+			return False
+		start = (self.NPC[name].getTilePos())
+		end = (x, y)
+		data = self.map.collisionGrid.data
+		path = astar(start, end, data)
+		if path is []:
+			#print "... but no good path found"
+			return False
+		#else:
+		#	print "NPCGoto : path found : %s" % (path)
+		newPath = []
+		for tile in path:
+			newPath.append((tile[0], tile[1], self.map.collisionGrid.getTileHeight(tile[0], tile[1])))
+		self.NPC[name].setPath(newPath)
+	
+	def openDialog(self, name):
+		if self.dialog:
+			#print "There was dialog garbage left, %s got his/her dialog shut unpolitely." % (self.dialog.name)
+			#self.dialog.destroy()
+			#print "a dialog is already open"
+			return False
+		if name in self.NPC:
+			self.NPC[name].stop()
+			if name in dialogDic:
+				self.dialog = dialogDic[name](self, name)
+			else:
+				self.dialog = Dialog(self, name)
+	
+	def update(self, task):
+		dt = globalClock.getDt()
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+		else:
+			mpos = None
+			pos = None
+			#return task.cont
+		
+		
+			
+		# click on NPC :
+		res = self.clicker.getMouseObject(self.map.NPCroot)
+		#res = self.clicker.getMouseObject(render)
+		if res is not None:
+			#print "Found a name : %s " % (res.getIntoNodePath().getName())
+			name = res.getIntoNodePath().getName()
+			msg = "Talk to " + name
+			self.msg.setText(msg)
+			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+			if self.keyDic["mouse1"]:# and name != self.player.name:
+				self.openDialog(name)
+			elif self.keyDic["mouse3"]:# and name != self.player.name:
+				pass
+				#self.removeNPC(name)
+				
+		else:
+			self.msg.setText("")
+		
+		if pos is not None and self.keyDic["mouse1"]:
+			self.playerGoto(pos[0], pos[1])
+		
+		# click on MapObject :
+		res = self.clicker.getMouseObject(self.map.mapObjectRoot)
+		
+		if res is not None:
+			#print "Found a name : %s " % (res.getIntoNodePath().getName())
+			name = res.getIntoNodePath().getName()
+			msg = "mapObject : " + name
+			self.msg.setText(msg)
+			self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+			if self.keyDic["mouse1"]:# and name != self.player.name:
+				print "map object left click from game map manager"
+			
+				
+			if self.keyDic["mouse3"]:# and name != self.player.name:
+				#self.NPC[name].destroy()
+				#self.removeMapObject(name)
+				print "map object right click from game map manager"
+
+		
+		if self.keyDic[FORWARD]:
+			self.camHandler.forward(dt)
+		if self.keyDic[BACKWARD]:
+			self.camHandler.backward(dt)
+		
+		if self.keyDic[STRAFE_LEFT]:
+			self.camHandler.strafeLeft(dt)
+			
+		if self.keyDic[STRAFE_RIGHT]:
+			self.camHandler.strafeRight(dt)
+			
+		if self.keyDic[TURN_LEFT]:
+			self.camHandler.turnLeft(dt)
+		if self.keyDic[TURN_RIGHT]:
+			self.camHandler.turnRight(dt)
+			
+		if self.keyDic[UP]:
+			self.camHandler.lookUp(dt)
+		if self.keyDic[DOWN]:
+			self.camHandler.lookDown(dt)
+		
+		#-------------------------------------------------
+		# NPC random movement
+		for name in self.NPC:
+			npc = self.NPC[name]
+			if npc.timer <= 0:
+				if npc.mode == "idle":
+					if self.dialog:
+						if self.dialog.name != name:
+							#print "Sending NPC to random pos"
+							tile = self.map.collisionGrid.getRandomTile()
+							if tile is not None:
+								self.NPCGoto(name, tile[0], tile[1])
+							else:
+								npc.resetTimer()
+					else:
+						tile = self.map.collisionGrid.getRandomTile()
+						if tile is not None:
+							self.NPCGoto(name, tile[0], tile[1])
+		
+		return task.cont
+
+#-----------------------------------------------------------------------
+# MapEditor : handles the map editing
+#-----------------------------------------------------------------------
+class MapEditor(MapManagerBase):
+	def __init__(self, gm):
+		MapManagerBase.__init__(self, gm)
+	
+	def start(self):
+		self.task = taskMgr.add(self.update, "MapEditorTask")
+	
+	def stop(self):
+		taskMgr.remove(self.task)
+		
+	def update(self, task):
+		dt = globalClock.getDt()
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+		else:
+			mpos = None
+			pos = None
+		
+		if self.keyDic[FORWARD]:
+			self.camHandler.forward(dt)
+		if self.keyDic[BACKWARD]:
+			self.camHandler.backward(dt)
+		
+		if self.keyDic[STRAFE_LEFT]:
+			self.camHandler.strafeLeft(dt)
+			
+		if self.keyDic[STRAFE_RIGHT]:
+			self.camHandler.strafeRight(dt)
+			
+		if self.keyDic[TURN_LEFT]:
+			self.camHandler.turnLeft(dt)
+		if self.keyDic[TURN_RIGHT]:
+			self.camHandler.turnRight(dt)
+			
+		if self.keyDic[UP]:
+			self.camHandler.lookUp(dt)
+		if self.keyDic[DOWN]:
+			self.camHandler.lookDown(dt)
+				
+		return task.cont
+	
+
+#-----------------------------------------------------------------------
+# Game : FSM, switch between game playing and map editing
+#-----------------------------------------------------------------------
+class Game(FSM, DirectObject):
+	def __init__(self, filename):
+		FSM.__init__(self, 'Game')
+		
+		self.loadGameMap(filename)
+				
+		# camera handler
+		self.camHandler = CamHandler()
+		self.setMode("playing")
+		
+		self.cursor = MouseCursor()
+		
+		self.playerData = {}
+		self.playerData["name"] = "Gaspard"
+		self.playerData["sex"] = "male"
+		
+		self.mapManager = MapManager(self)
+		self.editor = MapEditor(self)
+		
+		self.mapManager.player.data = self.playerData
 		
 		# light
 		if CONFIG_LIGHT:
@@ -981,20 +1155,46 @@ class GameManager(FSM):
 			self.light.lightCenter.setPos(0,0,0)
 			self.light.lightCenter.reparentTo(base.camera)
 		
+		self.accept(OPEN_EDITOR, self.toggle)
+			
+		self.request("Game")
+			
 	def loadGameMap(self, filename):
-		self.map = GameMap(filename)
+		self.map = Map(filename)	
 		
-#gamemap = GameMap(40,25)
-gamemap = GameMap("maps/mapCode.txt")
+		
+	def setMode(self, mode):
+		self.mode = mode
+		self.camHandler.setMode(mode)	
+	
+	def toggle(self):
+		if self.state == "Game":
+			self.request("Editor")
+		elif self.state == "Editor":
+			self.request("Game")
+	
+	def enterGame(self):
+		self.setMode("playing")
+		self.mapManager.start()
+		
+	def exitGame(self):
+		self.mapManager.stop()
+		
+	def enterEditor(self):
+		self.setMode("edit")
+		self.editor.start()
+		
+	def exitEditor(self):
+		self.editor.stop()
+		
+
+game = Game("maps/mapCode.txt")
+
 
 sky = SkyBox()
 #sky.load("hipshot1")
 sky.load("teal1")
-#sky.set("teal1")
-
-#button = MainButton(-0.5,0.8, u"PPARPG coming...")
-#dg = DialogGui(0,-0.5,"Kimmo")
-
+sky.set("teal1")
 
 base.accept("escape", sys.exit)
 

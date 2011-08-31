@@ -21,7 +21,7 @@ class MouseCursor:
 		
 		self.crosshair2 = loader.loadModel('models/generic/cursor.egg')
 		self.crosshair2.reparentTo(render2d)
-		self.crosshair2Texture = loader.loadTexture("img/generic/crosshair2.png")
+		self.crosshair2Texture = loader.loadTexture("img/generic/crosshair3.png")
 		self.crosshair2.setTexture(self.crosshair2Texture,1)
 		self.crosshair2.setTransparency(TransparencyAttrib.MAlpha)
 		#self.interval = LerpHprInterval(self.crosshair2, 2, (0,0,360))

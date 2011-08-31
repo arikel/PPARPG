@@ -134,18 +134,21 @@ class MapObject:
 #-----------------------------------------------------------------------
 
 class NPC(MapObject):
-	def __init__(self, name, modelName, tex):
+	def __init__(self, name, modelPath="models/characters/male", texPath="models/characters/humanTex2.png"):
 		self.name = name
 		
 		# actor
 		self.model = None
-		path = "models/characters/" + modelName
+		self.modelPath = modelPath
+		modelName = modelPath.split("/")[-1]
+		walkanim = "models/characters/" + modelName + "-walk"
+		idleanim = "models/characters/" + modelName + "-idle"
 		animDic = {
-			"walk":"models/characters/male-walk",
-			"idle": "models/characters/male-idle"
+			"walk":walkanim,
+			"idle": idleanim
 		}
-		texPath = "models/characters/" + tex
-		self.loadActor(path, animDic, texPath)
+		self.texPath = texPath
+		self.loadActor(self.modelPath, animDic, self.texPath)
 		
 		# collision
 		self.addCollision()
@@ -278,6 +281,7 @@ class NPC(MapObject):
 		dt = globalClock.getDt()
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
+		
 		timer = str(round(self.timer, 1))
 		msg = self.name + "\n" + self.mode + " / " + timer
 		self.timerMsg.setText(msg)

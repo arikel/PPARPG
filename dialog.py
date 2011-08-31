@@ -13,7 +13,7 @@ from gui import *
 
 class Dialog:
 	def __init__(self, gm, name):
-		self.gm = gm # game map
+		self.gm = gm # map manager
 		self.playerData = gm.player.data
 		
 		self.name = name # the name of the NPC running this dialog with the player
