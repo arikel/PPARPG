@@ -51,82 +51,7 @@ from mapObject import *
 from dialog import *
 from mapUtils import *
 
-#-----------------------------------------------------------------------
-# Clicker
-#-----------------------------------------------------------------------
-class Clicker:
-	def __init__(self):
-		"""
-		This class is used to handle clicks on the collision / pathfinding grid
-		"""
-		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, 0))
-		self.picker = CollisionTraverser()
-		self.pq     = CollisionHandlerQueue()
-		self.pickerNode = CollisionNode('mouseRay')
-		self.pickerNP = camera.attachNewNode(self.pickerNode)
-		self.pickerNode.setFromCollideMask(BitMask32.bit(1))
-		self.pickerRay = CollisionRay()
-		self.pickerNode.addSolid(self.pickerRay)
-		self.picker.addCollider(self.pickerNP, self.pq)
-		self.picker.showCollisions(render)
-		
-	def getMouseObject(self, np=render):
-		if base.mouseWatcherNode.hasMouse():
-			self.picker.showCollisions(np)
-			
-			mpos = base.mouseWatcherNode.getMouse()
-			self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())
-			self.picker.traverse(np)
-			if self.pq.getNumEntries() > 0:
-				self.pq.sortEntries()
-				#print "y'a eu %s collisions!!!" % (self.pq.getNumEntries())
-				res = self.pq.getEntry(0)
-				#print "Entry = %s" % (res)
-				#print dir(res)
-				return res
-			#else:
-			#	print "y'a rien eu..."
-		return None
-		
-	def getMouseTilePos(self, mpos=None):
-		if mpos is None:
-			if base.mouseWatcherNode.hasMouse():
-				mpos = base.mouseWatcherNode.getMouse()
-			else:
-				return None
-			
-		pos3d = Point3()
-		nearPoint = Point3()
-		farPoint = Point3()
-		base.camLens.extrude(mpos, nearPoint, farPoint)
-		if self.plane.intersectsLine(pos3d,
-				render.getRelativePoint(camera, nearPoint),
-				render.getRelativePoint(camera, farPoint)):
-			
-			x = pos3d.getX()
-			y = pos3d.getY()
-			return int(x), int(y)
-		return None
 
-	def getMousePos(self, mpos=None):
-		if mpos is None:
-			if base.mouseWatcherNode.hasMouse():
-				mpos = base.mouseWatcherNode.getMouse()
-			else:
-				return None
-			
-		pos3d = Point3()
-		nearPoint = Point3()
-		farPoint = Point3()
-		base.camLens.extrude(mpos, nearPoint, farPoint)
-		if self.plane.intersectsLine(pos3d,
-				render.getRelativePoint(camera, nearPoint),
-				render.getRelativePoint(camera, farPoint)):
-			
-			x = pos3d.getX()
-			y = pos3d.getY()
-			return x, y
-		return None
 
 #-----------------------------------------------------------------------
 # Map
@@ -151,6 +76,7 @@ class Map(DirectObject):
 		self.mapWall = None
 		self.collisionGrid = None
 		self.sky = None
+		self.music = None
 		
 		if self.filename is not None:
 			self.load()
@@ -187,6 +113,9 @@ class Map(DirectObject):
 		
 		if self.sky:
 			mapData["skybox"] = self.sky.name
+		
+		if self.music:
+			mapData["music"] = self.music
 		
 		f = open(filename, 'w')
 		pickle.dump(mapData, f)
@@ -236,6 +165,16 @@ class Map(DirectObject):
 			self.sky.set(name)
 		else:
 			self.sky = None
+		
+		if "music" in mapData:
+			self.music = mapData["music"]
+			self.bgMusic = loader.loadSfx(self.music)
+			self.bgMusic.setLoop(True)
+			
+			
+		else:
+			self.music = None
+			self.bgMusic = None
 			
 		self.mapWall = MapWall(self.x, self.y, 0)
 		
@@ -408,10 +347,18 @@ class MapManager(MapManagerBase):
 		self.msgTilePos = makeMsg(-1.2,0.95,"...")
 	
 	def start(self):
+		self.msg.show()
+		self.msgTilePos.show()
+		
 		self.task = taskMgr.add(self.update, "MapManagerTask")
 		self.startAccept()
+		if self.map.bgMusic:
+			self.map.bgMusic.play()
 		
 	def stop(self):
+		self.msg.hide()
+		self.msgTilePos.hide()
+		
 		taskMgr.remove(self.task)
 		self.ignoreAll()
 	
@@ -624,9 +571,9 @@ class MapEditor(MapManagerBase):
 		# selected, dragging, rotating, scaling
 		self.objectMode = None
 		
-		self.msg = makeMsg(-1.3,0.95,"...")
+		self.msg = makeMsg(-1.3,0.95,"")
 		
-		self.msgTilePos = makeMsg(-1.2,0.95,"...")
+		self.msgTilePos = makeMsg(-1.2,0.95,"")
 	
 	#-----------------------------
 	# modes and input
@@ -637,7 +584,9 @@ class MapEditor(MapManagerBase):
 		self.msgTilePos.show()
 		self.startAccept()
 		self.task = taskMgr.add(self.update, "MapEditorTask")
-	
+		if self.map.bgMusic:
+			self.map.bgMusic.stop()
+		
 	def stop(self):
 		print "Stopping editor"
 		self.msg.hide()
@@ -911,9 +860,7 @@ props = WindowProperties()
 props.setCursorHidden(True) 
 base.win.requestProperties(props)
 
-bgMusic = loader.loadSfx("music/preciouswasteland.ogg")
-bgMusic.setLoop(True)
-bgMusic.play()
+
 
 #messenger.send("quit", [["and", "a", "shit", "load", "of", "other", "things"]])
 
