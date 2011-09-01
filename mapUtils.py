@@ -84,6 +84,7 @@ class MapWall:
 class CollisionGrid:
 	def __init__(self, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", geoMipPath = None):
 		self.name = name
+		print "CollisionGrid : initiating %s" % (name)
 		
 		self.x = x
 		self.y = y
@@ -408,4 +409,5 @@ class CollisionGrid:
 			self.np.remove()
 		if self.terrainNP:
 			self.terrainNP.remove()
-
+		del self.data
+		del self.gvd

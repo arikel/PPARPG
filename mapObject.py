@@ -20,6 +20,7 @@ mapObjectDB["aldea"] = ["models/buildings/aldea", "models/buildings/aldea.jpg", 
 mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
 mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
 
+#mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
 class MapObject:
 	def __init__(self, gm, genre, name):
@@ -130,6 +131,7 @@ class MapObject:
 		if self.task:
 			taskMgr.remove(self.task)
 		if self.model:
+			self.model.detachNode()
 			self.model.remove()
 		
 		

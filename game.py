@@ -56,7 +56,7 @@ from mapUtils import *
 #-----------------------------------------------------------------------
 # Map
 #-----------------------------------------------------------------------
-class Map(DirectObject):
+class Map:
 	def __init__(self, filename = None):
 		self.name = None
 		self.filename = filename
@@ -123,10 +123,14 @@ class Map(DirectObject):
 		print "map data saved as %s" % (filename)
 		
 	def destroy(self):
+		print "Map : Map %s destroyed" % (self.name)
 		if self.mapWall:
 			self.mapWall.destroy()
+			
 		if self.collisionGrid:
 			self.collisionGrid.destroy()
+			del self.collisionGrid
+			print "Map : self collisionGrid destroyed"
 		for mapObj in self.mapObjects.values():
 			self.removeMapObject(mapObj.name)
 
@@ -134,18 +138,22 @@ class Map(DirectObject):
 			self.sky.destroy()
 			
 	def load(self, filename=None):
+		"Map : Loading map %s" % (filename)
+		
 		if filename is None:
 			filename = self.filename
 		if filename is None:
 			return False
-		self.destroy()
+		#self.destroy()
 		
+		f = open(filename, 'r')
+		mapData = pickle.load(f)
+		f.close()
+		del f
 		
-		
-		mapData = pickle.load(open(filename, 'r'))
 		if "name" in mapData:
 			self.name = mapData["name"]
-			print "Loading map named %s" % (self.name)
+			print "Map : Loading map named %s" % (self.name)
 		if "X" in mapData:
 			self.x = mapData["X"]	
 		if "Y" in mapData:
@@ -154,10 +162,13 @@ class Map(DirectObject):
 		if "geomip" in mapData:
 			tex = mapData["geomip"][0]
 			geomipTex = mapData["geomip"][1]
+			print "Map : Creating mipmap collision grid on Map load"
 			self.collisionGrid = CollisionGrid(self.x, self.y, self.name, tex, geomipTex)
 		else:
+			print "Map : Creating flat collision grid on Map load"
 			self.collisionGrid = CollisionGrid(self.x, self.y, self.name)
-			
+		if not self.collisionGrid:
+			print "Map : WARNING : collision grid should be there"
 		if "skybox" in mapData:
 			name = mapData["skybox"]
 			self.sky = SkyBox()
@@ -179,7 +190,11 @@ class Map(DirectObject):
 		self.mapWall = MapWall(self.x, self.y, 0)
 		
 		self.collisionGrid.data = mapData["collision"]
+		print "Map : rebuild asked in load function"
+		
 		self.collisionGrid.rebuild()
+		
+		print "Map : looks like the rebuild went ok"
 		
 		print "models in use : %s" % (mapData["mapObjects"])
 		for data in mapData["mapObjects"]:
@@ -211,21 +226,20 @@ class Map(DirectObject):
 		if name in self.mapObjects:
 			self.mapObjects[name].destroy()
 			del self.mapObjects[name]
-		
+	'''
 	def setMapObjectPos(self, name, x, y, z=0):
 		if name in self.mapObjects:
 			self.mapObjects[name].setPos(x, y, z)
-			
+	'''	
 			
 	def clearCollision(self, args=[]):
+		print "Map %s : clear collision called" % (str(self))
 		self.collisionGrid.clear()
 		
 	def fillCollision(self, args=[]):
+		print "Map %s : fill collision called" % (str(self))
 		self.collisionGrid.fill()
 		
-	def setKey(self, key, value):
-		print "GameMap received %s" % (key)
-		self.keyDic[key] = value
 	
 
 
@@ -440,6 +454,11 @@ class MapManager(MapManagerBase):
 			self.NPC[name].destroy()
 			del self.NPC[name]
 		
+	def removeAllNPC(self):
+		for name in self.NPC.keys():
+			self.NPC[name].destroy()
+			del self.NPC[name]
+		
 	def playerGoto(self, x, y):
 		start = (self.player.getTilePos())
 		end = (x, y)
@@ -610,6 +629,7 @@ class MapEditor(MapManagerBase):
 		
 		self.setMode(self.mode)
 		self.accept("space", self.toggle)
+		
 		self.accept(SAVE_MAP, self.save)
 		self.accept(LOAD_MAP, self.load)
 		
@@ -651,31 +671,34 @@ class MapEditor(MapManagerBase):
 			self.setMode("collision")
 		
 	def save(self):
+		print "Editor : saving map"
 		self.map.save(self.map.filename)
 		
 	
 	def load(self):
-		self.gm.loadGameMap(self.map.filename)
+		print "Editor : loading map"
+		name = self.map.filename
+		self.gm.loadGameMap(name)
 		
 	#-----------------------------
 	# map objects
 	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
-		if name not in self.mapObjects:
+		if name not in self.map.mapObjects:
 			mapObject = MapObject(self, genre, name)
 			mapObject.setPos(pos) #-self.collisionGrid.terrainScale/3.0)
 			mapObject.setHpr(hpr)
 			mapObject.setScale(scale)
-			mapObject.reparentTo(self.mapObjectRoot)
-			self.mapObjects[name] = mapObject
+			mapObject.reparentTo(self.map.mapObjectRoot)
+			self.map.mapObjects[name] = mapObject
 		
 	def removeMapObject(self, name):
 		if name in self.mapObjects:
-			self.mapObjects[name].destroy()
-			del self.mapObjects[name]
+			self.map.mapObjects[name].destroy()
+			del self.map.mapObjects[name]
 		
 	def setMapObjectPos(self, name, x, y, z=0):
 		if name in self.mapObjects:
-			self.mapObjects[name].setPos(x, y, z)
+			self.map.mapObjects[name].setPos(x, y, z)
 	
 	
 	def onClickObject(self):
@@ -707,12 +730,12 @@ class MapEditor(MapManagerBase):
 	#-----------------------------
 	# map collisions	
 	def clearCollision(self, args=[]):
-		if self.mode == "edit":
-			self.collisionGrid.clear()
+		if self.mode == "collision":
+			self.map.collisionGrid.clear()
 		
 	def fillCollision(self, args=[]):
-		if self.mode == "edit":
-			self.collisionGrid.fill()
+		if self.mode == "collision":
+			self.map.collisionGrid.fill()
 		
 	def addCollision(self, x, y):
 		self.map.collisionGrid.showTile(x, y)
@@ -814,10 +837,13 @@ class Game(FSM, DirectObject):
 		self.request("Game")
 			
 	def loadGameMap(self, filename):
+		print "Game : load game map"
 		if self.map:
+			self.mapManager.removeAllNPC()
 			self.map.destroy()
+			del self.map
 			
-		self.map = Map(filename)	
+		self.map = Map(filename)
 		if self.mapManager:
 			self.mapManager.setMap(self.map)
 		if self.editor:
@@ -847,26 +873,27 @@ class Game(FSM, DirectObject):
 	def exitEditor(self):
 		self.editor.stop()
 		
+if __name__ == "__main__":
+	game = Game("maps/mapCode.txt")
+	#game.editor.addMapObject("main_gate", "main_gate 1", (50,35,0), (50,0,0), (1,1,1))
 
-game = Game("maps/mapCode.txt")
+	base.accept("escape", sys.exit)
 
-base.accept("escape", sys.exit)
+	base.disableMouse()
 
-base.disableMouse()
+	base.setFrameRateMeter(True)
 
-base.setFrameRateMeter(True)
-
-props = WindowProperties()
-props.setCursorHidden(True) 
-base.win.requestProperties(props)
+	props = WindowProperties()
+	props.setCursorHidden(True) 
+	base.win.requestProperties(props)
 
 
 
-#messenger.send("quit", [["and", "a", "shit", "load", "of", "other", "things"]])
+	#messenger.send("quit", [["and", "a", "shit", "load", "of", "other", "things"]])
 
-render.setShaderAuto()
-render.setTransparency(TransparencyAttrib.MAlpha)
-#render.setAntialias(AntialiasAttrib.MMultisample)
-#render.setAntialias(AntialiasAttrib.MAuto)
+	render.setShaderAuto()
+	render.setTransparency(TransparencyAttrib.MAlpha)
+	#render.setAntialias(AntialiasAttrib.MMultisample)
+	#render.setAntialias(AntialiasAttrib.MAuto)
 
-run()
+	run()
