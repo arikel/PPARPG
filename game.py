@@ -677,8 +677,9 @@ class MapEditor(MapManagerBase):
 	
 	def load(self, filename):
 		print "Editor : loading map %s" % (filename)
-		#filename = self.map.filename
-		filename
+		msg = "Loading map " + filename + "... Please wait..."
+		self.msgTilePos.setText(msg)
+		self.msg.setText(msg)
 		self.gm.load(filename)
 		
 	#-----------------------------
@@ -865,7 +866,7 @@ class Game(FSM, DirectObject):
 		
 	def setMode(self, mode):
 		self.mode = mode
-		self.camHandler.setMode(mode)	
+		self.camHandler.setMode(mode)
 	
 	def toggle(self):
 		if self.state == "Game":
@@ -875,11 +876,11 @@ class Game(FSM, DirectObject):
 	
 	def enterLoadMode(self):
 		print "Game : Entering load mode"
-		pass
+		
 		
 	def exitLoadMode(self):
 		print "Game : Exiting load mode"
-		pass
+		
 	
 	def enterGame(self):
 		self.setMode("playing")

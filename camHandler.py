@@ -95,6 +95,9 @@ class CamHandler:
 			self.setMode("playing")
 			
 	def setMode(self, mode):
+		if mode == "edit" and self.mode == "playing":
+			self.prevCamHpr = base.camera.getHpr()
+			
 		self.mode = mode
 		#self.update()
 		
@@ -117,7 +120,7 @@ class CamHandler:
 			paral.start()
 			
 		elif self.mode == "edit":
-			self.prevCamHpr = base.camera.getHpr()
+			
 			
 			base.camera.wrtReparentTo(self.editNp)
 			origHpr = base.camera.getHpr()
