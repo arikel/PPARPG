@@ -402,7 +402,8 @@ class CollisionGrid:
 			if self.data[y][x]==0:
 				#print "returning random free tile : %s %s" % (x, y)
 				return x, y
-		return None
+		return 10, 10
+		#return None
 	
 	def destroy(self):
 		if self.np:

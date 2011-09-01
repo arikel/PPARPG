@@ -631,7 +631,7 @@ class MapEditor(MapManagerBase):
 		self.accept("space", self.toggle)
 		
 		self.accept(SAVE_MAP, self.save)
-		self.accept(LOAD_MAP, self.load)
+		self.accept(LOAD_MAP, self.load, ["maps/mapCode.txt"])
 		
 	def setMode(self, mode="collision"):
 		if mode == "collision":
@@ -675,10 +675,11 @@ class MapEditor(MapManagerBase):
 		self.map.save(self.map.filename)
 		
 	
-	def load(self):
-		print "Editor : loading map"
-		name = self.map.filename
-		self.gm.loadGameMap(name)
+	def load(self, filename):
+		print "Editor : loading map %s" % (filename)
+		#filename = self.map.filename
+		filename
+		self.gm.load(filename)
 		
 	#-----------------------------
 	# map objects
@@ -837,17 +838,30 @@ class Game(FSM, DirectObject):
 		self.request("Game")
 			
 	def loadGameMap(self, filename):
-		print "Game : load game map"
+		print "Game : load game map %s" % (filename)
 		if self.map:
 			self.mapManager.removeAllNPC()
 			self.map.destroy()
 			del self.map
 			
 		self.map = Map(filename)
+		if self.map.collisionGrid:
+			print "Game : loaded new game map %s, it has a collisionGrid %s" % (str(self.map), str(self.map.collisionGrid))
+		else:
+			print "Game : loaded new game map %s, but WARNING : collisionGrid not found" % (filename)
+			
 		if self.mapManager:
+			print "Game : assigning new map %s to mapManager" % (filename)
 			self.mapManager.setMap(self.map)
 		if self.editor:
+			print "Game : assigning new map %s to editor" % (filename)
 			self.editor.setMap(self.map)
+		
+	def load(self, filename):
+		self.prevState = self.state
+		self.request("LoadMode")
+		self.loadGameMap(filename)
+		self.request(self.prevState)
 		
 	def setMode(self, mode):
 		self.mode = mode
@@ -858,6 +872,14 @@ class Game(FSM, DirectObject):
 			self.request("Editor")
 		elif self.state == "Editor":
 			self.request("Game")
+	
+	def enterLoadMode(self):
+		print "Game : Entering load mode"
+		pass
+		
+	def exitLoadMode(self):
+		print "Game : Exiting load mode"
+		pass
 	
 	def enterGame(self):
 		self.setMode("playing")
