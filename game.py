@@ -278,7 +278,8 @@ class MapManagerBase(DirectObject):
 		
 	def setMap(self, map):
 		self.map = map
-	
+		self.clicker.setHeight(self.map.collisionGrid.terrainScale)
+		
 	def getHoverObjectName(self):
 		if base.mouseWatcherNode.hasMouse():
 			mpos = base.mouseWatcherNode.getMouse()
@@ -859,7 +860,7 @@ class Game(FSM, DirectObject):
 		
 	def setMode(self, mode):
 		self.mode = mode
-		self.camHandler.setMode(mode)
+		#self.camHandler.setMode(mode)
 	
 	def toggle(self):
 		if self.state == "Game":
@@ -892,16 +893,12 @@ class Game(FSM, DirectObject):
 if __name__ == "__main__":
 	
 	game = Game("maps/mapCode.txt")
-	#game.editor.addMapObject("main_gate", "main_gate 1", (50,35,0), (50,0,0), (1,1,1))
+	
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
 	
-	#e = EditorGui()
-	
 	base.accept("escape", sys.exit)
-	
-	#base.accept("mouse3", e.toggleVisible)
 	
 	base.disableMouse()
 	base.setFrameRateMeter(True)

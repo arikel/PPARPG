@@ -69,11 +69,11 @@ class MouseCursor:
 # Clicker
 #-----------------------------------------------------------------------
 class Clicker:
-	def __init__(self):
+	def __init__(self, z=0):
 		"""
 		This class is used to handle clicks on the collision / pathfinding grid
 		"""
-		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, 0))
+		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, z))
 		self.picker = CollisionTraverser()
 		self.pq     = CollisionHandlerQueue()
 		self.pickerNode = CollisionNode('mouseRay')
@@ -83,6 +83,10 @@ class Clicker:
 		self.pickerNode.addSolid(self.pickerRay)
 		self.picker.addCollider(self.pickerNP, self.pq)
 		self.picker.showCollisions(render)
+		
+	def setHeight(self, z):
+		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, z))
+		print "Clicker set new height : %s" % (z)
 		
 	def getMouseObject(self, np=render):
 		if base.mouseWatcherNode.hasMouse():

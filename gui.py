@@ -411,64 +411,6 @@ class MenuButton(DirectButton):
 		self["text_fg"] = (0.8,0.8,0.8,1)
 		self["frameColor"]=(0.1,0.1,0.1,0.8)	
 
-'''
-class TopMenu:
-	"""TopMenu : This menu has a top button that always stays visible when the menu is active, hovering that top button will make the rest of the menu buttons pop up."""
-	
-	def __init__(self, x, y, w=0.1,h=0.04,cmdList=[]):
-		
-		
-		padding = 0.05
-		
-		self.x = x
-		self.y = y
-		self.w = w
-		self.h = h
-		
-		# the first string of the cmdList is used for the top button
-		self.topCmd = cmdList.pop(0)
-		
-		bottom = len(cmdList)*self.h*2+self.h+padding
-		
-		self.frame = DirectFrame(
-			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
-			frameColor=(0.7, 0.7, 0.9, 1.0),
-			pos = (self.x,1,self.y),
-			pad = (0,0),
-			borderWidth=(0.0,0.0),
-			relief = DGG.GROOVE,
-			sortOrder=-1,
-			state = DGG.NORMAL
-		)
-		
-		self.topButton = MenuButton(0, 0, self.w, self.h, self.topCmd)
-		self.topButton.reparentTo(self.frame)
-		
-		
-		self.buttons = []
-		for i, m in enumerate(cmdList):
-			button = MenuButton(0, -i*2*h-2*h, self.w, self.h, m)
-			button.reparentTo(self.frame)
-			self.buttons.append(button)
-		
-		self.topButton.bind(DGG.ENTER, self.expand)
-		self.frame.bind(DGG.EXIT, self.retract)
-		
-		self.retract()
-		
-	def expand(self, extraArgs=[]):
-		self.topButton.onHover()
-		for b in self.buttons:
-			b.show()
-			
-	def retract(self, extraArgs=[]):
-		self.topButton.onOut()
-		for b in self.buttons:
-			b.hide()
-			
-'''
-
-
 class TopMenu:
 	def __init__(self, x, y, w=0.1, h=0.04, cmdList=[]):
 		padding = 0.05
@@ -485,7 +427,7 @@ class TopMenu:
 		
 		self.frame = DirectFrame(
 			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
-			frameColor=(0.9, 0.7, 0.9, 0.2),
+			frameColor=(0.9, 0.7, 0.9, 0.0),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
@@ -529,6 +471,7 @@ class TopMenu:
 		else:
 			self.show()
 
+'''
 class ActionMenu:
 	"""ActionMenu : this menu doesn't have an always visible top button, all buttons in are the same."""
 	
@@ -618,6 +561,8 @@ class ActionMenu:
 			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
 			button.reparentTo(self.frame)
 			self.buttons.append(button)
+'''
+
 
 class ActionSubMenu:
 	def __init__(self, baseButton, cmdList=[], direction="right"):
@@ -637,16 +582,11 @@ class ActionSubMenu:
 			self.y = -self.h*2.0
 			self.frameSize = ((-self.w)*RATIO,(self.w)*RATIO,-bottom+self.padding,self.h)
 		
-		
-		
-		
-		
-		
 		self.frame = DirectFrame(
 			#frameSize = ((-self.w)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
 			frameSize = self.frameSize,
 			#frameSize = (0,0,0,0),
-			frameColor=(0.7, 0.7, 0.9, 0.2),
+			frameColor=(0.7, 0.7, 0.9, 0.0),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
@@ -694,11 +634,8 @@ class ActionSubMenu:
 		self.buttons[n].onHover()
 		for submenu in self.subMenus:
 			if self.buttons[n] is submenu.baseButton:
-				#print "Expanding menu %s" % (n)
 				submenu.expand()
 			else:
-				#print "Hovering %s" % (self.buttons[n].name)
-				#print "-> doesn't match menu with button named %s\n" % (submenu.baseButton.name)
 				submenu.retract()
 		
 		 
