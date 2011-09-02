@@ -669,6 +669,12 @@ class MapEditor(MapManagerBase):
 		elif self.mode == "object":
 			self.setMode("collision")
 	
+	def stopObjectAction(self):
+		self.objectMode = None
+		self.selectedObj = None
+		self.gui.objectMenu.hide()
+		self.startAccept()
+		
 	def startDrag(self, obj, extraArgs=[]):
 		self.gui.objectMenu.hide()
 		self.objectMode = "drag"
@@ -677,10 +683,8 @@ class MapEditor(MapManagerBase):
 		self.accept("mouse1", self.stopDrag)
 	
 	def stopDrag(self, extraArgs=[]):
-		self.objectMode = None
 		self.gui.setInfo("stopped dragging")
-		self.selectedObj = None
-		self.startAccept()
+		self.stopObjectAction()
 		
 	def startMoveZ(self, obj, extraArgs=[]):
 		self.gui.objectMenu.hide()
@@ -690,10 +694,8 @@ class MapEditor(MapManagerBase):
 		self.accept("mouse1", self.stopMoveZ)
 	
 	def stopMoveZ(self, extraArgs=[]):
-		self.objectMode = None
 		self.gui.setInfo("stopped moving object Z")
-		self.selectedObj = None
-		self.startAccept()
+		self.stopObjectAction()
 		
 	def startRotate(self, obj, extraArgs=[]):
 		self.gui.objectMenu.hide()
@@ -703,10 +705,8 @@ class MapEditor(MapManagerBase):
 		self.accept("mouse1", self.stopRotate)
 	
 	def stopRotate(self, extraArgs=[]):
-		self.objectMode = None
 		self.gui.setInfo("stopped rotating object")
-		self.selectedObj = None
-		self.startAccept()
+		self.stopObjectAction()
 		
 	#-----------------------------
 	# map file handling
@@ -733,8 +733,9 @@ class MapEditor(MapManagerBase):
 			mapObject.reparentTo(self.map.mapObjectRoot)
 			self.map.mapObjects[name] = mapObject
 		
-	def removeMapObject(self, name):
-		if name in self.mapObjects:
+	def removeMapObject(self, name, extraArgs=[]):
+		if name in self.map.mapObjects:
+			self.stopObjectAction()
 			self.map.mapObjects[name].destroy()
 			del self.map.mapObjects[name]
 		
@@ -771,6 +772,7 @@ class MapEditor(MapManagerBase):
 				self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.startDrag, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[2].bind(DGG.B1PRESS, self.startRotate, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[3].bind(DGG.B1PRESS, self.startMoveZ, [self.map.mapObjects[name]])
+				self.gui.objectMenu.buttons[5].bind(DGG.B1PRESS, self.removeMapObject, [name])
 				
 		else:
 			print "map editor : right click on nothing"
@@ -792,7 +794,18 @@ class MapEditor(MapManagerBase):
 	def removeCollision(self, x, y):
 		self.map.collisionGrid.hideTile(x, y)
 		
-		
+	
+	def checkObj(self, dt=0.01):
+		if self.keyDic[EDITOR_LEFT]:
+			self.selectedObj.rotate(dt)
+		elif self.keyDic[EDITOR_RIGHT]:
+			self.selectedObj.rotate(-dt)
+			
+		if self.keyDic[EDITOR_UP]:
+			self.selectedObj.moveZ(dt)
+		elif self.keyDic[EDITOR_DOWN]:
+			self.selectedObj.moveZ(-dt)
+	
 	#-----------------------------
 	# editor update task
 	def update(self, task):
@@ -818,19 +831,11 @@ class MapEditor(MapManagerBase):
 				objPos = self.clicker.getMousePos(mpos)
 				objPos = Vec3(objPos[0], objPos[1], self.selectedObj.getZ())
 				self.selectedObj.setPos(objPos)
-			
-			elif self.objectMode == "rotate":
-				if self.keyDic[EDITOR_LEFT]:
-					self.selectedObj.rotate(dt)
-				elif self.keyDic[EDITOR_RIGHT]:
-					self.selectedObj.rotate(-dt)
-			
-			elif self.objectMode == "moveZ":
-				if self.keyDic[EDITOR_UP]:
-					self.selectedObj.moveZ(dt)
-				elif self.keyDic[EDITOR_DOWN]:
-					self.selectedObj.moveZ(-dt)
-			
+				self.checkObj(dt)
+			#elif self.objectMode == "rotate":
+			elif self.objectMode == "rotate" or self.objectMode == "moveZ":
+				self.checkObj(dt)
+				
 			name = self.getHoverObjectName()
 			if name is not None:
 				msg = "mapObject : " + name
