@@ -590,17 +590,15 @@ class MapEditor(MapManagerBase):
 		# selected, dragging, rotating, scaling
 		self.objectMode = None
 		
-		self.msg = makeMsg(-1.3,0.95,"")
+		self.gui = EditorGui(self)
 		
-		self.msgTilePos = makeMsg(-1.2,0.95,"")
-	
+		
 	#-----------------------------
 	# modes and input
 	
 	def start(self):
 		print "Starting editor"
-		self.msg.show()
-		self.msgTilePos.show()
+		self.gui.show()
 		self.startAccept()
 		self.task = taskMgr.add(self.update, "MapEditorTask")
 		if self.map.bgMusic:
@@ -608,9 +606,7 @@ class MapEditor(MapManagerBase):
 		
 	def stop(self):
 		print "Stopping editor"
-		self.msg.hide()
-		self.msgTilePos.hide()
-		
+		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
 		
@@ -635,9 +631,9 @@ class MapEditor(MapManagerBase):
 		
 	def setMode(self, mode="collision"):
 		if mode == "collision":
-			print "Editor switched to collision mode"
+			msg = "Editor switched to collision mode"
 			self.mode = "collision"
-			self.msg.setText("")
+			self.gui.setInfo(msg)
 			
 			for key in ["mouse1", "mouse2", "mouse3"]:
 				self.keyDic[key] = 0
@@ -649,8 +645,10 @@ class MapEditor(MapManagerBase):
 			self.accept(FILL_COLLISION, self.map.fillCollision)
 			
 		elif mode == "object":
-			print "Editor switched to object mode"
+			msg = "Editor switched to object mode"
 			self.mode = "object"
+			self.gui.setInfo(msg)
+			
 			self.accept("mouse1", self.onClickObject) # left click
 			self.accept("mouse2", self.onClickObject2) # scroll click
 			self.accept("mouse3", self.onClickObject3) # right click
@@ -661,9 +659,6 @@ class MapEditor(MapManagerBase):
 		self.accept("wheel_up", self.camHandler.moveHeight, [-0.2])
 		self.accept("wheel_down", self.camHandler.moveHeight, [0.2])
 		
-		modeMsg = "Editor mode : " + self.mode
-		self.msgTilePos.setText(modeMsg)
-		
 	def toggle(self):
 		if self.mode == "collision":
 			self.setMode("object")
@@ -671,15 +666,15 @@ class MapEditor(MapManagerBase):
 			self.setMode("collision")
 		
 	def save(self):
-		print "Editor : saving map"
+		msg = "Editor : saving map"
+		self.gui.setInfo(msg)
 		self.map.save(self.map.filename)
 		
 	
-	def load(self, filename):
-		print "Editor : loading map %s" % (filename)
+	def load(self, filename, extraArgs=[]):
+		#print "Editor : loading map %s" % (filename)
 		msg = "Loading map " + filename + "... Please wait..."
-		self.msgTilePos.setText(msg)
-		self.msg.setText(msg)
+		self.gui.setInfo(msg)
 		self.gm.load(filename)
 		
 	#-----------------------------
@@ -770,11 +765,9 @@ class MapEditor(MapManagerBase):
 			name = self.getHoverObjectName()
 			if name is not None:
 				msg = "mapObject : " + name
-				self.msg.setText(msg)
-				self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
-				
+				self.gui.setObjInfo(mpos, msg)
 			else:
-				self.msg.setText("")
+				self.gui.clearObjInfo()
 		
 		# camera control
 		if self.keyDic[FORWARD]:
@@ -897,26 +890,26 @@ class Game(FSM, DirectObject):
 		self.editor.stop()
 		
 if __name__ == "__main__":
+	
 	game = Game("maps/mapCode.txt")
 	#game.editor.addMapObject("main_gate", "main_gate 1", (50,35,0), (50,0,0), (1,1,1))
-
-	base.accept("escape", sys.exit)
-
-	base.disableMouse()
-
-	base.setFrameRateMeter(True)
-
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
-
-
-
-	#messenger.send("quit", [["and", "a", "shit", "load", "of", "other", "things"]])
-
+	
+	#e = EditorGui()
+	
+	base.accept("escape", sys.exit)
+	
+	#base.accept("mouse3", e.toggleVisible)
+	
+	base.disableMouse()
+	base.setFrameRateMeter(True)
+	
 	render.setShaderAuto()
 	render.setTransparency(TransparencyAttrib.MAlpha)
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)
-
+	#PStatClient.connect()
+	
 	run()

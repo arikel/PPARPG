@@ -41,6 +41,10 @@ def makeMsg(x,y, txt = "msg", color = "white"):
 	M.setText(txt)
 	return M
 
+def makeMsgRight(x,y, txt = "msg", color = "white"):
+	m = makeMsg(x, y, txt, color)
+	m["align"]=TextNode.ARight
+	return m
 
 #-------------------------------------------------------------------------------
 # MainButton
@@ -407,9 +411,13 @@ class MenuButton(DirectButton):
 		self["text_fg"] = (0.8,0.8,0.8,1)
 		self["frameColor"]=(0.1,0.1,0.1,0.8)	
 
-
-class Menu:
+'''
+class TopMenu:
+	"""TopMenu : This menu has a top button that always stays visible when the menu is active, hovering that top button will make the rest of the menu buttons pop up."""
+	
 	def __init__(self, x, y, w=0.1,h=0.04,cmdList=[]):
+		
+		
 		padding = 0.05
 		
 		self.x = x
@@ -417,20 +425,20 @@ class Menu:
 		self.w = w
 		self.h = h
 		
+		# the first string of the cmdList is used for the top button
 		self.topCmd = cmdList.pop(0)
 		
 		bottom = len(cmdList)*self.h*2+self.h+padding
 		
-		self.frame = DirectButton(
+		self.frame = DirectFrame(
 			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
 			frameColor=(0.7, 0.7, 0.9, 1.0),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
-			rolloverSound=None,
-			clickSound=None,
-			sortOrder=-1
+			sortOrder=-1,
+			state = DGG.NORMAL
 		)
 		
 		self.topButton = MenuButton(0, 0, self.w, self.h, self.topCmd)
@@ -450,18 +458,80 @@ class Menu:
 		
 	def expand(self, extraArgs=[]):
 		self.topButton.onHover()
-		#print "Expand!"
 		for b in self.buttons:
 			b.show()
 			
 	def retract(self, extraArgs=[]):
 		self.topButton.onOut()
-		#print "Retract!"
 		for b in self.buttons:
 			b.hide()
 			
+'''
+
+
+class TopMenu:
+	def __init__(self, x, y, w=0.1, h=0.04, cmdList=[]):
+		padding = 0.05
+		
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		
+		# the first string of the cmdList is used for the top button
+		self.topCmd = cmdList.pop(0)
+		
+		bottom = len(cmdList)*self.h*2+self.h+padding
+		
+		self.frame = DirectFrame(
+			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
+			frameColor=(0.9, 0.7, 0.9, 0.2),
+			pos = (self.x,1,self.y),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+			sortOrder=-1,
+			state = DGG.NORMAL
+		)
+		
+		self.topButton = MenuButton(0, 0, self.w, self.h, self.topCmd)
+		self.topButton.reparentTo(self.frame)
+		
+		self.menu = ActionSubMenu(self.topButton, cmdList, "down")
+		self.menu.frame.reparentTo(self.frame)
+		
+		self.topButton.bind(DGG.ENTER, self.expand)
+		self.frame.bind(DGG.EXIT, self.retract)
+		
+		self.visible = True
+		
+	def expand(self, extraArgs=[]):
+		#print "top menu expand"
+		self.topButton.onHover()
+		self.menu.expand()
+			
+	def retract(self, extraArgs=[]):
+		#print "top menu retract"
+		self.topButton.onOut()
+		self.menu.retract()
 	
+	def hide(self):
+		self.frame.hide()
+		self.visible = False
+		
+	def show(self):
+		self.frame.show()
+		self.visible = True
+		
+	def toggleVisible(self):
+		if self.visible:
+			self.hide()
+		else:
+			self.show()
+
 class ActionMenu:
+	"""ActionMenu : this menu doesn't have an always visible top button, all buttons in are the same."""
+	
 	def __init__(self, x, y, w=0.1,h=0.04,cmdList=[]):
 		self.padding = 0.05
 		self.x = x
@@ -469,9 +539,10 @@ class ActionMenu:
 		self.w = w
 		self.h = h
 		
-		bottom = len(cmdList)*self.h*2
+		self.cmdList = cmdList
+		bottom = len(self.cmdList)*self.h*2
 		
-		self.frame = DirectButton(
+		self.frame = DirectFrame(
 			frameSize = ((-self.w-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
 			#frameSize = (0,0,0,0),
 			frameColor=(0.7, 0.7, 0.9, 1.0),
@@ -479,20 +550,43 @@ class ActionMenu:
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
-			rolloverSound=None,
-			clickSound=None
+			state = DGG.NORMAL
 		)
 		
 		self.buttons = []
 		for i, m in enumerate(cmdList):
 			button = MenuButton(0, -i*2*h, self.w, self.h, m)
 			button.reparentTo(self.frame)
+			button.bind(DGG.ENTER, self.onMainButtonHover, [i])
 			self.buttons.append(button)
+			
+		
+		self.subMenus = []
 		
 		#self.frame.bind(DGG.ENTER, self.expand)
 		self.frame.bind(DGG.EXIT, self.retract)
 		
 		self.retract()
+		
+	def onMainButtonHover(self, n, extraArgs=[]):
+		if n >= len(self.cmdList):
+			return False
+		self.buttons[n].onHover()
+		for submenu in self.subMenus:
+			if self.buttons[n] is submenu.baseButton:
+				#print "Expanding menu %s" % (n)
+				submenu.expand()
+			else:
+				#print "Hovering %s" % (self.buttons[n].name)
+				#print "-> doesn't match menu with button named %s\n" % (submenu.baseButton.name)
+				submenu.retract()
+		
+		 
+		
+	def addSubMenu(self, n, cmdList=[]):
+		if n >= len(self.cmdList):
+			return False
+		self.subMenus.append(ActionSubMenu(self.buttons[n], cmdList))
 		
 	def expand(self, extraArgs=[]):
 		#print "Expand!"
@@ -501,20 +595,20 @@ class ActionMenu:
 		self.frame.setPos(mpos[0]*RATIO+self.w, 1, mpos[1])
 		
 		self.frame.show()
-		#for b in self.buttons:
-		#	b.show()
 			
 	def retract(self, extraArgs=[]):
-		#print "Retract!"
-		#for b in self.buttons:
-		#	b.hide()
+		for submenu in self.subMenus:
+			submenu.retract()
 		self.frame.hide()
 		
 	def clear(self):
 		for b in self.buttons:
 			b.destroy()
 		self.buttons = []
-	
+		for menu in self.subMenus:
+			menu.destroy()
+		self.subMenus = []
+		
 	def rebuild(self, cmdList=[]):
 		self.clear()
 		bottom = len(cmdList)*self.h*2
@@ -526,26 +620,38 @@ class ActionMenu:
 			self.buttons.append(button)
 
 class ActionSubMenu:
-	def __init__(self, baseButton, cmdList=[]):
+	def __init__(self, baseButton, cmdList=[], direction="right"):
 		self.baseButton = baseButton # MenuButton
 		self.padding = 0.05
-		self.x = self.baseButton.w * 2 * RATIO
-		self.y = 0
 		self.w = self.baseButton.w
 		self.h = self.baseButton.h
-		
 		bottom = len(cmdList)*self.h*2
+		self.cmdList = cmdList
 		
-		self.frame = DirectButton(
-			frameSize = ((-self.w)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
+		if direction == "right":
+			self.x = self.baseButton.w * 2 * RATIO
+			self.y = 0
+			self.frameSize = ((-self.w)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding)
+		elif direction == "down":
+			self.x = 0
+			self.y = -self.h*2.0
+			self.frameSize = ((-self.w)*RATIO,(self.w)*RATIO,-bottom+self.padding,self.h)
+		
+		
+		
+		
+		
+		
+		self.frame = DirectFrame(
+			#frameSize = ((-self.w)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
+			frameSize = self.frameSize,
 			#frameSize = (0,0,0,0),
-			frameColor=(0.7, 0.7, 0.9, 1.0),
+			frameColor=(0.7, 0.7, 0.9, 0.2),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
-			rolloverSound=None,
-			clickSound=None,
+			state = DGG.NORMAL,
 			sortOrder=-1
 		)
 		self.frame.reparentTo(self.baseButton)
@@ -556,34 +662,52 @@ class ActionSubMenu:
 			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
 			button.reparentTo(self.frame)
 			self.buttons.append(button)
-		
-		#self.frame.bind(DGG.ENTER, self.expand)
-		self.frame.bind(DGG.EXIT, self.retract)
-		self.baseButton.bind(DGG.ENTER, self.expand)
+			button.bind(DGG.ENTER, self.onMainButtonHover, [i])
+			
+		self.subMenus = []
 		
 		self.retract()
+		self.frame.bind(DGG.EXIT, self.retract)
 		
 	def expand(self, extraArgs=[]):
-		#print "Expand!"
-		#if base.mouseWatcherNode.hasMouse():
-		#	mpos = base.mouseWatcherNode.getMouse()
-		#self.frame.setPos(mpos[0]*RATIO+self.w, 1, mpos[1])
-		
+		for menu in self.subMenus:
+			menu.retract()
+		self.baseButton.onHover()
 		self.frame.show()
-		#for b in self.buttons:
-		#	b.show()
 			
 	def retract(self, extraArgs=[]):
-		#print "Retract!"
-		#for b in self.buttons:
-		#	b.hide()
 		self.frame.hide()
+		for menu in self.subMenus:
+			menu.retract()
 		
 	def clear(self):
 		for b in self.buttons:
 			b.destroy()
 		self.buttons = []
-	
+		for menu in self.subMenus:
+			menu.destroy()
+		self.subMenus = []
+		
+	def onMainButtonHover(self, n, extraArgs=[]):
+		if n >= len(self.cmdList):
+			return False
+		self.buttons[n].onHover()
+		for submenu in self.subMenus:
+			if self.buttons[n] is submenu.baseButton:
+				#print "Expanding menu %s" % (n)
+				submenu.expand()
+			else:
+				#print "Hovering %s" % (self.buttons[n].name)
+				#print "-> doesn't match menu with button named %s\n" % (submenu.baseButton.name)
+				submenu.retract()
+		
+		 
+		
+	def addSubMenu(self, n, cmdList=[]):
+		if n >= len(self.cmdList):
+			return False
+		self.subMenus.append(ActionSubMenu(self.buttons[n], cmdList))
+		
 	def rebuild(self, cmdList=[]):
 		self.clear()
 		bottom = len(cmdList)*self.h*2
@@ -593,3 +717,51 @@ class ActionSubMenu:
 			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
 			button.reparentTo(self.frame)
 			self.buttons.append(button)
+
+	def destroy(self):
+		for b in self.buttons:
+			b.destroy()
+
+
+class EditorGui:
+	def __init__(self, editor):
+		self.editor = editor
+		
+		self.topMenu = TopMenu(-0.7*RATIO, 0.9, 0.2,0.04, ["File", "New", "Open...", "Save", "Save as..."])
+		mapList = os.listdir("maps")
+		self.topMenu.menu.addSubMenu(1, mapList)
+		for i, map in enumerate(mapList):
+			path = "maps/" + map
+			self.topMenu.menu.subMenus[0].buttons[i].bind(DGG.B1PRESS, self.editor.load, [path])
+			
+		self.infoLabel = makeMsgRight(0.95*RATIO,-0.95,"")
+		self.mapObjectLabel = makeMsg(-0.95*RATIO,-0.85,"")
+		self.hide()
+		
+	def hide(self):
+		self.topMenu.hide()
+		self.infoLabel.hide()
+		self.mapObjectLabel.hide()
+		self.visible = False
+		
+	def show(self):
+		self.topMenu.show()
+		self.infoLabel.show()
+		self.mapObjectLabel.show()
+		self.visible = True
+		
+	def toggleVisible(self):
+		if self.visible:
+			self.hide()
+		else:
+			self.show()
+	
+	def setInfo(self, info):
+		self.infoLabel.setText(str(info))
+		
+	def setObjInfo(self, mpos, info):
+		self.mapObjectLabel.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+		self.mapObjectLabel.setText(str(info))
+		
+	def clearObjInfo(self):
+		self.mapObjectLabel.setText("")
