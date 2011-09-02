@@ -10,6 +10,8 @@ from direct.interval.IntervalGlobal import *
 
 import sys, math, random, os.path, os, re
 
+RATIO = base.getAspectRatio()
+
 textColors = {}
 textColors["white"] = ((1,1,1,1), (0,0,0,0.8))
 textColors["white_transp"] = ((1,1,1,1), (0,0,0,0.0))
@@ -356,6 +358,238 @@ class DialogGui:
 		self.dialogBList.destroy()
 		self.dialogBList = DialogButtonList(0,-0.69,menu)
 		
+
+#-------------------------------------------------------------------------------
+# Menu
+#-------------------------------------------------------------------------------
+
+class MenuButton(DirectButton):
+	def __init__(self, x, y, w=0.1, h=0.04, name = "dialogButton"):
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		self.name = name
+		#print "created dialog button %s" % (name)
+		#print "Type w : %s" % (type(self.w))
+		#print "Type h : %s" % (type(self.h))
+		#print "Type x : %s" % (type(self.x))
+		#print "Type y : %s" % (type(self.y))
+		
+		DirectButton.__init__(self,
+			frameSize = (-self.w*RATIO,self.w*RATIO,-h,h),
+			pos = (x, 1, y),
+			pad = (0,0),
+			borderWidth=(0.008,0.008),
+			frameColor=(0.1,0.1,0.1,0.8),
+			relief = DGG.RIDGE,
+			rolloverSound = None,#soundDic["rollover"],
+			clickSound = None,#soundDic["select_confirm"],
+			text_font = FONT,
+			text_scale = FONT_SCALE,
+			text_fg = (0.8,0.8,0.8,1),
+			text = name,
+			text_align = TextNode.ALeft,
+			text_pos = (-self.w*RATIO, -0.02),
+			text_mayChange = True,
+			sortOrder=1
+		)
+		self.initialiseoptions(MenuButton)
+		self.bind(DGG.ENTER, command=self.onHover, extraArgs=[self])
+		self.bind(DGG.EXIT, command=self.onOut, extraArgs=[self])
+		
+	def onHover(self, extraArgs=[], sentArgs=[]):
+		self["text_fg"] = (1,1,1,1)
+		self["frameColor"]=(0.2,0.2,0.2,0.8)
+		#self["text_shadow"] = (0.0,0.5,0.95,1)
+		
+	def onOut(self, extraArgs=[], sentArgs=[]):
+		self["text_fg"] = (0.8,0.8,0.8,1)
+		self["frameColor"]=(0.1,0.1,0.1,0.8)	
+
+
+class Menu:
+	def __init__(self, x, y, w=0.1,h=0.04,cmdList=[]):
+		padding = 0.05
+		
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		
+		self.topCmd = cmdList.pop(0)
+		
+		bottom = len(cmdList)*self.h*2+self.h+padding
+		
+		self.frame = DirectButton(
+			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
+			frameColor=(0.7, 0.7, 0.9, 1.0),
+			pos = (self.x,1,self.y),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+			rolloverSound=None,
+			clickSound=None,
+			sortOrder=-1
+		)
+		
+		self.topButton = MenuButton(0, 0, self.w, self.h, self.topCmd)
+		self.topButton.reparentTo(self.frame)
 		
 		
+		self.buttons = []
+		for i, m in enumerate(cmdList):
+			button = MenuButton(0, -i*2*h-2*h, self.w, self.h, m)
+			button.reparentTo(self.frame)
+			self.buttons.append(button)
 		
+		self.topButton.bind(DGG.ENTER, self.expand)
+		self.frame.bind(DGG.EXIT, self.retract)
+		
+		self.retract()
+		
+	def expand(self, extraArgs=[]):
+		self.topButton.onHover()
+		#print "Expand!"
+		for b in self.buttons:
+			b.show()
+			
+	def retract(self, extraArgs=[]):
+		self.topButton.onOut()
+		#print "Retract!"
+		for b in self.buttons:
+			b.hide()
+			
+	
+class ActionMenu:
+	def __init__(self, x, y, w=0.1,h=0.04,cmdList=[]):
+		self.padding = 0.05
+		self.x = x
+		self.y = y
+		self.w = w
+		self.h = h
+		
+		bottom = len(cmdList)*self.h*2
+		
+		self.frame = DirectButton(
+			frameSize = ((-self.w-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
+			#frameSize = (0,0,0,0),
+			frameColor=(0.7, 0.7, 0.9, 1.0),
+			pos = (self.x,1,self.y),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+			rolloverSound=None,
+			clickSound=None
+		)
+		
+		self.buttons = []
+		for i, m in enumerate(cmdList):
+			button = MenuButton(0, -i*2*h, self.w, self.h, m)
+			button.reparentTo(self.frame)
+			self.buttons.append(button)
+		
+		#self.frame.bind(DGG.ENTER, self.expand)
+		self.frame.bind(DGG.EXIT, self.retract)
+		
+		self.retract()
+		
+	def expand(self, extraArgs=[]):
+		#print "Expand!"
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+		self.frame.setPos(mpos[0]*RATIO+self.w, 1, mpos[1])
+		
+		self.frame.show()
+		#for b in self.buttons:
+		#	b.show()
+			
+	def retract(self, extraArgs=[]):
+		#print "Retract!"
+		#for b in self.buttons:
+		#	b.hide()
+		self.frame.hide()
+		
+	def clear(self):
+		for b in self.buttons:
+			b.destroy()
+		self.buttons = []
+	
+	def rebuild(self, cmdList=[]):
+		self.clear()
+		bottom = len(cmdList)*self.h*2
+		self.frame["frameSize"] = ((-self.w-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding)
+		
+		for i, m in enumerate(cmdList):
+			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
+			button.reparentTo(self.frame)
+			self.buttons.append(button)
+
+class ActionSubMenu:
+	def __init__(self, baseButton, cmdList=[]):
+		self.baseButton = baseButton # MenuButton
+		self.padding = 0.05
+		self.x = self.baseButton.w * 2 * RATIO
+		self.y = 0
+		self.w = self.baseButton.w
+		self.h = self.baseButton.h
+		
+		bottom = len(cmdList)*self.h*2
+		
+		self.frame = DirectButton(
+			frameSize = ((-self.w)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
+			#frameSize = (0,0,0,0),
+			frameColor=(0.7, 0.7, 0.9, 1.0),
+			pos = (self.x,1,self.y),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+			rolloverSound=None,
+			clickSound=None,
+			sortOrder=-1
+		)
+		self.frame.reparentTo(self.baseButton)
+		
+		
+		self.buttons = []
+		for i, m in enumerate(cmdList):
+			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
+			button.reparentTo(self.frame)
+			self.buttons.append(button)
+		
+		#self.frame.bind(DGG.ENTER, self.expand)
+		self.frame.bind(DGG.EXIT, self.retract)
+		self.baseButton.bind(DGG.ENTER, self.expand)
+		
+		self.retract()
+		
+	def expand(self, extraArgs=[]):
+		#print "Expand!"
+		#if base.mouseWatcherNode.hasMouse():
+		#	mpos = base.mouseWatcherNode.getMouse()
+		#self.frame.setPos(mpos[0]*RATIO+self.w, 1, mpos[1])
+		
+		self.frame.show()
+		#for b in self.buttons:
+		#	b.show()
+			
+	def retract(self, extraArgs=[]):
+		#print "Retract!"
+		#for b in self.buttons:
+		#	b.hide()
+		self.frame.hide()
+		
+	def clear(self):
+		for b in self.buttons:
+			b.destroy()
+		self.buttons = []
+	
+	def rebuild(self, cmdList=[]):
+		self.clear()
+		bottom = len(cmdList)*self.h*2
+		self.frame["frameSize"] = ((-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding)
+		
+		for i, m in enumerate(cmdList):
+			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
+			button.reparentTo(self.frame)
+			self.buttons.append(button)
