@@ -33,8 +33,8 @@ DUPLICATE = "shit-d"
 # display settings
 #-----------------------------------------------------------------------
 CONFIG_LIGHT = True
-CONFIG_W, CONFIG_H = 800, 600
-#CONFIG_W, CONFIG_H = 1024, 768
+#CONFIG_W, CONFIG_H = 800, 600
+CONFIG_W, CONFIG_H = 1024, 768
 #CONFIG_W, CONFIG_H = 1280, 1024
 CONFIG_FULLSCREEN = False
 

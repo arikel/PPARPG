@@ -130,7 +130,7 @@ class Map:
 		if self.collisionGrid:
 			self.collisionGrid.destroy()
 			del self.collisionGrid
-			print "Map : self collisionGrid destroyed"
+			print "Map : collisionGrid destroyed"
 		for mapObj in self.mapObjects.values():
 			self.removeMapObject(mapObj.name)
 
@@ -588,8 +588,9 @@ class MapEditor(MapManagerBase):
 		MapManagerBase.__init__(self, gm)
 		
 		# while self.mode == "edit", self.objectMode can become :
-		# selected, dragging, rotating, scaling
+		# drag, rotating, scaling
 		self.objectMode = None
+		self.selectedObj = None
 		
 		self.gui = EditorGui(self)
 		
@@ -665,7 +666,21 @@ class MapEditor(MapManagerBase):
 			self.setMode("object")
 		elif self.mode == "object":
 			self.setMode("collision")
+	
+	def startDrag(self, obj, extraArgs=[]):
+		self.objectMode = "drag"
+		self.gui.setInfo("dragging")
+		self.selectedObj = obj
+		self.accept("mouse1", self.stopDrag)
+	
+	def stopDrag(self, extraArgs=[]):
+		self.objectMode = None
+		self.gui.setInfo("stopped dragging")
+		self.selectedObj = None
+		self.startAccept()
 		
+	#-----------------------------
+	# map file handling
 	def save(self):
 		msg = "Editor : saving map"
 		self.gui.setInfo(msg)
@@ -721,9 +736,13 @@ class MapEditor(MapManagerBase):
 		name = self.getHoverObjectName()
 		if name is not None:
 			print "map editor : right click on %s" % (name)
+			if base.mouseWatcherNode.hasMouse():
+				mpos = base.mouseWatcherNode.getMouse()
+				self.gui.openObjectMenu(self.map.mapObjects[name], mpos)
+				self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.startDrag, [self.map.mapObjects[name]])
 		else:
 			print "map editor : right click on nothing"
-
+			self.gui.objectMenu.hide()
 	
 	#-----------------------------
 	# map collisions	
@@ -763,6 +782,11 @@ class MapEditor(MapManagerBase):
 		# map objects control
 		
 		if self.mode == "object" and mpos is not None:
+			if self.objectMode == "drag":
+				objPos = self.clicker.getMousePos(mpos)
+				objPos = Vec3(objPos[0], objPos[1], self.selectedObj.getZ())
+				self.selectedObj.setPos(objPos)
+				
 			name = self.getHoverObjectName()
 			if name is not None:
 				msg = "mapObject : " + name

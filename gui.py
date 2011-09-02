@@ -447,6 +447,9 @@ class TopMenu:
 		
 		self.visible = True
 		
+	def setPos(self, pos):
+		self.frame.setPos(pos)
+		
 	def expand(self, extraArgs=[]):
 		#print "top menu expand"
 		self.topButton.onHover()
@@ -471,7 +474,7 @@ class TopMenu:
 		else:
 			self.show()
 
-'''
+
 class ActionMenu:
 	"""ActionMenu : this menu doesn't have an always visible top button, all buttons in are the same."""
 	
@@ -510,6 +513,23 @@ class ActionMenu:
 		self.frame.bind(DGG.EXIT, self.retract)
 		
 		self.retract()
+		
+	def hide(self):
+		self.frame.hide()
+		self.visible = False
+		
+	def show(self):
+		self.frame.show()
+		self.visible = True
+		
+	def toggleVisible(self):
+		if self.visible:
+			self.hide()
+		else:
+			self.show()
+		
+	def setPos(self, pos):
+		self.frame.setPos(pos[0]*RATIO, 1,pos[1])
 		
 	def onMainButtonHover(self, n, extraArgs=[]):
 		if n >= len(self.cmdList):
@@ -561,7 +581,7 @@ class ActionMenu:
 			button = MenuButton(0, -i*2*self.h, self.w, self.h, m)
 			button.reparentTo(self.frame)
 			self.buttons.append(button)
-'''
+
 
 
 class ActionSubMenu:
@@ -670,22 +690,34 @@ class EditorGui:
 		for i, map in enumerate(mapList):
 			path = "maps/" + map
 			self.topMenu.menu.subMenus[0].buttons[i].bind(DGG.B1PRESS, self.editor.load, [path])
+		
+		self.objectMenu = ActionMenu(-0.7*RATIO, 0.9, 0.16,0.035, ["Object", "Grab", "Rotate", "MoveZ", "Duplicate", "Destroy"])
+		
 			
 		self.infoLabel = makeMsgRight(0.95*RATIO,-0.95,"")
-		self.mapObjectLabel = makeMsg(-0.95*RATIO,-0.85,"")
+		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
+		
 		self.hide()
 		
 	def hide(self):
 		self.topMenu.hide()
+		self.objectMenu.hide()
 		self.infoLabel.hide()
-		self.mapObjectLabel.hide()
+		self.objectLabel.hide()
 		self.visible = False
 		
 	def show(self):
 		self.topMenu.show()
+		#self.objectMenu.show()
 		self.infoLabel.show()
-		self.mapObjectLabel.show()
+		self.objectLabel.show()
 		self.visible = True
+		
+	def openObjectMenu(self, obj, mpos):
+		"""obj is a MapObject"""
+		self.objectMenu.show()
+		pos = (mpos[0] + self.objectMenu.w, mpos[1])
+		self.objectMenu.setPos(pos)
 		
 	def toggleVisible(self):
 		if self.visible:
@@ -697,8 +729,8 @@ class EditorGui:
 		self.infoLabel.setText(str(info))
 		
 	def setObjInfo(self, mpos, info):
-		self.mapObjectLabel.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
-		self.mapObjectLabel.setText(str(info))
+		self.objectLabel.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+		self.objectLabel.setText(str(info))
 		
 	def clearObjInfo(self):
-		self.mapObjectLabel.setText("")
+		self.objectLabel.setText("")
