@@ -28,6 +28,10 @@ GRAB = "g"
 ROTATE = "r"
 DESTROY = "x"
 DUPLICATE = "shit-d"
+EDITOR_UP = "arrow_up"
+EDITOR_DOWN = "arrow_down"
+EDITOR_LEFT = "arrow_left"
+EDITOR_RIGHT = "arrow_right"
 
 #-----------------------------------------------------------------------
 # display settings

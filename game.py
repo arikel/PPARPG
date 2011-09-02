@@ -618,7 +618,9 @@ class MapEditor(MapManagerBase):
 			FORWARD, BACKWARD,
 			STRAFE_LEFT, STRAFE_RIGHT,
 			TURN_LEFT, TURN_RIGHT,
-			UP, DOWN,"h", "b", "t", "g"
+			UP, DOWN,
+			EDITOR_DOWN, EDITOR_LEFT, EDITOR_RIGHT, EDITOR_UP,
+			"h", "b", "t", "g"
 			]:
 			self.keyDic[key] = 0
 			self.accept(key, self.setKey, [key, 1])
@@ -668,6 +670,7 @@ class MapEditor(MapManagerBase):
 			self.setMode("collision")
 	
 	def startDrag(self, obj, extraArgs=[]):
+		self.gui.objectMenu.hide()
 		self.objectMode = "drag"
 		self.gui.setInfo("dragging")
 		self.selectedObj = obj
@@ -676,6 +679,32 @@ class MapEditor(MapManagerBase):
 	def stopDrag(self, extraArgs=[]):
 		self.objectMode = None
 		self.gui.setInfo("stopped dragging")
+		self.selectedObj = None
+		self.startAccept()
+		
+	def startMoveZ(self, obj, extraArgs=[]):
+		self.gui.objectMenu.hide()
+		self.objectMode = "moveZ"
+		self.gui.setInfo("moving object Z")
+		self.selectedObj = obj
+		self.accept("mouse1", self.stopMoveZ)
+	
+	def stopMoveZ(self, extraArgs=[]):
+		self.objectMode = None
+		self.gui.setInfo("stopped moving object Z")
+		self.selectedObj = None
+		self.startAccept()
+		
+	def startRotate(self, obj, extraArgs=[]):
+		self.gui.objectMenu.hide()
+		self.objectMode = "rotate"
+		self.gui.setInfo("rotating object")
+		self.selectedObj = obj
+		self.accept("mouse1", self.stopRotate)
+	
+	def stopRotate(self, extraArgs=[]):
+		self.objectMode = None
+		self.gui.setInfo("stopped rotating object")
 		self.selectedObj = None
 		self.startAccept()
 		
@@ -740,6 +769,9 @@ class MapEditor(MapManagerBase):
 				mpos = base.mouseWatcherNode.getMouse()
 				self.gui.openObjectMenu(self.map.mapObjects[name], mpos)
 				self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.startDrag, [self.map.mapObjects[name]])
+				self.gui.objectMenu.buttons[2].bind(DGG.B1PRESS, self.startRotate, [self.map.mapObjects[name]])
+				self.gui.objectMenu.buttons[3].bind(DGG.B1PRESS, self.startMoveZ, [self.map.mapObjects[name]])
+				
 		else:
 			print "map editor : right click on nothing"
 			self.gui.objectMenu.hide()
@@ -786,7 +818,19 @@ class MapEditor(MapManagerBase):
 				objPos = self.clicker.getMousePos(mpos)
 				objPos = Vec3(objPos[0], objPos[1], self.selectedObj.getZ())
 				self.selectedObj.setPos(objPos)
-				
+			
+			elif self.objectMode == "rotate":
+				if self.keyDic[EDITOR_LEFT]:
+					self.selectedObj.rotate(dt)
+				elif self.keyDic[EDITOR_RIGHT]:
+					self.selectedObj.rotate(-dt)
+			
+			elif self.objectMode == "moveZ":
+				if self.keyDic[EDITOR_UP]:
+					self.selectedObj.moveZ(dt)
+				elif self.keyDic[EDITOR_DOWN]:
+					self.selectedObj.moveZ(-dt)
+			
 			name = self.getHoverObjectName()
 			if name is not None:
 				msg = "mapObject : " + name
@@ -916,7 +960,7 @@ class Game(FSM, DirectObject):
 		
 if __name__ == "__main__":
 	
-	game = Game("maps/mapCode.txt")
+	game = Game("maps/mapCode3.txt")
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 

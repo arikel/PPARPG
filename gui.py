@@ -491,7 +491,7 @@ class ActionMenu:
 		self.frame = DirectFrame(
 			frameSize = ((-self.w-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
 			#frameSize = (0,0,0,0),
-			frameColor=(0.7, 0.7, 0.9, 1.0),
+			frameColor=(0.7, 0.7, 0.9, 0.0),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
