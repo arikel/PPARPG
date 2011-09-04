@@ -535,27 +535,7 @@ class MapManager(MapManagerBase):
 				else:
 					self.msg.setText("")
 		
-
-		if self.keyDic[FORWARD]:
-			self.camHandler.forward(dt)
-		if self.keyDic[BACKWARD]:
-			self.camHandler.backward(dt)
-		
-		if self.keyDic[STRAFE_LEFT]:
-			self.camHandler.strafeLeft(dt)
-			
-		if self.keyDic[STRAFE_RIGHT]:
-			self.camHandler.strafeRight(dt)
-			
-		if self.keyDic[TURN_LEFT]:
-			self.camHandler.turnLeft(dt)
-		if self.keyDic[TURN_RIGHT]:
-			self.camHandler.turnRight(dt)
-			
-		if self.keyDic[UP]:
-			self.camHandler.lookUp(dt)
-		if self.keyDic[DOWN]:
-			self.camHandler.lookDown(dt)
+		self.updateCam(dt)
 		
 		#-------------------------------------------------
 		# NPC random movement
@@ -844,27 +824,8 @@ class MapEditor(MapManagerBase):
 				self.gui.clearObjInfo()
 		
 		# camera control
-		if self.keyDic[FORWARD]:
-			self.camHandler.forward(dt)
-		if self.keyDic[BACKWARD]:
-			self.camHandler.backward(dt)
+		self.updateCam(dt)
 		
-		if self.keyDic[STRAFE_LEFT]:
-			self.camHandler.strafeLeft(dt)
-			
-		if self.keyDic[STRAFE_RIGHT]:
-			self.camHandler.strafeRight(dt)
-			
-		if self.keyDic[TURN_LEFT]:
-			self.camHandler.turnLeft(dt)
-		if self.keyDic[TURN_RIGHT]:
-			self.camHandler.turnRight(dt)
-			
-		if self.keyDic[UP]:
-			self.camHandler.lookUp(dt)
-		if self.keyDic[DOWN]:
-			self.camHandler.lookDown(dt)
-				
 		return task.cont
 	
 
