@@ -461,8 +461,8 @@ class MapEditor(MapManagerBase):
 			self.ignore(CLEAR_COLLISION)
 			self.ignore(FILL_COLLISION)
 			
-		self.accept("wheel_up", self.camHandler.moveHeight, [-0.2])
-		self.accept("wheel_down", self.camHandler.moveHeight, [0.2])
+		self.accept("wheel_up", self.camHandler.moveHeight, [-0.05])
+		self.accept("wheel_down", self.camHandler.moveHeight, [0.05])
 		
 	def toggle(self):
 		if self.mode == "collision":
@@ -716,7 +716,7 @@ class Game(FSM, DirectObject):
 		
 	def setMode(self, mode):
 		self.mode = mode
-		#self.camHandler.setMode(mode)
+		self.camHandler.setMode(mode)
 	
 	def toggle(self):
 		if self.state == "Game":
@@ -751,8 +751,8 @@ if __name__ == "__main__":
 	game = Game("maps/mapCode3.txt")
 	#game.map.addMapObject("aldea2", "aldea2_1", (0,0,0), (0,0,0), 1)
 	#game.map.addMapObject("aldea_wood", "aldea_wood_1", (0,0,0), (0,0,0), 2)
-	#game.map.sky.load("hipshot3")
-	#game.map.sky.set("hipshot3")
+	#game.map.sky.load("daysky0")
+	#game.map.sky.set("daysky0")
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 

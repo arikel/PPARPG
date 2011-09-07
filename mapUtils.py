@@ -372,16 +372,16 @@ class CollisionGrid:
 		self.update()
 		
 	def clear(self):
+		self.clearData()
+		self.update()
+	
+	def clearData(self):
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
 			tmp = []
 			for x in range(self.x):
 				tmp.append(0)
 			self.data.append(tmp)
-		#for y in range(self.y):
-		#	for x in range(self.x):
-		#		self.data[y][x] = 0
-		self.update()
 	
 	def fillBorder(self):
 		for y in range(self.y):
@@ -412,3 +412,22 @@ class CollisionGrid:
 			self.terrainNP.remove()
 		del self.data
 		del self.gvd
+	
+	def setDim(self, x, y):
+		oldData = self.data
+		oldX = self.x
+		oldY = self.y
+		
+		self.x = int(x)
+		self.y = int(y)
+		
+		self.data = []
+		for y in range(self.y):
+			tmp = []
+			for x in range(self.x):
+				if x<oldX and y<oldY:
+					tmp.append(oldData[y][x])
+				else:
+					tmp.append(0)
+			self.data.append(tmp)
+		self.rebuild()

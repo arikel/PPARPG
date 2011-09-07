@@ -74,6 +74,7 @@ class MapObject:
 		
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
+			#self.model.clearTexture(TextureStage.getDefault())
 			self.model.setTexture(tex)
 		
 	def reparentTo(self, np):
@@ -146,7 +147,7 @@ class MapObject:
 #-----------------------------------------------------------------------
 
 class NPC(MapObject):
-	def __init__(self, name, modelPath="models/characters/male", texPath="models/characters/humanTex2.png"):
+	def __init__(self, name, modelPath="models/characters/male", texPath=None):
 		self.name = name
 		
 		# actor

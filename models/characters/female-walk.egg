@@ -3,7 +3,7 @@
 <Comment> { "Egg laid by Chicken for Blender, version R91" }
 
 <Table> {
-  <Bundle> FemaleArm {
+  <Bundle> MaleArm {
     <Table> "<skeleton>" {
       <Table> Back {
         <Xfm$Anim> xform {

@@ -3,9 +3,9 @@
 <Comment> { "Egg laid by Chicken for Blender, version R91" }
 
 <Material> Material.002 {
-  <Scalar> diffr {0.500600218773}
-  <Scalar> diffg {0.500600218773}
-  <Scalar> diffb {0.500600218773}
+  <Scalar> diffr {1.0}
+  <Scalar> diffg {1.0}
+  <Scalar> diffb {1.0}
   <Scalar> specr {0.0}
   <Scalar> specg {0.0}
   <Scalar> specb {0.0}
@@ -19,7 +19,7 @@
   <Scalar> magfilter { LINEAR }
   <Scalar> wrap { REPEAT }
 }
-<Group> FemaleArm {
+<Group> MaleArm {
   <DART> { 1 }
   <Group> HumanFemale {
     <VertexPool> HumanFemale {
