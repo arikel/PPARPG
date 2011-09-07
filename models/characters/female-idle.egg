@@ -1,0 +1,260 @@
+<CoordinateSystem> { Z-up }
+
+<Comment> { "Egg laid by Chicken for Blender, version R91" }
+
+<Table> {
+  <Bundle> FemaleArm {
+    <Table> "<skeleton>" {
+      <Table> Back {
+        <Xfm$Anim> xform {
+          <Scalar> fps { 12 }
+          <Scalar> order { sprht }
+          <Scalar> contents { ijkprhxyz }
+          <V> {
+            0.450000017881 0.450000017881 0.450000017881 -92.9149093628 -1.87999962264e-08 -1.76720623131e-05 0.000106831881567 0.0665131285787 1.45032536983
+          }
+        }
+        <Table> Hip {
+          <Xfm$Anim> xform {
+            <Scalar> fps { 12 }
+            <Scalar> order { sprht }
+            <Scalar> contents { ijkprhxyz }
+            <V> {
+              0.999999940395 0.999999940395 0.999999940395 2.41259455681 -3.56204400305e-05 -1.48520757648e-06 -1.47694291693e-12 0.637968122959 9.59801238487e-10
+            }
+          }
+          <Table> Thigh.Left {
+            <Xfm$Anim> xform {
+              <Scalar> fps { 12 }
+              <Scalar> order { sprht }
+              <Scalar> contents { ijkprhxyz }
+              <V> {
+                1.00000011921 1.00000011921 1.0 1.97320473194 -137.293640137 -1.32660138607 0.179327994585 0.424110680819 -0.0129872942343
+              }
+            }
+            <Table> Shin.Left {
+              <Xfm$Anim> xform {
+                <Scalar> fps { 12 }
+                <Scalar> order { sprht }
+                <Scalar> contents { ijkprhxyz }
+                <V> {
+                  0.999999940395 0.999999880791 1.0 8.10784816742 -125.547172546 -10.8999547958 -6.24601614874e-09 0.950447797775 3.28632232538e-09
+                }
+              }
+              <Table> Foot.Left {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.00000011921 1.0 0.999999880791 -67.8923187256 -98.7620010376 -6.0938243866 3.86373377737e-10 1.06540346146 -2.26071588116e-08
+                  }
+                }
+                <Table> Toes.Left {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      0.999999940395 0.999999940395 1.00000011921 -17.5538902283 1.15856468678 0.803919494152 1.67411453589e-08 0.297665953636 1.83518515939e-08
+                    }
+                  }
+                }
+              }
+            }
+          }
+          <Table> Thigh.Right {
+            <Xfm$Anim> xform {
+              <Scalar> fps { 12 }
+              <Scalar> order { sprht }
+              <Scalar> contents { ijkprhxyz }
+              <V> {
+                1.0 1.00000011921 1.00000011921 1.97320091724 137.293701172 1.32659828663 -0.179328024387 0.424110680819 -0.0129870735109
+              }
+            }
+            <Table> Shin.Right {
+              <Xfm$Anim> xform {
+                <Scalar> fps { 12 }
+                <Scalar> order { sprht }
+                <Scalar> contents { ijkprhxyz }
+                <V> {
+                  1.0 0.999999821186 0.999999821186 8.10784816742 125.547180176 10.8999528885 -9.8761558931e-09 0.950447738171 1.37310052217e-09
+                }
+              }
+              <Table> Foot.Right {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.00000011921 1.00000011921 1.0 -67.8923797607 98.762008667 6.0937666893 -1.20577032803e-08 1.06540346146 2.05427177491e-08
+                  }
+                }
+                <Table> Toes.Right {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      1.00000011921 1.0 1.0 -17.553894043 -1.15855538845 -0.803921163082 -2.68447308827e-09 0.297665894032 -1.6092892352e-08
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        <Table> Upperarm.Left {
+          <Xfm$Anim> xform {
+            <Scalar> fps { 12 }
+            <Scalar> order { sprht }
+            <Scalar> contents { ijkprhxyz }
+            <V> {
+              1.0 0.999999940395 0.999999940395 -6.56660223007 159.923690796 -4.70686674118 0.308734327555 0.0180136710405 0.0361219756305
+            }
+          }
+          <Table> Forearm.Left {
+            <Xfm$Anim> xform {
+              <Scalar> fps { 12 }
+              <Scalar> order { sprht }
+              <Scalar> contents { ijkprhxyz }
+              <V> {
+                0.999999940395 0.999999940395 1.0 5.95627260208 3.68180274963 4.53987932205 -2.03325676296e-08 0.652587413788 -4.78214801092e-09
+              }
+            }
+            <Table> Hand.Left {
+              <Xfm$Anim> xform {
+                <Scalar> fps { 12 }
+                <Scalar> order { sprht }
+                <Scalar> contents { ijkprhxyz }
+                <V> {
+                  1.00000011921 1.00000011921 0.999999940395 1.0938116312 1.01786911488 -0.57787746191 -7.12936838454e-08 0.538234233856 -2.02422523188e-09
+                }
+              }
+              <Table> Thumb1.Left {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.0 1.0 1.0 20.8834991455 -32.3547821045 -24.6800727844 0.00587555672973 0.106410592794 0.0889895185828
+                  }
+                }
+                <Table> Thumb2.Left {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      1.00000011921 1.00000011921 1.00000011921 -6.35104179382 25.3332004547 2.47209811211 -2.26702177031e-08 0.113958023489 -2.53980481091e-09
+                    }
+                  }
+                }
+              }
+              <Table> Fingers1.Left {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.0 0.999999940395 0.999999821186 -0.182181417942 -1.32132577896 -15.2831306458 -0.00249040336348 0.256493479013 -0.00319726252928
+                  }
+                }
+                <Table> Fingers2.Left {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      1.00000011921 1.0 1.0 -0.230746731162 -0.330687642097 -30.2307376862 2.15833528827e-09 0.108929112554 -2.2721650339e-08
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        <Table> Head {
+          <Xfm$Anim> xform {
+            <Scalar> fps { 12 }
+            <Scalar> order { sprht }
+            <Scalar> contents { ijkprhxyz }
+            <V> {
+              1.0 0.999999940395 0.999999940395 -171.29536438 1.37295273817e-05 2.15864520214e-06 3.5310607216e-10 -0.181586652994 -0.055076841265
+            }
+          }
+        }
+        <Table> Upperarm.Right {
+          <Xfm$Anim> xform {
+            <Scalar> fps { 12 }
+            <Scalar> order { sprht }
+            <Scalar> contents { ijkprhxyz }
+            <V> {
+              0.999999940395 0.999999940395 0.999999940395 -6.56660032272 -159.923690796 4.70686674118 -0.308734357357 0.0180136729032 0.0361219681799
+            }
+          }
+          <Table> Forearm.Right {
+            <Xfm$Anim> xform {
+              <Scalar> fps { 12 }
+              <Scalar> order { sprht }
+              <Scalar> contents { ijkprhxyz }
+              <V> {
+                1.0 0.999999940395 1.00000011921 5.95627307892 -3.68180537224 -4.53987979889 -3.89345409246e-08 0.652587592602 2.06027728211e-08
+              }
+            }
+            <Table> Hand.Right {
+              <Xfm$Anim> xform {
+                <Scalar> fps { 12 }
+                <Scalar> order { sprht }
+                <Scalar> contents { ijkprhxyz }
+                <V> {
+                  0.999999940395 1.00000011921 0.999999880791 1.09381079674 -1.01786804199 0.577875852585 -7.23590964924e-09 0.538234174252 -2.56438337232e-09
+                }
+              }
+              <Table> Fingers1.Right {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.00000011921 1.00000011921 0.999999940395 -0.182181477547 1.32132351398 15.2831306458 0.00249035330489 0.256493479013 -0.00319726555608
+                  }
+                }
+                <Table> Fingers2.Right {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      0.999999940395 0.999999940395 0.999999880791 -0.23074567318 0.330689400434 30.2307453156 -4.75815120637e-08 0.108929052949 -6.72130973101e-09
+                    }
+                  }
+                }
+              }
+              <Table> Thumb1.Right {
+                <Xfm$Anim> xform {
+                  <Scalar> fps { 12 }
+                  <Scalar> order { sprht }
+                  <Scalar> contents { ijkprhxyz }
+                  <V> {
+                    1.00000011921 1.00000011921 1.00000011921 20.8834953308 32.3547744751 24.6800746918 -0.00587559305131 0.106410577893 0.088989533484
+                  }
+                }
+                <Table> Thumb2.Right {
+                  <Xfm$Anim> xform {
+                    <Scalar> fps { 12 }
+                    <Scalar> order { sprht }
+                    <Scalar> contents { ijkprhxyz }
+                    <V> {
+                      1.0 1.0 1.0 -6.35103845596 -25.33319664 -2.47209811211 -3.50049873532e-08 0.113957770169 -5.39162527957e-08
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

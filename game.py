@@ -150,7 +150,11 @@ class MapManager(MapManagerBase):
 		self.NPC = {}
 		for name in ["ula2", "Kimmo", "Drunkard", "Camilla"]:
 			x, y = self.map.collisionGrid.getRandomTile()
-			self.addNPC(name, "models/characters/male", "models/characters/humanTex2.png", x,y)
+			# yes, we will have to think about something smarter in the long run, i know...
+			if name in ["ula2", "Camilla"]:
+				self.addNPC(name, "models/characters/female", "models/characters/female1.jpg", x,y)
+			else:
+				self.addNPC(name, "models/characters/male", "models/characters/humanTex2.png", x,y)
 		
 		name = self.gm.playerData["name"]
 		sex = self.gm.playerData["sex"]
@@ -743,7 +747,8 @@ class Game(FSM, DirectObject):
 if __name__ == "__main__":
 	
 	game = Game("maps/mapCode3.txt")
-	#game.map.addMapObject("house1", "house 1_1", (0,0,0), (0,0,0), 1)
+	game.map.addMapObject("aldea2", "aldea2_1", (0,0,0), (0,0,0), 1)
+	#game.map.addMapObject("aldea_wood", "aldea_wood_1", (0,0,0), (0,0,0), 2)
 	#game.map.sky.load("hipshot3")
 	#game.map.sky.set("hipshot3")
 	
