@@ -743,6 +743,9 @@ class Game(FSM, DirectObject):
 if __name__ == "__main__":
 	
 	game = Game("maps/mapCode3.txt")
+	#game.map.addMapObject("house1", "house 1_1", (0,0,0), (0,0,0), 1)
+	#game.map.sky.load("hipshot3")
+	#game.map.sky.set("hipshot3")
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 

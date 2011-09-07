@@ -19,6 +19,7 @@ mapObjectDB["aldea"] = ["models/buildings/aldea", "models/buildings/aldea.jpg", 
 
 mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
 mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
+mapObjectDB["rock1"] = ["models/buildings/rock", "models/buildings/rock.jpg", (0,0,0.5,0.5)]
 
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
