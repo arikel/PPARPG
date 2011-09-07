@@ -138,7 +138,7 @@ class CollisionGrid:
 			
 		else:
 			
-			self.ground = makeFloor(8, self.x, self.y, self.texPath)
+			self.ground = makeFloor(50, self.x, self.y, self.texPath)
 			self.ground.reparentTo(render)
 			
 	def initGeoMip(self):
@@ -172,7 +172,7 @@ class CollisionGrid:
 			self.terrain = None
 			self.terrainNP = None
 			self.terrainScale = 0
-			self.ground = makeFloor(8, self.x, self.y, self.texPath)
+			self.ground = makeFloor(50, self.x, self.y, self.texPath)
 			self.ground.reparentTo(render)
 			self.update()
 		

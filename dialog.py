@@ -9,7 +9,8 @@ from direct.fsm.FSM import FSM
 
 import sys, random
 
-from gui import *
+#from gui import *
+from guiDialog import *
 
 class Dialog:
 	def __init__(self, gm, name):
