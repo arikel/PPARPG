@@ -166,6 +166,11 @@ class MapManager(MapManagerBase):
 		
 		
 		self.player = NPC(name, modelPath)
+		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
+		self.player.addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
+		
+		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
+		self.NPC["ula2"].addEquipment("models/characters/female_hair", "models/characters/female_hair3.jpg")
 		
 		self.player.setTilePos(5, 3)
 		self.player.reparentTo(render)
@@ -209,6 +214,22 @@ class MapManager(MapManagerBase):
 			self.accept(keyUp, self.setKey, [key, 0])
 		self.setMode(self.mode)
 		
+		self.accept(SAVE, self.save, ["save/sonia.txt"])
+		self.accept(OPEN, self.load, ["save/sonia.txt"])
+		
+	def save(self, filename):
+		f = open(filename, 'w')
+		pickle.dump(self.gm.playerData, f)
+		f.close()
+		print "player data saved as %s" % (filename)
+		
+	def load(self, filename):
+		f = open(filename, 'r')
+		playerData = pickle.load(f)
+		f.close()
+		self.gm.playerData = playerData
+		print("player data loaded from file %s" % (filename))
+		
 	def setMode(self, mode="move"):
 		if mode == "move":
 			print "Map Manager switched to move mode"
@@ -216,8 +237,8 @@ class MapManager(MapManagerBase):
 			self.accept("mouse1", self.onClickObject) # left click
 			#self.accept("mouse2", self.onClickObject2) # scroll click
 			#self.accept("mouse3", self.onClickObject3) # right click
-			self.accept("wheel_up", self.camHandler.moveHeight, [-0.05])
-			self.accept("wheel_down", self.camHandler.moveHeight, [0.05])
+			self.accept("wheel_up", self.camHandler.moveHeight, [-0.02])
+			self.accept("wheel_down", self.camHandler.moveHeight, [0.02])
 				
 		elif mode == "talk":
 			print "Map manager switched to talk mode"
@@ -431,8 +452,8 @@ class MapEditor(MapManagerBase):
 		self.setMode(self.mode)
 		self.accept("space", self.toggle)
 		
-		self.accept(SAVE_MAP, self.save)
-		self.accept(LOAD_MAP, self.load, ["maps/mapCode.txt"])
+		self.accept(SAVE, self.save)
+		self.accept(OPEN, self.load, ["maps/mapCode.txt"])
 		
 	def setMode(self, mode="collision"):
 		if mode == "collision":

@@ -170,7 +170,7 @@ class NPC(MapObject):
 		
 		self.path = []
 		self.sequence = Sequence()
-		self.setMode("idle")
+		
 		
 		self.timer = random.random()*5.0
 		#self.timerMsg = makeMsg(0,0,"time")
@@ -197,6 +197,9 @@ class NPC(MapObject):
 		self.data = {}
 		self.data["name"] = self.name
 		
+		self.equipped = []
+		
+		self.setMode("idle")
 		self.task = taskMgr.add(self.update, self.name)
 		
 	def addCollision(self):
@@ -212,8 +215,14 @@ class NPC(MapObject):
 		self.parentName = npc.name
 		self.model.setTexture(self.tex)
 		
+	def addEquipment(self, modelPath, texPath):
+		item = EquippedObject(self, modelPath, texPath)
+		self.equipped.append(item)
+		
 	def loop(self, animName):
 		self.model.loop(animName)
+		for item in self.equipped:
+			item.loop(animName)
 		
 	def stop(self):
 		if self.sequence:
@@ -325,4 +334,26 @@ class NPC(MapObject):
 		taskMgr.remove(self.task)
 		self.model.cleanup()
 		self.model.remove()
+		
+class EquippedObject(MapObject):
+	def __init__(self, npc, modelPath, texturePath=None):
+		self.npc = npc
+		self.modelPath = modelPath
+		self.texturePath = texturePath
+		
+		self.model = Actor(self.modelPath, self.npc.animDic)
+		#self.model.setTransparency(True)
+		
+		if texturePath is not None:
+			self.tex = loader.loadTexture(texturePath)
+			#self.model.clearTexture(TextureStage.getDefault())
+			self.model.setTexture(self.tex)
+			
+		self.model.reparentTo(self.npc.model)
+		self.model.clearTexture(TextureStage.getDefault())
+		self.model.setTexture(self.tex)
+	
+	def loop(self, animName):
+		self.model.loop(animName)
+		
 		

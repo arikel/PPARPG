@@ -19,8 +19,8 @@ DOWN = "c"
 # editor commands
 #-----------------------------------------------------------------------
 OPEN_EDITOR = "control-e"
-SAVE_MAP = "control-s"
-LOAD_MAP = "control-o"
+SAVE = "control-s"
+OPEN = "control-o"
 CLEAR_COLLISION = "control-c"
 FILL_COLLISION = "control-f"
 
