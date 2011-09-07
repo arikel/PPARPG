@@ -22,9 +22,10 @@ class EditorGui:
 			path = "maps/" + map
 			self.topMenu.menu.subMenus[0].buttons[i].bind(DGG.B1PRESS, self.editor.load, [path])
 		
-		self.objectMenu = ActionMenu(-0.7*RATIO, 0.9, 0.16,0.035, ["Object", "Grab", "Rotate", "MoveZ", "Duplicate", "Destroy"])
+		self.objectMenu = ActionMenu(-0.7*RATIO, 0.9, 0.16,0.035, ["Object", "Grab", "Rotate", "MoveZ", "Scale","Duplicate", "Destroy"])
 		
-			
+		print "creating EditorGui with object menu %s" % (self.objectMenu)
+		
 		self.infoLabel = makeMsgRight(0.95*RATIO,-0.95,"")
 		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
 		

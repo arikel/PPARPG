@@ -11,16 +11,19 @@ class CamHandler:
 		self.intervalSpeed = 0.8
 		
 		self.playingNp = NodePath("camHandler")
-		self.playingNp.setPos(0,0,15.0)
+		self.playingNp.setPos(10,10,15.0)
 		self.playingNp.reparentTo(render)
 		
 		base.camera.reparentTo(self.playingNp)
 		
 		self.editNp = NodePath("camHandler2")
-		self.editNp.setPos(0,0,60)
+		self.editNp.setPos(10,10,60)
 		self.editNp.reparentTo(render)
 		
-		self.prevCamHpr = Vec3()
+		self.prevCamHpr = Vec3(0,-20,0)
+		self.prevCamHpr2 = Vec3(0,-90,0)
+			
+		self.mode = "edit"
 		self.setMode("playing") # "edit"
 			
 	def forward(self, dt):
@@ -60,12 +63,12 @@ class CamHandler:
 			self.editNp.setH(self.editNp, -dt*self.speed*10)
 			
 	def lookUp(self, dt):
-		if self.mode == "playing":
-			base.camera.setP(base.camera, dt*self.speed*5)
+		#if self.mode == "playing":
+		base.camera.setP(base.camera, dt*self.speed*5)
 		
 	def lookDown(self, dt):
-		if self.mode == "playing":
-			base.camera.setP(base.camera, -dt*self.speed*5)
+		#if self.mode == "playing":
+		base.camera.setP(base.camera, -dt*self.speed*5)
 
 	
 	def moveHeight(self, dt):
@@ -97,6 +100,8 @@ class CamHandler:
 	def setMode(self, mode):
 		if mode == "edit" and self.mode == "playing":
 			self.prevCamHpr = base.camera.getHpr()
+		elif self.mode == "edit" and mode == "playing":
+			self.prevCamHpr2 = base.camera.getHpr()
 			
 		self.mode = mode
 		#self.update()
@@ -124,7 +129,9 @@ class CamHandler:
 			
 			base.camera.wrtReparentTo(self.editNp)
 			origHpr = base.camera.getHpr()
-			targetHpr = (0,-90,0)
+			#targetHpr = (0,-90,0)
+			targetHpr = self.prevCamHpr2
+			
 			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
 				fitDestAngle2Src(origHpr[1], targetHpr[1]),
 				fitDestAngle2Src(origHpr[2], targetHpr[2]))

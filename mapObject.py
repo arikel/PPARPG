@@ -7,7 +7,7 @@ from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.task import Task
 
-from gui import *
+from guiBase import *
 
 import math, random
 

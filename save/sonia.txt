@@ -1,0 +1,13 @@
+(dp1
+S'Camilla'
+p2
+I1
+sS'name'
+p3
+S'Sonia'
+p4
+sS'sex'
+p5
+S'female'
+p6
+s.

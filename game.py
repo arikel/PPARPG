@@ -228,7 +228,10 @@ class MapManager(MapManagerBase):
 		playerData = pickle.load(f)
 		f.close()
 		self.gm.playerData = playerData
-		print("player data loaded from file %s" % (filename))
+		#for key in playerData:
+		#	self.gm.playerData[key] = playerData[key]
+		print("player data loaded from file %s, data = %s" % (filename, self.gm.playerData))
+		self.playerData = self.gm.playerData
 		
 	def setMode(self, mode="move"):
 		if mode == "move":
@@ -427,12 +430,14 @@ class MapEditor(MapManagerBase):
 		self.task = taskMgr.add(self.update, "MapEditorTask")
 		if self.map.bgMusic:
 			self.map.bgMusic.stop()
+		self.map.collisionShow()
 		
 	def stop(self):
 		print "Stopping editor"
 		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
+		self.map.collisionHide()
 		
 	def startAccept(self):
 		for key in [
@@ -529,6 +534,17 @@ class MapEditor(MapManagerBase):
 	def stopRotate(self, extraArgs=[]):
 		self.gui.setInfo("stopped rotating object")
 		self.stopObjectAction()
+	
+	def startScale(self, obj, extraArgs=[]):
+		self.gui.objectMenu.hide()
+		self.objectMode = "scale"
+		self.gui.setInfo("scaling object")
+		self.selectedObj = obj
+		self.accept("mouse1", self.stopScale)
+	
+	def stopScale(self, extraArgs=[]):
+		self.gui.setInfo("stopped scaling object")
+		self.stopObjectAction()
 		
 	#-----------------------------
 	# map file handling
@@ -595,6 +611,7 @@ class MapEditor(MapManagerBase):
 				self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.startDrag, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[2].bind(DGG.B1PRESS, self.startRotate, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[3].bind(DGG.B1PRESS, self.startMoveZ, [self.map.mapObjects[name]])
+				self.gui.objectMenu.buttons[4].bind(DGG.B1PRESS, self.startScale, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[5].bind(DGG.B1PRESS, self.removeMapObject, [name])
 				
 		else:
@@ -629,6 +646,12 @@ class MapEditor(MapManagerBase):
 		elif self.keyDic[EDITOR_DOWN]:
 			self.selectedObj.moveZ(-dt)
 	
+	def scaleObj(self, dt=0.01):
+		if self.keyDic[EDITOR_UP]:
+			self.selectedObj.scale(dt)
+		elif self.keyDic[EDITOR_DOWN]:
+			self.selectedObj.scale(-dt)
+	
 	#-----------------------------
 	# editor update task
 	def update(self, task):
@@ -658,6 +681,8 @@ class MapEditor(MapManagerBase):
 			#elif self.objectMode == "rotate":
 			elif self.objectMode == "rotate" or self.objectMode == "moveZ":
 				self.checkObj(dt)
+			elif self.objectMode == "scale":
+				self.scaleObj(dt)
 				
 			name = self.getHoverObjectName()
 			if name is not None:
@@ -697,7 +722,7 @@ class Game(FSM, DirectObject):
 		self.mapManager = MapManager(self)
 		self.editor = MapEditor(self)
 		
-		self.mapManager.player.data = self.playerData
+		self.mapManager.playerData = self.playerData
 		
 		# light
 		if CONFIG_LIGHT:

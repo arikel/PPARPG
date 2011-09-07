@@ -1,0 +1,10 @@
+(dp1
+S'name'
+p2
+S'Sonia'
+p3
+sS'sex'
+p4
+S'female'
+p5
+s.

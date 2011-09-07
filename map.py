@@ -36,8 +36,14 @@ class Map:
 		
 		if self.filename is not None:
 			self.load()
-
 	
+	def collisionHide(self):
+		self.collisionGrid.collisionHide()
+		
+	def collisionShow(self):
+		self.collisionGrid.collisionShow()
+		
+	'''
 	def startDrag(self, mapObj):
 		self.draggingObject = True
 		self.draggedObject = mapObj
@@ -45,7 +51,7 @@ class Map:
 	def stopDrag(self):
 		self.draggingObject = False
 		self.draggedObject = None
-	
+	'''
 	def setDim(self, x, y):
 		self.x = int(x)
 		self.y = int(y)

@@ -14,9 +14,9 @@ from guiDialog import *
 
 class Dialog:
 	def __init__(self, gm, name):
-		self.gm = gm # map manager
-		self.playerData = gm.player.data
-		
+		self.gm = gm # MapManager
+		self.playerData = gm.playerData
+		print "Initialising script for NPC %s, playerData = %s" % (name, self.playerData)
 		self.name = name # the name of the NPC running this dialog with the player
 		self.gui = DialogGui(0,-0.5,name)
 		self.intro()
@@ -102,6 +102,7 @@ class DialogCamilla(Dialog):
 		else:
 			msg = "Camilla : 'Oh hello there, young " + self.playerData["name"] + ".'"
 			self.playerData[self.name] = 1
+			print "current playerdata : %s" % (self.playerData)
 			
 		self.setMainText(msg)
 		self.l_close()
