@@ -15,7 +15,11 @@ mapObjectDB = {} # genre : [modelPath, texturePath, collisionPos]
 mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (0,0,1,2)]
 mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.jpg", (5.2,-2.8,2,2)]
 
-mapObjectDB["aldea"] = ["models/buildings/aldea", "models/buildings/aldea.jpg", (5.2,-2.8,2,2)]
+
+mapObjectDB["aldea1"] = ["models/buildings/aldea/aldea1", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
+mapObjectDB["aldea2"] = ["models/buildings/aldea/aldea2", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
+mapObjectDB["aldea_wood"] = ["models/buildings/aldea/aldea_wood", "models/buildings/aldea/aldea.jpg", (0,0,1,1)]
+mapObjectDB["aldea_pot"] = ["models/buildings/aldea/aldea_pot", "models/buildings/aldea/aldea.jpg", (0,0,0.5,0.5)]
 
 mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
 mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
