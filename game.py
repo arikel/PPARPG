@@ -160,8 +160,10 @@ class MapManager(MapManagerBase):
 		sex = self.gm.playerData["sex"]
 		
 		if sex == "male":
-			pass
-		modelPath = "models/characters/male"
+			modelPath = "models/characters/male"
+		else:
+			modelPath = "models/characters/female"
+		
 		
 		self.player = NPC(name, modelPath)
 		
@@ -668,8 +670,8 @@ class Game(FSM, DirectObject):
 		self.cursor = MouseCursor()
 		
 		self.playerData = {}
-		self.playerData["name"] = "Gaspard"
-		self.playerData["sex"] = "male"
+		self.playerData["name"] = "Sonia"
+		self.playerData["sex"] = "female"
 		
 		self.mapManager = MapManager(self)
 		self.editor = MapEditor(self)
@@ -747,7 +749,7 @@ class Game(FSM, DirectObject):
 if __name__ == "__main__":
 	
 	game = Game("maps/mapCode3.txt")
-	game.map.addMapObject("aldea2", "aldea2_1", (0,0,0), (0,0,0), 1)
+	#game.map.addMapObject("aldea2", "aldea2_1", (0,0,0), (0,0,0), 1)
 	#game.map.addMapObject("aldea_wood", "aldea_wood_1", (0,0,0), (0,0,0), 2)
 	#game.map.sky.load("hipshot3")
 	#game.map.sky.set("hipshot3")

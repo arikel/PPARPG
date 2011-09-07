@@ -18,12 +18,12 @@ mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_h
 
 mapObjectDB["aldea1"] = ["models/buildings/aldea/aldea1", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
 mapObjectDB["aldea2"] = ["models/buildings/aldea/aldea2", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
-mapObjectDB["aldea_wood"] = ["models/buildings/aldea/aldea_wood", "models/buildings/aldea/aldea.jpg", (0,0,1,1)]
-mapObjectDB["aldea_pot"] = ["models/buildings/aldea/aldea_pot", "models/buildings/aldea/aldea.jpg", (0,0,0.5,0.5)]
+mapObjectDB["aldea_wood"] = ["models/outProps/aldea_wood", "models/buildings/aldea/aldea.jpg", (0,0,1,1)]
+mapObjectDB["aldea_pot"] = ["models/outProps/aldea_pot", "models/buildings/aldea/aldea.jpg", (0,0,0.5,0.5)]
 
-mapObjectDB["barrel"] = ["models/buildings/barrel", "models/buildings/barrel.jpg", (0,0,1,0.75)]
-mapObjectDB["crate"] = ["models/buildings/crate1", "models/buildings/crate1.jpg", (0,0,0.5,0.5)]
-mapObjectDB["rock1"] = ["models/buildings/rock", "models/buildings/rock.jpg", (0,0,0.5,0.5)]
+mapObjectDB["barrel"] = ["models/outProps/barrel", "models/outProps/barrel.jpg", (0,0,1,0.75)]
+mapObjectDB["crate"] = ["models/outProps/crate1", "models/outProps/crate1.jpg", (0,0,0.5,0.5)]
+mapObjectDB["rock1"] = ["models/outProps/rock", "models/outProps/rock.jpg", (0,0,0.5,0.5)]
 
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
