@@ -46,6 +46,10 @@ class Map:
 		self.draggingObject = False
 		self.draggedObject = None
 	
+	def setDim(self, x, y):
+		self.x = int(x)
+		self.y = int(y)
+		self.collisionGrid.setDim(x, y)
 		
 	def save(self, filename):
 		mapData = {}

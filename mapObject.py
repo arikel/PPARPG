@@ -12,12 +12,12 @@ from gui import *
 import math, random
 
 mapObjectDB = {} # genre : [modelPath, texturePath, collisionPos]
-mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (0,0,1,2)]
+mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (2.5,0,1,2)]
 mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.jpg", (5.2,-2.8,2,2)]
 
 
-mapObjectDB["aldea1"] = ["models/buildings/aldea/aldea1", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
-mapObjectDB["aldea2"] = ["models/buildings/aldea/aldea2", "models/buildings/aldea/aldea.jpg", (0,0,1,1.5)]
+mapObjectDB["aldea1"] = ["models/buildings/aldea/aldea1", "models/buildings/aldea/aldea.jpg", (0,-2,1,1.5)]
+mapObjectDB["aldea2"] = ["models/buildings/aldea/aldea2", "models/buildings/aldea/aldea.jpg", (0,-0.5,1,1.5)]
 mapObjectDB["aldea_wood"] = ["models/outProps/aldea_wood", "models/buildings/aldea/aldea.jpg", (0,0,1,1)]
 mapObjectDB["aldea_pot"] = ["models/outProps/aldea_pot", "models/buildings/aldea/aldea.jpg", (0,0,0.5,0.5)]
 
@@ -155,12 +155,12 @@ class NPC(MapObject):
 		modelName = modelPath.split("/")[-1]
 		walkanim = "models/characters/" + modelName + "-walk"
 		idleanim = "models/characters/" + modelName + "-idle"
-		animDic = {
+		self.animDic = {
 			"walk":walkanim,
 			"idle": idleanim
 		}
 		self.texPath = texPath
-		self.loadActor(self.modelPath, animDic, self.texPath)
+		self.loadActor(self.modelPath, self.animDic, self.texPath)
 		
 		# collision
 		self.addCollision()
