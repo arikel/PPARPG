@@ -36,7 +36,7 @@ def makeWall(scalex, scaley, scaleTex):
 	card.setTexture(img)
 	card.setScale(scalex,1,scaley)
 	#card.setHpr(0,0,0)
-	card.setTwoSided(True)
+	#card.setTwoSided(True)
 	card.setTransparency(TransparencyAttrib.MAlpha)
 	return card
 

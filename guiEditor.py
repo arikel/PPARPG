@@ -10,17 +10,25 @@ from direct.interval.IntervalGlobal import *
 
 from guiBase import *
 from guiMenu import *
+from mapObject import *
 
 class EditorGui:
 	def __init__(self, editor):
 		self.editor = editor
 		
-		self.topMenu = TopMenu(-0.7*RATIO, 0.9, 0.2,0.04, ["File", "New", "Open...", "Save", "Save as..."])
+		self.topMenu = TopMenu(-0.7*RATIO, 0.9, 0.125,0.04, ["File", "New", "Open...", "Save", "Save as..."])
 		mapList = os.listdir("maps")
 		self.topMenu.menu.addSubMenu(1, mapList)
 		for i, map in enumerate(mapList):
 			path = "maps/" + map
 			self.topMenu.menu.subMenus[0].buttons[i].bind(DGG.B1PRESS, self.editor.load, [path])
+		
+		objMenu = ["Add object"]
+		self.objList = mapObjectDB.keys()
+		objMenu.extend(self.objList)
+		self.addObjectMenu = TopMenu(0.4*RATIO, 0.9, 0.16, 0.04, objMenu)
+		for i, objName in enumerate(self.objList):
+			self.addObjectMenu.menu.buttons[i].bind(DGG.B1PRESS, self.editor.addNewMapObject, [objName])
 		
 		self.objectMenu = ActionMenu(-0.7*RATIO, 0.9, 0.16,0.035, ["Object", "Grab", "Rotate", "MoveZ", "Scale","Duplicate", "Destroy"])
 		
@@ -33,6 +41,7 @@ class EditorGui:
 		
 	def hide(self):
 		self.topMenu.hide()
+		self.addObjectMenu.hide()
 		self.objectMenu.hide()
 		self.infoLabel.hide()
 		self.objectLabel.hide()
@@ -40,6 +49,7 @@ class EditorGui:
 		
 	def show(self):
 		self.topMenu.show()
+		self.addObjectMenu.show()
 		#self.objectMenu.show()
 		self.infoLabel.show()
 		self.objectLabel.show()

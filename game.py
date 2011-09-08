@@ -170,7 +170,13 @@ class MapManager(MapManagerBase):
 		self.player.addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
 		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
+		self.NPC["Camilla"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
+		
 		self.NPC["ula2"].addEquipment("models/characters/female_hair", "models/characters/female_hair3.jpg")
+		
+		self.NPC["ula2"].addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
+		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
+		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
 		self.player.setTilePos(5, 3)
 		self.player.reparentTo(render)
@@ -563,13 +569,15 @@ class MapEditor(MapManagerBase):
 	#-----------------------------
 	# map objects
 	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
-		if name not in self.map.mapObjects:
-			mapObject = MapObject(self, genre, name)
-			mapObject.setPos(pos) #-self.collisionGrid.terrainScale/3.0)
-			mapObject.setHpr(hpr)
-			mapObject.setScale(scale)
-			mapObject.reparentTo(self.map.mapObjectRoot)
-			self.map.mapObjects[name] = mapObject
+		self.map.addMapObject(genre, name, pos, hpr, scale)
+		
+	def addNewMapObject(self, genre, extraArgs=[]):
+		self.gui.addObjectMenu.retract()
+		name = self.map.getAvailableName(genre)
+		self.addMapObject(genre, name)
+		obj = self.map.mapObjects[name]
+		self.setMode("object")
+		self.startDrag(obj)
 		
 	def removeMapObject(self, name, extraArgs=[]):
 		if name in self.map.mapObjects:
@@ -822,6 +830,18 @@ if __name__ == "__main__":
 	render.setFog(myFog)
 	'''
 	
+	'''
+	#base.saveSphereMap('flatVillage.jpg', size = 512)
+	tex = loader.loadTexture('flatVillage.jpg')
+	teapot = loader.loadModel("jack")
+	teapot.reparentTo(render)
+	teapot.setScale(5)
+	teapot.setPos(40,35,3)
+	teapot.setShaderOff()
+	teapot.setTexGen(TextureStage.getDefault(), TexGenAttrib.MEyeSphereMap)
+	teapot.setTexture(tex)
+	'''
+
 	#base.camLens.setFov(130)
 	#base.camLens.setNearFar(0.1,5000)
 	#lens = OrthographicLens()
