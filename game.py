@@ -198,7 +198,10 @@ class MapManager(MapManagerBase):
 		self.startAccept()
 		if self.map.bgMusic:
 			self.map.bgMusic.play()
-		
+			self.map.bgMusic.setVolume(0.4)
+		if self.map.bgSound:
+			self.map.bgSound.play()
+			
 	def stop(self):
 		#self.msg.hide()
 		#self.msgTilePos.hide()
@@ -222,6 +225,7 @@ class MapManager(MapManagerBase):
 		
 		self.accept(SAVE, self.save, ["save/sonia.txt"])
 		self.accept(OPEN, self.load, ["save/sonia.txt"])
+		self.accept(INVENTORY, self.gui.inventory.toggle)
 		
 	def save(self, filename):
 		f = open(filename, 'w')
@@ -802,11 +806,7 @@ class Game(FSM, DirectObject):
 		
 if __name__ == "__main__":
 	
-	game = Game("maps/mapCode3.txt")
-	#game.map.addMapObject("aldea2", "aldea2_1", (0,0,0), (0,0,0), 1)
-	#game.map.addMapObject("aldea_wood", "aldea_wood_1", (0,0,0), (0,0,0), 2)
-	#game.map.sky.load("daysky0")
-	#game.map.sky.set("daysky0")
+	game = Game("maps/mapCode.txt")
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 
@@ -821,32 +821,6 @@ if __name__ == "__main__":
 	#render.setTransparency(TransparencyAttrib.MAlpha)
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)
-	
-	'''
-	myFog = Fog("Fog")
-	myFog.setColor(0.92,0.95,1)
-	myFog.setExpDensity(0.01)
-	render.attachNewNode(myFog)
-	render.setFog(myFog)
-	'''
-	
-	'''
-	#base.saveSphereMap('flatVillage.jpg', size = 512)
-	tex = loader.loadTexture('flatVillage.jpg')
-	teapot = loader.loadModel("jack")
-	teapot.reparentTo(render)
-	teapot.setScale(5)
-	teapot.setPos(40,35,3)
-	teapot.setShaderOff()
-	teapot.setTexGen(TextureStage.getDefault(), TexGenAttrib.MEyeSphereMap)
-	teapot.setTexture(tex)
-	'''
-
-	#base.camLens.setFov(130)
-	#base.camLens.setNearFar(0.1,5000)
-	#lens = OrthographicLens()
-	#lens.setFilmSize(30*RATIO, 30)  # Or whatever is appropriate for your scene
-	#base.cam.node().setLens(lens)
 	
 	#PStatClient.connect()
 	#loadPrcFileData('setup', 'dump-generated-shaders #t')

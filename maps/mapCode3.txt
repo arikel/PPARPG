@@ -30321,6 +30321,10 @@ sS'music'
 p186
 S'music/preciouswasteland.ogg'
 p187
+sS'ambientSound'
+p188
+S'sounds/wind.ogg'
+p189
 sS'Y'
 I120
 sS'X'

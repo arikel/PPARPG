@@ -20,7 +20,7 @@ class LightManager:
 		# point light
 		self.pointlight = PointLight("Light")
 		self.light = self.lightCenter.attachNewNode(self.pointlight)
-		self.pointlight.setColor(Vec4(0.6,0.6,0.6,1))
+		self.pointlight.setColor(Vec4(0.85,0.85,0.85,1))
 		#self.light.setPos(-1,-3,0)
 		render.setLight(self.light)
 		

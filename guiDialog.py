@@ -21,7 +21,7 @@ class DialogButton(DirectButton):
 		self.name = name
 		#print "created dialog button %s" % (name)
 		DirectButton.__init__(self,
-			frameSize = (-1,1,-0.04,0.04),
+			frameSize = (-1*RATIO,1*RATIO,-0.04,0.04),
 			pos = (x, 1, y),
 			pad = (0,0),
 			borderWidth=(0.008,0.008),
@@ -44,7 +44,7 @@ class DialogButton(DirectButton):
 			#text_bg = (0,0,0,0.0),
 			text = name,
 			text_align = TextNode.ALeft,
-			text_pos = (-0.95, -0.02),
+			text_pos = (-0.95*RATIO, -0.02),
 			#geom = None
 			text_mayChange = True,
 		)
@@ -162,7 +162,7 @@ class DialogButtonList:
 		
 		self.frame = DirectScrolledFrame(
 			#frameSize = (-1,1,-self.size,self.size),
-			canvasSize = (-1,1,-self.size*self.nbItems,0),# virtual canvas
+			canvasSize = (-1*RATIO,1*RATIO,-self.size*self.nbItems,0),# virtual canvas
 			frameColor=(0.6, 0.1, 0.1, 0.0),
 			#canvasSize = (-2,2,-self.size*self.nbItems,self.size),
 			frameSize = (-1,1,-(self.size-0.04)*self.maxDisplayedItems,0), # actual visible frame
@@ -180,7 +180,7 @@ class DialogButtonList:
 		
 		
 		self.listFrame = DirectFrame(
-			frameSize = (-1,1,-self.size*self.nbItems,0),
+			frameSize = (-1*RATIO,1*RATIO,-self.size*self.nbItems,0),
 			frameColor=(0.7, 0.7, 0.9, 0.0),
 			pos = (0,1,0),
 			pad = (0,0),

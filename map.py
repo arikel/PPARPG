@@ -81,6 +81,8 @@ class Map:
 		
 		if self.music:
 			mapData["music"] = self.music
+		if self.ambientSound:
+			mapData["ambientSound"] = self.ambientSound
 		
 		f = open(filename, 'w')
 		pickle.dump(mapData, f)
@@ -146,11 +148,15 @@ class Map:
 			self.music = mapData["music"]
 			self.bgMusic = loader.loadSfx(self.music)
 			self.bgMusic.setLoop(True)
-			
+		
+		if "ambientSound" in mapData:
+			self.ambientSound = mapData["ambientSound"]
+			self.bgSound = loader.loadSfx(self.ambientSound)
+			self.bgSound.setLoop(True)
 			
 		else:
-			self.music = None
-			self.bgMusic = None
+			self.ambientSound = None
+			self.bgSound = None
 			
 		self.mapWall = MapWall(self.x, self.y, 0)
 		
@@ -177,7 +183,19 @@ class Map:
 				(scale.getX(), scale.getY(), scale.getZ())
 				)
 			
+	def setBgMusic(self, musicPath):
+		if self.bgMusic:
+			self.bgMusic.stop()
+		self.music = musicPath
+		self.bgMusic = loader.loadSfx(self.music)
+		self.bgMusic.setLoop(True)
 		
+	def setBgSound(self, soundPath):
+		if self.bgSound:
+			self.bgSound.stop()
+		self.ambientSound = soundPath
+		self.bgSound = loader.loadSfx(self.ambientSound)
+		self.bgSound.setLoop(True)
 	
 	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
 		if name not in self.mapObjects:

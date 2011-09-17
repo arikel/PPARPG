@@ -356,4 +356,6 @@ class EquippedObject(MapObject):
 	def loop(self, animName):
 		self.model.loop(animName)
 		
-		
+	def destroy(self):
+		self.model.cleanup()
+		self.model.remove()	

@@ -153,6 +153,7 @@ class CollisionGrid:
 		self.terrain.setHeightfield(self.geoMipPath)
 		#self.terrain.setMinLevel(2)
 		#self.terrain.setBruteforce(True)
+		self.terrain.setBlockSize(5)
 		self.terrainScale = 5.0
 		self.terrainImgSize = 65.0
 		self.terrainNP = self.terrain.getRoot()
