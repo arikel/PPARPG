@@ -104,6 +104,8 @@ class Inventory:
 		self.info = makeMsg(-0.8,0.8, "Inventory info")
 		self.info.reparentTo(self.frame)
 		
+		self.hide()
+		
 	def setInfo(self, msg):
 		self.info.setText(str(msg))
 		
@@ -207,7 +209,7 @@ class GameGui:
 	def show(self):
 		self.infoLabel.show()
 		self.objectLabel.show()
-		self.inventory.show()
+		#self.inventory.show()
 		self.visible = True
 		
 	def setInfo(self, info):

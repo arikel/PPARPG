@@ -17,8 +17,13 @@ textColors["white"] = ((1,1,1,1), (0,0,0,0.8))
 textColors["white_transp"] = ((1,1,1,1), (0,0,0,0.0))
 
 #FONT = loader.loadFont("fonts/oldtypewriter.ttf")
-FONT = loader.loadFont("fonts/oldtypewriter.ttf")
-FONT_SCALE = 0.035
+#FONT_SCALE = 0.035
+
+FONT = loader.loadFont("fonts/cour.ttf")#,minFilter=1,magFilter=1)
+FONT_SCALE = (20.0/base.win.getXSize(), 20.0/base.win.getYSize(), 1.0)
+FONT.setPointSize(18) # a value of 73 or more crashes Panda/Python
+FONT.setSpaceAdvance(2) # decrease as point size is decrease
+FONT.setLineHeight(1)
 
 FONT2 = loader.loadFont("fonts/oldtypewriter.egg")
 FONT_SCALE2 = 0.035

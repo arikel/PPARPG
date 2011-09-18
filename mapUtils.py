@@ -13,7 +13,6 @@ def makeFloor(nbCases, scalex, scaley, texpath):
 	cm = CardMaker('card')
 	cm.setUvRange(Point2(scalex/nbCases,scaley/nbCases), Point2(0,0))
 	cm.setHasNormals(True)
-	#card = render.attachNewNode(cm2.generate())
 	card = NodePath(cm.generate())
 	img = loader.loadTexture(texpath)
 	img.setWrapU(Texture.WMRepeat)

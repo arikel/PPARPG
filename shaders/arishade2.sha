@@ -1,0 +1,93 @@
+//Cg
+//----------------------------------------------------------------------
+// vshader
+//----------------------------------------------------------------------
+// input :
+// mspos_light (nodepath "light" : render.setShaderInput("light", light))
+// mspos_cam (nodepath camera : render.setShaderInput("cam",camera))
+
+void vshader(
+	in uniform float4 mspos_light,
+	in uniform float4x4 mat_modelproj,
+	in float4 vtx_position : POSITION,
+	in float3 vtx_normal : NORMAL,
+	in float3 vtx_tangent0 : TANGENT,
+	in float3 vtx_binormal0 : BINORMAL,
+	in float4 vtx_color : COLOR,
+	
+	//in uniform float4 mspos_cam,
+	in float2 vtx_texcoord0 : TEXCOORD0,
+	
+	out float4 l_color : COLOR,
+	out float3 l_myposition : TEXCOORD0,
+	out float3 l_mynormal : TEXCOORD1,
+	out float4 l_position : POSITION,
+	out float2 l_texcoord0 : TEXCOORD2,
+	out float3 l_lightvec,
+	out float3 l_brite
+	)
+{
+	l_position = mul(mat_modelproj, vtx_position);
+	l_myposition = vtx_position.xyz;
+	l_mynormal = normalize(vtx_normal);
+	l_color = vtx_color;
+	l_texcoord0 = vtx_texcoord0;
+	float3 lightvec = ((float3)mspos_light - vtx_position.xyz);
+	l_lightvec.x = dot(vtx_tangent0,  lightvec);
+	l_lightvec.y = -dot(vtx_binormal0, lightvec);
+	l_lightvec.z = dot(vtx_normal,    lightvec);
+	float3 N = normalize(vtx_normal);
+	float3 lightVector = normalize(mspos_light.xyz - vtx_position.xyz);
+	l_brite = max(dot(N,lightVector), 0);
+}
+
+
+void fshader(
+	in uniform float4 mspos_light,
+	in uniform float4 mspos_light2,
+	in float4 l_brite     : TEXCOORD0, 
+	in float4 l_color     : COLOR,
+	in uniform sampler2D tex_0 : TEXUNIT0,
+	in uniform sampler2D tex_1 : TEXUNIT1,
+	in float3 l_myposition : TEXCOORD0,
+	in float3 l_mynormal : TEXCOORD1,
+	in float2 l_texcoord0 : TEXCOORD2,
+	in float3 l_lightvec,
+	
+	in uniform float4x4 trans_model_of_light_to_world,
+	
+	out float4 o_color : COLOR
+	)
+{
+	float4 basecolor = tex2D(tex_0, l_texcoord0);
+	float4 basenormal = tex2D(tex_1, l_texcoord0)*2.0-float4(1,1,1,1);
+	
+	//float3 lightposition = mspos_light.xyz;
+	//float3 modelposition = l_myposition;
+	//float3 normal = normalize(l_mynormal);
+	//float3 direction = normalize(lightposition - modelposition);
+	//float brightness = saturate(dot(normal, direction));
+	
+	float3 lightVector = normalize(float3(mspos_light - mspos_light2));
+	
+	float3 N = mul(float3x3(trans_model_of_light_to_world),l_mynormal);
+	N = normalize(N);
+	float diffuse = dot(lightVector,N);
+	
+	//float distance = length((float3)mspos_light - l_myposition);
+	//float attenuate = saturate(80.0 / (30.0 + distance));
+	
+	
+	//float lightprod = saturate(dot(lightVector, (float3)basenormal)+0.3);
+	//float4 output_color = lightprod * attenuate * o_color * brightness;
+	
+	//output_color.w = 1.0;
+	//o_color = output_color;
+	
+	o_color = basecolor* diffuse;
+	//o_color = basenormal* diffuse + basenormal*0.2;
+	o_color = basecolor;
+	o_color = basecolor* diffuse * 0.5 + basecolor*0.5;
+	o_color.w = 1;
+	o_color = o_color * 1.2;
+}

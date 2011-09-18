@@ -61,7 +61,7 @@ class MenuButton(DirectButton):
 
 class TopMenu:
 	def __init__(self, x, y, w=0.1, h=0.04, cmdList=[]):
-		padding = 0.05
+		self.padding = 0.05
 		
 		self.x = x
 		self.y = y
@@ -71,10 +71,10 @@ class TopMenu:
 		# the first string of the cmdList is used for the top button
 		self.topCmd = cmdList.pop(0)
 		
-		bottom = len(cmdList)*self.h*2+self.h+padding
+		bottom = len(cmdList)*self.h*2+self.h+self.padding
 		
 		self.frame = DirectFrame(
-			frameSize = ((-self.w-padding)*RATIO,(self.w+padding)*RATIO,-bottom,self.h+padding),
+			frameSize = ((-self.w-self.padding)*RATIO,(self.w+self.padding)*RATIO,-bottom,self.h+self.padding),
 			frameColor=(0.9, 0.7, 0.9, 0.0),
 			pos = (self.x,1,self.y),
 			pad = (0,0),
@@ -102,12 +102,14 @@ class TopMenu:
 		print "top menu : expand"
 		self.topButton.onHover()
 		self.menu.expand()
+		self.frame.bind(DGG.EXIT, self.retract)
 			
 	def retract(self, extraArgs=[]):
 		print "top menu : retract"
 		self.topButton.onOut()
 		self.menu.retract()
-	
+		self.frame.ignore(DGG.EXIT)
+		
 	def hide(self):
 		self.frame.hide()
 		self.visible = False
@@ -206,11 +208,13 @@ class ActionMenu:
 		self.frame.setPos(mpos[0]*RATIO+self.w, 1, mpos[1])
 		
 		self.frame.show()
-			
+		self.frame.bind(DGG.EXIT, self.retract)
+		
 	def retract(self, extraArgs=[]):
 		for submenu in self.subMenus:
 			submenu.retract()
 		self.frame.hide()
+		self.frame.ignore(DGG.EXIT)
 		
 	def clear(self):
 		for b in self.buttons:

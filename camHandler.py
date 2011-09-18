@@ -20,9 +20,9 @@ class CamHandler:
 		self.editNp.setPos(10,10,60)
 		self.editNp.reparentTo(render)
 		
-		self.prevCamHpr = Vec3(0,-20,0)
+		self.prevCamHpr = Vec3(0,-45,0)
 		self.prevCamHpr2 = Vec3(0,-90,0)
-			
+		base.camera.setHpr(0,-90,0)
 		self.mode = "edit"
 		self.setMode("playing") # "edit"
 			
@@ -129,7 +129,6 @@ class CamHandler:
 			
 			base.camera.wrtReparentTo(self.editNp)
 			origHpr = base.camera.getHpr()
-			#targetHpr = (0,-90,0)
 			targetHpr = self.prevCamHpr2
 			
 			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),

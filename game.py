@@ -55,7 +55,7 @@ from dialog import *
 from mapObject import *
 from map import Map
 
-
+from effects import WaterPlane
 		
 	
 
@@ -806,8 +806,8 @@ class Game(FSM, DirectObject):
 		
 if __name__ == "__main__":
 	
-	game = Game("maps/mapCode.txt")
-	
+	game = Game("maps/mapCode3.txt")
+	w = WaterPlane()
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
@@ -817,7 +817,8 @@ if __name__ == "__main__":
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
-	render.setShaderAuto()
+	#render.setShaderAuto()
+	render.setShaderOff()
 	#render.setTransparency(TransparencyAttrib.MAlpha)
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)

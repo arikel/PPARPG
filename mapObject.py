@@ -176,7 +176,7 @@ class NPC(MapObject):
 		#self.timerMsg = makeMsg(0,0,"time")
 		self.timerMsg = TextNode(self.name)
 		self.timerMsg.setFont(FONT)
-		#self.timerMsg.setTextColor(1,1,1,1)
+		self.timerMsg.setTextColor(0,0,0,1)
 		
 		
 		self.timerMsg.setCardColor(1, 1, 1, 0.6)
