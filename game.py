@@ -148,14 +148,14 @@ class MapManager(MapManagerBase):
 		
 		# NPCs
 		self.NPC = {}
-		for name in ["ula2", "Kimmo", "Drunkard", "Camilla"]:
+		for name, sex in [("ula2", "female"), ("Kimmo", "male"), ("Drunkard", "male"), ("Camilla", "female")]:
 			x, y = self.map.collisionGrid.getRandomTile()
 			# yes, we will have to think about something smarter in the long run, i know...
-			if name in ["ula2", "Camilla"]:
+			if sex == "female":
 				self.addNPC(name, "models/characters/female", "models/characters/female1.jpg", x,y)
 			else:
 				self.addNPC(name, "models/characters/male", "models/characters/humanTex2.png", x,y)
-		
+
 		name = self.gm.playerData["name"]
 		sex = self.gm.playerData["sex"]
 		
@@ -813,12 +813,28 @@ if __name__ == "__main__":
 	base.win.requestProperties(props)
 	
 	base.accept("escape", sys.exit)
-	
+	base.camLens.setNearFar(1.0, 5000)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
+	'''
+	color = (0.8,0.8,0.8,0.5)
+	expfog = Fog("Scene-wide exponential Fog object")
+	expfog.setColor(color)
+	expfog.setExpDensity(0.01)
+	render.setFog(expfog)
+	base.setBackgroundColor(color)
+	'''
 	#render.setShaderAuto()
 	render.setShaderOff()
+	genShader = loader.loadShader("shaders/arishade.sha")
+	render.setShaderInput('cam', base.camera)
+	render.setShaderInput('bgcolor', 1,1,1)
+	base.setBackgroundColor(1,1,1,1)
+	
+	render.setShader(genShader)
+	#render.flattenStrong()
+	#render.flattenMedium()
 	#render.setTransparency(TransparencyAttrib.MAlpha)
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)

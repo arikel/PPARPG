@@ -119,6 +119,9 @@ class DialogCamilla(Dialog):
 			self.setMainText(msg)
 			menu = [
 				["'Come on, you know *exactly* what i mean...'", self.l_insist, []],
+				["'Don't try to lie to me...'", self.l_insist, []],
+				["'I knew you'd try to lie to me...'", self.l_insist, []],
+				["'You know who you're lying to, girl?'", self.l_insist, []],
 				["'Ah, my bad, forget about that...'", self.l_close, []],
 			]
 			self.setMenu(menu)
