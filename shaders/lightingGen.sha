@@ -21,10 +21,12 @@ void vshader(float4 vtx_position   : POSITION,
 
 void fshader(float4 l_brite     : TEXCOORD0, 
              float4 l_color     : COLOR,
+             in uniform sampler2D tex_0 : TEXUNIT0,
              out float4 o_color : COLOR)
 {
-  if (l_brite.x<0.5) l_brite=0.8;
-  else l_brite=1.2;
-  o_color=l_brite * l_color;
-  o_color.a = 1;
+	float4 basecolor = tex2D(tex_0, l_texcoord0);
+	//if (l_brite.x<0.5) l_brite=0.8;
+	//else l_brite=1.2;
+	//o_color=l_brite * l_color;
+	//o_color.a = 1;
 }
