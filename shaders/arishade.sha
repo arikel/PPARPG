@@ -1,0 +1,49 @@
+//Cg
+//
+//Cg profile arbvp1 arbfp1
+
+void vshader(
+	in float4 vtx_position   : POSITION,
+	in float3 vtx_normal     : NORMAL,
+	in float4 vtx_color      : COLOR,
+	in float2 vtx_texcoord0 : TEXCOORD0,
+	in uniform float4x4 mat_modelproj,
+	//in uniform float4 mspos_light,
+	
+	
+	out float4 l_position : POSITION,
+	out float4 l_color    : COLOR,
+	out float2 l_texcoord0 : TEXCOORD0
+	)
+	
+{
+	l_position = mul(mat_modelproj, vtx_position);
+	l_texcoord0 = vtx_texcoord0;
+	l_color = vtx_color;
+}
+
+
+void fshader(
+	in float4 l_color     : COLOR,
+	in uniform float4 l_position : POSITION,
+	in uniform sampler2D tex_0 : TEXUNIT0,
+	in float2 l_texcoord0 : TEXCOORD0,
+	in uniform float4 mspos_cam,
+	uniform float3 k_bgcolor,
+	out float4 o_color : COLOR)
+{
+	float4 basecolor = tex2D(tex_0, l_texcoord0);
+	o_color = basecolor;
+	/*
+	float d = length(mspos_cam.xyz - l_position.xyz);
+	if (d > 50) {
+		//float factor = 50.0 / d;
+		float factor = (d-50.0)/100;
+		if (factor > 1) { factor = 1; }
+		o_color.r = o_color.r*(1-factor) + k_bgcolor.r * factor;
+		o_color.g = o_color.g*(1-factor) + k_bgcolor.g * factor;
+		o_color.b = o_color.b*(1-factor) + k_bgcolor.b * factor;
+		//o_color.a = 1-factor;
+	}
+	*/
+}
