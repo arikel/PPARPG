@@ -56,8 +56,8 @@ from mapObject import *
 from map import Map
 
 from effects import WaterPlane
-		
-	
+from wallBuilder import WallBuilder
+
 
 
 #-----------------------------------------------------------------------
@@ -728,7 +728,7 @@ class Game(FSM, DirectObject):
 		self.cursor = MouseCursor()
 		
 		self.playerData = {}
-		self.playerData["name"] = "Sonia"
+		self.playerData["name"] = "Galya"
 		self.playerData["sex"] = "female"
 		
 		self.mapManager = MapManager(self)
@@ -808,6 +808,15 @@ if __name__ == "__main__":
 	
 	game = Game("maps/mapCode3.txt")
 	w = WaterPlane()
+	w2 = WallBuilder(0.2, 3.2, "img/textures/wood_wall.jpg")
+	for i in range(100):
+		aloe = loader.loadModel("models/nature/aloe")
+		aloe.reparentTo(render)
+		aloe.setScale(0.25*random.randint(1,5))
+		aloe.setTwoSided(True)
+		aloe.setBillboardAxis()
+		aloe.setPos(random.randint(1,30),random.randint(1,30),0)
+		
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
