@@ -5,7 +5,7 @@ from pandac.PandaModules import *
 from mouseCursor import Clicker
 
 class WallBuilder:
-	def __init__(self, width = 0.5, height = 1.6, texPath="img/textures/collision.png"):
+	def __init__(self, width = 0.5, height = 1.6, texPath="img/textures/collision.png", pointList = []):
 		self.width = width
 		self.height = height
 		self.texPath = texPath
@@ -24,6 +24,8 @@ class WallBuilder:
 		
 		self.np = None
 		
+		#self.pointList = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
+		self.pointList = pointList
 		self.makeFaces()
 		
 	def makeFaces(self):
@@ -41,8 +43,11 @@ class WallBuilder:
 		self.color = GeomVertexWriter(self.gvd, 'color')
 		self.normal = GeomVertexWriter(self.gvd, 'normal')
 		
-		self.makeWall(0, Point3(0,0,0), Point3(0,5,0), 2.5)
-		self.makeWall(20, Point3(0,5,0), Point3(8,5,0), 2.5)
+		n = 0
+		for i in range(len(self.pointList)-1):
+			self.makeWall(n, self.pointList[i], self.pointList[i+1], self.height)
+			n += 20
+		
 		
 		self.prim.closePrimitive()
 		self.geom.addPrimitive(self.prim)

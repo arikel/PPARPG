@@ -1,0 +1,64 @@
+<CoordinateSystem> { Z-up }
+
+<Comment> { "Egg laid by Chicken for Blender, version R91" }
+
+<Material> Material {
+  <Scalar> diffr {0.800000011921}
+  <Scalar> diffg {0.800000011921}
+  <Scalar> diffb {0.800000011921}
+  <Scalar> specr {0.25}
+  <Scalar> specg {0.25}
+  <Scalar> specb {0.25}
+  <Scalar> shininess {12.5}
+}
+<Texture> Material_00_Tex {
+  "./../../img/textures/plants/grass_1.png"
+  <Scalar> saved-result { 1 }
+  <Scalar> envtype { MODULATE }
+  <Scalar> minfilter { LINEAR_MIPMAP_LINEAR }
+  <Scalar> magfilter { LINEAR_MIPMAP_LINEAR }
+  <Scalar> wrap { CLAMP }
+}
+<Group> Plane {
+  <VertexPool> Plane {
+    <Vertex> 0 {
+      1.0 1.19209289551e-07 1.99999988079
+      <UV>  {
+        1.000000 1.000000
+        <Tangent> { -1.000000 -0.000000 -0.000000 }
+        <Binormal> { -0.000000 0.000000 1.000000 }
+      }
+    }
+    <Vertex> 1 {
+      -0.999999761581 1.19209289551e-07 2.00000023842
+      <UV>  {
+        0.000000 1.000000
+        <Tangent> { -1.000000 -0.000000 -0.000000 }
+        <Binormal> { -0.000000 0.000000 1.000000 }
+      }
+    }
+    <Vertex> 2 {
+      -0.999999940395 0.0 0.0
+      <UV>  {
+        0.000000 0.000000
+        <Tangent> { -1.000000 -0.000000 -0.000000 }
+        <Binormal> { -0.000000 0.000000 1.000000 }
+      }
+    }
+    <Vertex> 3 {
+      0.999999940395 0.0 0.0
+      <UV>  {
+        1.000000 0.000000
+        <Tangent> { -1.000000 -0.000000 -0.000000 }
+        <Binormal> { -0.000000 0.000000 1.000000 }
+      }
+    }
+  }
+  <Polygon> {
+    <TRef> { Material_00_Tex }
+    <MRef> { Material }
+    <Normal> { 0.000000 -1.000000 0.000000
+    }
+    <VertexRef> { 0 1 2 3 <Ref> { Plane } }
+  }
+}

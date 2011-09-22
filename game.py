@@ -805,17 +805,30 @@ class Game(FSM, DirectObject):
 		self.editor.stop()
 		
 if __name__ == "__main__":
+	#render.setShaderAuto()
+	render.setShaderOff()
+	genShader = loader.loadShader("shaders/arishade.sha")
+	#render.setShaderInput('cam', base.camera)
+	render.setShaderInput('bgcolor', 1,1,1)
+	base.setBackgroundColor(1,1,1,1)
 	
+	render.setShader(genShader)
 	game = Game("maps/mapCode3.txt")
-	w = WaterPlane()
-	w2 = WallBuilder(0.2, 3.2, "img/textures/wood_wall.jpg")
+	w0 = WaterPlane(-1000,-1000,1000,1000)
+	
+	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
+	w1 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l1)
+	
+	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(80,120,0), Point3(60,120,0)]
+	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
+	
 	for i in range(100):
-		aloe = loader.loadModel("models/nature/aloe")
+		aloe = loader.loadModel("models/nature/grass_1")
 		aloe.reparentTo(render)
 		aloe.setScale(0.25*random.randint(1,5))
 		aloe.setTwoSided(True)
 		aloe.setBillboardAxis()
-		aloe.setPos(random.randint(1,30),random.randint(1,30),0)
+		aloe.setPos(random.randint(1,200),random.randint(1,100),0)
 		
 	props = WindowProperties()
 	props.setCursorHidden(True) 
@@ -834,14 +847,7 @@ if __name__ == "__main__":
 	render.setFog(expfog)
 	base.setBackgroundColor(color)
 	'''
-	#render.setShaderAuto()
-	render.setShaderOff()
-	genShader = loader.loadShader("shaders/arishade.sha")
-	render.setShaderInput('cam', base.camera)
-	render.setShaderInput('bgcolor', 1,1,1)
-	base.setBackgroundColor(1,1,1,1)
 	
-	render.setShader(genShader)
 	#render.flattenStrong()
 	#render.flattenMedium()
 	#render.setTransparency(TransparencyAttrib.MAlpha)

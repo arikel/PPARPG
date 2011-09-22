@@ -70,10 +70,10 @@ class WaterNode():
 
 class WaterPlane():
 
-	def __init__(self):
+	def __init__(self, x1=-10, y1=-10, x2 = 10, y2 = 10):
 		# some constants
 		self._water_level = Vec4(0.0, 0.0, -0.01, 1.0)
-		self.water = WaterNode(self, -60, -60, 260, 190, self._water_level.getZ())
+		self.water = WaterNode(self, x1, y1, x2, y2, self._water_level.getZ())
 		ambient = Vec4(0.4, 0.4, 0.4, 1)
 		direct = Vec4(0.74, 0.74, 0.75, 1)
 		# ambient light
@@ -97,9 +97,9 @@ class WaterPlane():
 		self.waterNP.setShaderInput('waterlevel', self._water_level)
 		self.waterNP.setShaderInput('time', 0.0)
 		
-		self.sky = SkyBox()
-		self.sky.load("hipshot1")
-		self.sky.set("hipshot1")
+		#self.sky = SkyBox()
+		#self.sky.load("hipshot1")
+		#self.sky.set("hipshot1")
 		
 		self.prevtime = 0.0
 		self.task = taskMgr.add(self.move, "move")
@@ -108,11 +108,13 @@ class WaterPlane():
 		elapsed = task.time - self.prevtime
 		
 		self.waterNP.setShaderInput('time', task.time)
+		#self.waterNP.setShaderInput('cam', base.camera) # moved to camHandler for now
 		# update matrix of the reflection camera
-		mc = base.camera.getMat( )
-		mf = self.waterPlane.getReflectionMat( )
+		
+		mc = base.camera.getMat(render) # WRT render, since our camera will most often be reparented to something else.
+		mf = self.waterPlane.getReflectionMat()
 		self.watercamNP.setMat(mc * mf)
-
+		
 		# Store the task time and continue.
 		self.prevtime = task.time
 		return Task.cont

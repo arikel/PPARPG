@@ -108,6 +108,7 @@ class CamHandler:
 		
 		if self.mode == "playing":
 			base.camera.wrtReparentTo(self.playingNp)
+			render.setShaderInput('cam', self.playingNp)
 			
 			origHpr = base.camera.getHpr()
 			#targetHpr = (0,-45,0)
@@ -128,6 +129,8 @@ class CamHandler:
 			
 			
 			base.camera.wrtReparentTo(self.editNp)
+			render.setShaderInput('cam', self.editNp)
+			
 			origHpr = base.camera.getHpr()
 			targetHpr = self.prevCamHpr2
 			

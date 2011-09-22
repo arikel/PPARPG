@@ -158,7 +158,7 @@ class Map:
 			self.ambientSound = None
 			self.bgSound = None
 			
-		self.mapWall = MapWall(self.x, self.y, 0)
+		#self.mapWall = MapWall(self.x, self.y, 0)
 		
 		self.collisionGrid.data = mapData["collision"]
 		
