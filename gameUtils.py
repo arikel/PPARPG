@@ -32,3 +32,8 @@ class Armor:
 		self.genre = genre
 		self.protection = protection
 		self.fireBonus = fireBonus
+
+class NPCTracker:
+	def __init__(self, mapList = []):
+		self.mapList = mapList
+		

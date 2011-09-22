@@ -49,12 +49,13 @@ void vshader( 	in float4 vtx_position : POSITION,
 // tex_0: reflection texture as produced by reflection camera
 // tex_1: distortion texture
 //
-void fshader( 	in float4 l_texcoord0 : TEXCOORD0,
-		in float4 l_texcoord1 : TEXCOORD1,
-              	in uniform sampler2D tex_0 : TEXUNIT0,
-		in uniform sampler2D tex_1 : TEXUNIT1,
-		in uniform float4 k_waterdistort,
-		out float4 o_color : COLOR)
+void fshader(
+	in float4 l_texcoord0 : TEXCOORD0,
+	in float4 l_texcoord1 : TEXCOORD1,
+	in uniform sampler2D tex_0 : TEXUNIT0,
+	in uniform sampler2D tex_1 : TEXUNIT1,
+	in uniform float4 k_waterdistort,
+	out float4 o_color : COLOR)
 {
 	// calculate distortion from distortion map
 	float4 distortion = normalize(tex2Dproj(tex_1, l_texcoord1) - k_waterdistort.x) * k_waterdistort.y;

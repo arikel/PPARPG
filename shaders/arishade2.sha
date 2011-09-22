@@ -84,10 +84,11 @@ void fshader(
 	//output_color.w = 1.0;
 	//o_color = output_color;
 	
-	o_color = basecolor* diffuse;
+	//o_color = basecolor* diffuse;
 	//o_color = basenormal* diffuse + basenormal*0.2;
-	o_color = basecolor;
-	o_color = basecolor* diffuse * 0.5 + basecolor*0.5;
-	o_color.w = 1;
-	o_color = o_color * 1.2;
+	//o_color = basecolor;
+	//o_color = basecolor* diffuse * 0.45 + basecolor*0.6;
+	o_color = diffuse * 0.4 * basecolor + 0.6 * basecolor;
+	o_color.w = basecolor.w;
+	//o_color = o_color * 1.2;
 }

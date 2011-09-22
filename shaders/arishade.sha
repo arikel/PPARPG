@@ -12,6 +12,7 @@ void vshader(
 	
 	
 	out float4 l_position : POSITION,
+	out float3 l_normal : TEXCOORD1,
 	out float4 l_color    : COLOR,
 	out float2 l_texcoord0 : TEXCOORD0
 	)
@@ -26,6 +27,7 @@ void vshader(
 void fshader(
 	in float4 l_color     : COLOR,
 	in uniform float4 l_position : POSITION,
+	in uniform float3 l_normal : TEXCOORD1,
 	in uniform sampler2D tex_0 : TEXUNIT0,
 	in float2 l_texcoord0 : TEXCOORD0,
 	in uniform float4 mspos_cam,
@@ -34,6 +36,17 @@ void fshader(
 {
 	float4 basecolor = tex2D(tex_0, l_texcoord0);
 	o_color = basecolor;
+	
+	
+	float3 lightVector = normalize(float3(1,1,1));
+	
+	//float3 N = mul(float3x3(trans_model_of_light_to_world),l_normal);
+	float3 N = mul(float3x3(1,1,1,1,1,1,1,1,1),l_normal);
+	//float3 N = l_normal;
+	N = normalize(N);
+	float diffuse = dot(lightVector,N);
+	o_color = o_color * diffuse;
+	o_color.a = 1;
 	/*
 	float d = length(mspos_cam.xyz - l_position.xyz);
 	if (d > 50) {

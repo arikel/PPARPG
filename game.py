@@ -55,7 +55,7 @@ from dialog import *
 from mapObject import *
 from map import Map
 
-from effects import WaterPlane
+from effects import WaterPlane, GrassEngine
 from wallBuilder import WallBuilder
 
 
@@ -807,22 +807,56 @@ class Game(FSM, DirectObject):
 if __name__ == "__main__":
 	#render.setShaderAuto()
 	render.setShaderOff()
-	genShader = loader.loadShader("shaders/arishade.sha")
-	#render.setShaderInput('cam', base.camera)
+	
+	
+	genShader = loader.loadShader("shaders/arishade2.sha")
+	render.setShaderInput('cam', base.camera)
 	render.setShaderInput('bgcolor', 1,1,1)
-	base.setBackgroundColor(1,1,1,1)
+	light1 = NodePath("light")
+	light1.setPos(25,30,15)
+	light2 = NodePath("light2")
+	light2.setPos(27,32,14)
+	
+	render.setShaderInput('light', light1)
+	render.setShaderInput('light2', light2)
+	
 	
 	render.setShader(genShader)
+	
+	'''
+	shadow_map_temp = Texture()
+	shadow_buffer = base.win.makeTextureBuffer('shadow', 2048, 2048, shadow_map_temp)
+
+	shadow_cam = base.makeCamera(shadow_buffer)
+	shadow_cam.reparentTo(light1)
+	  
+	lens = OrthographicLens()
+	lens.setFilmSize(500, 500)  # Or whatever is appropriate for your scene
+	shadow_cam.node().setLens(lens)
+	shadow_cam.node().getDisplayRegion(0).setClearColor(Vec4(0, 0, 0, 1))
+	shadow_cam.node().getDisplayRegion(0).setClearColorActive(1)
+	shadow_cam.reparentTo(light1)
+	shadow_cam.lookAt(light2)
+
+	shadow_map = Texture()
+	shadow_map.setMinfilter(Texture.FTShadow)
+	shadow_map.setMagfilter(Texture.FTShadow)
+	shadow_buffer.addRenderTexture(shadow_map, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPDepth)
+	'''
+	
 	game = Game("maps/mapCode3.txt")
 	w0 = WaterPlane(-1000,-1000,1000,1000)
 	
 	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
 	w1 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l1)
 	
-	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(80,120,0), Point3(60,120,0)]
+	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(60,120,0)]
 	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
 	
-	for i in range(100):
+	p = GrassEngine(base.camera, 200, 100)
+	
+	'''
+	for i in range(200):
 		aloe = loader.loadModel("models/nature/grass_1")
 		aloe.reparentTo(render)
 		aloe.setScale(0.25*random.randint(1,5))
@@ -830,6 +864,14 @@ if __name__ == "__main__":
 		aloe.setBillboardAxis()
 		aloe.setPos(random.randint(1,200),random.randint(1,100),0)
 		
+	for i in range(200):
+		aloe = loader.loadModel("models/nature/grass_2")
+		aloe.reparentTo(render)
+		aloe.setScale(0.25*random.randint(1,5))
+		aloe.setTwoSided(True)
+		aloe.setBillboardAxis()
+		aloe.setPos(random.randint(1,200),random.randint(1,100),0)
+	'''
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
@@ -839,14 +881,15 @@ if __name__ == "__main__":
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
-	'''
-	color = (0.8,0.8,0.8,0.5)
+	
+	#color = (0.8,0.8,0.8,0.5)
+	color = (1,1,1,1)
 	expfog = Fog("Scene-wide exponential Fog object")
 	expfog.setColor(color)
 	expfog.setExpDensity(0.01)
-	render.setFog(expfog)
+	#render.setFog(expfog)
 	base.setBackgroundColor(color)
-	'''
+	
 	
 	#render.flattenStrong()
 	#render.flattenMedium()
