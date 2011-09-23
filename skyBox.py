@@ -16,6 +16,7 @@ class SkyBox:
 		self.currentModel = None
 		self.intervals = {}
 		self.task = None
+		self.name = None
 		
 	def load(self, name):
 		path = "models/skies/" + str(name) + "/generic_skybox"
@@ -30,7 +31,8 @@ class SkyBox:
 		
 	def unload(self, name):
 		if name in self.models:
-			self.models[name].detachNode()
+			#self.models[name].detachNode()
+			self.models[name].remove()
 			del self.models[name]
 
 	def set(self, name):

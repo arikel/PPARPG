@@ -182,7 +182,9 @@ class GrassEngine:
 	def destroy(self):
 		self.stop()
 		self.particles = []
+		self.generatorNode.detachNode()
 		self.generatorNode.removeNode()
+		self.generatorNode.remove()
 
 class WaterNode():
 

@@ -92,7 +92,10 @@ class MapManagerBase(DirectObject):
 		
 	def setMap(self, map):
 		self.map = map
-		self.clicker.setHeight(self.map.collisionGrid.terrainScale)
+		if self.map.collisionGrid.hasGeoMip:
+			self.clicker.setHeight(self.map.collisionGrid.ground.terrainScale)
+		else:
+			self.clicker.setHeight(0)
 		
 	def getHoverObjectName(self):
 		if base.mouseWatcherNode.hasMouse():
@@ -183,15 +186,9 @@ class MapManager(MapManagerBase):
 		
 		self.dialog = None # current dialog
 		
-		#self.msg = makeMsg(-1.3,0.95,"...")
-		
-		#self.msgTilePos = makeMsg(-1.2,0.95,"...")
-		
 		self.gui = GameGui(self)
 		
 	def start(self):
-		#self.msg.show()
-		#self.msgTilePos.show()
 		self.gui.show()
 		
 		self.task = taskMgr.add(self.update, "MapManagerTask")
@@ -203,8 +200,6 @@ class MapManager(MapManagerBase):
 			self.map.bgSound.play()
 			
 	def stop(self):
-		#self.msg.hide()
-		#self.msgTilePos.hide()
 		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
@@ -736,12 +731,13 @@ class Game(FSM, DirectObject):
 		
 		self.mapManager.playerData = self.playerData
 		
+		'''
 		# light
 		if CONFIG_LIGHT:
 			self.light = LightManager()
 			self.light.lightCenter.setPos(0,0,0)
 			self.light.lightCenter.reparentTo(base.camera)
-		
+		'''
 		self.accept(OPEN_EDITOR, self.toggle)
 			
 		self.request("Game")
@@ -806,9 +802,9 @@ class Game(FSM, DirectObject):
 		
 if __name__ == "__main__":
 	#render.setShaderAuto()
+	
+	
 	render.setShaderOff()
-	
-	
 	genShader = loader.loadShader("shaders/arishade2.sha")
 	render.setShaderInput('cam', base.camera)
 	render.setShaderInput('bgcolor', 1,1,1)
@@ -819,9 +815,10 @@ if __name__ == "__main__":
 	
 	render.setShaderInput('light', light1)
 	render.setShaderInput('light2', light2)
-	
-	
 	render.setShader(genShader)
+	
+	
+	
 	
 	'''
 	shadow_map_temp = Texture()
@@ -842,9 +839,25 @@ if __name__ == "__main__":
 	shadow_map.setMinfilter(Texture.FTShadow)
 	shadow_map.setMagfilter(Texture.FTShadow)
 	shadow_buffer.addRenderTexture(shadow_map, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPDepth)
+	
+	render.setShader(Shader.load("shaders/manouShadow.cg"))
+	render.setShaderInput('push', 0.5,0.5,0.5 )
+	render.setShaderInput('shadowcam', shadow_cam )
+	render.setShaderInput('light1', light1 )
+	render.setShaderInput('light2', light2 ) 
+	render.setShaderInput('camera', base.camera)
+	render.setShaderInput('globalambient', 0.5,0.5,0.5)
+	render.setShaderInput('lightcolor', 1.0,1.0,1.0)
+	render.setShaderInput('lightparams', 90,0,0)
+	render.setShaderInput('shadowmap',shadow_map)
+	render.setShaderInput('scale',1,1,1,1)
+	render.node().setBounds(OmniBoundingVolume())
+	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/mapCode3.txt")
+	game = Game("maps/mapCode.txt")
+	
+	
 	w0 = WaterPlane(-1000,-1000,1000,1000)
 	
 	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
@@ -853,7 +866,10 @@ if __name__ == "__main__":
 	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(60,120,0)]
 	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
 	
-	p = GrassEngine(base.camera, 200, 100)
+	grassNp = NodePath("grass")
+	grassNp.setPos(0,50,0)
+	grassNp.reparentTo(base.camera)
+	p = GrassEngine(grassNp, 100, 100)
 	
 	'''
 	for i in range(200):

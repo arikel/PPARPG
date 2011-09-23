@@ -51,10 +51,10 @@ class Map:
 	def collisionShow(self):
 		self.collisionGrid.collisionShow()
 	
-	def setDim(self, x, y):
+	def setSize(self, x, y):
 		self.x = int(x)
 		self.y = int(y)
-		self.collisionGrid.setDim(x, y)
+		self.collisionGrid.setSize(x, y)
 		
 	def save(self, filename):
 		mapData = {}
@@ -100,7 +100,9 @@ class Map:
 			print "Map : collisionGrid destroyed"
 		for mapObj in self.mapObjects.values():
 			self.removeMapObject(mapObj.name)
-
+		#if self.ground:
+		#	self.ground.destroy()
+			
 		if self.sky:
 			self.sky.destroy()
 			
@@ -130,10 +132,10 @@ class Map:
 			tex = mapData["geomip"][0]
 			geomipTex = mapData["geomip"][1]
 			print "Map : Creating mipmap collision grid on Map load"
-			self.collisionGrid = CollisionGrid(self.x, self.y, self.name, tex, geomipTex)
+			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, tex, geomipTex)
 		else:
 			print "Map : Creating flat collision grid on Map load"
-			self.collisionGrid = CollisionGrid(self.x, self.y, self.name)
+			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name)
 		if not self.collisionGrid:
 			print "Map : WARNING : collision grid should be there"
 		if "skybox" in mapData:

@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 from pandac.PandaModules import *
+from direct.directbase import DirectStart
 
 class MouseCursor:
 	def __init__(self):

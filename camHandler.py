@@ -6,7 +6,7 @@ from direct.interval.IntervalGlobal import *
 from direct.showbase.PythonUtil import fitDestAngle2Src 
 
 class CamHandler:
-	def __init__(self):
+	def __init__(self, playerNp=None):
 		self.speed = 15.0
 		self.intervalSpeed = 0.8
 		
@@ -20,8 +20,19 @@ class CamHandler:
 		self.editNp.setPos(10,10,60)
 		self.editNp.reparentTo(render)
 		
+		if playerNp is not None:
+			self.gameNp = NodePath("camHandler3")
+			self.gameNp.setPos(0,0,2.0)
+			self.gameNp.reparentTo(playerNp)
+			
+			self.gameNp2 = NodePath("camHandler3")
+			self.gameNp2.setPos(0,-20,5.0)
+			self.gameNp2.reparentTo(self.gameNp)
+			
+			
 		self.prevCamHpr = Vec3(0,-45,0)
 		self.prevCamHpr2 = Vec3(0,-90,0)
+		
 		base.camera.setHpr(0,-90,0)
 		self.mode = "edit"
 		self.setMode("playing") # "edit"
@@ -31,7 +42,8 @@ class CamHandler:
 			self.playingNp.setPos(self.playingNp, (0,dt*self.speed, 0))
 		elif self.mode == "edit":
 			self.editNp.setPos(self.editNp, (0,dt*self.speed, 0))
-		
+		elif self.mode == "game":
+			pass
 	def backward(self, dt):
 		if self.mode == "playing":
 			self.playingNp.setPos(self.playingNp, (0,-dt*self.speed, 0))

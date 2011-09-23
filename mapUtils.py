@@ -75,20 +75,18 @@ class MapWall:
 	
 		
 #-----------------------------------------------------------------------
-# CollisionGrid
-#  this class handles the ground : a dynamic mesh for the collision grid,
-#  and either a textured geoMipTerrain or a flat card to walk on.
-#  Each Map has its own CollisionGrid
+# CollisionGrid : WIP
 #-----------------------------------------------------------------------
 class CollisionGrid:
-	def __init__(self, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", geoMipPath = None):
+	def __init__(self, map, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", mipImg = None):
+		self.map = map
 		self.name = name
 		print "CollisionGrid : initiating %s" % (name)
 		
 		self.x = x
 		self.y = y
 		self.texPath = texPath
-		self.geoMipPath = geoMipPath
+		self.mipImg = mipImg
 		
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
@@ -126,80 +124,21 @@ class CollisionGrid:
 		#self.np.setColor(0,0,1.0,0.1)
 		self.np.setTransparency(True)
 		
-		self.hasGeoMip = False
-		self.terrain = None
-		self.terrainNP = None
-		self.terrainScale = 0
 		
-		if self.geoMipPath is not None:
-			self.ground = None
-			self.initGeoMip()
+		if self.mipImg is not None:
+			self.hasGeoMip = True
+			self.ground = TerrainGround(self.map,
+			self.x,
+			self.y,
+			"img/textures/ice01.jpg", # terrain texture
+			"img/mipmaps/ground02.jpg", # mipImg
+			imgSize=65.0, # mipImg size
+			scale=5.0) # terrain height scale
 			
 		else:
-			
-			self.ground = makeFloor(50, self.x, self.y, self.texPath)
-			self.ground.reparentTo(render)
-			
-	def initGeoMip(self):
-		if self.ground:
-			self.ground.remove()
-			
-		if self.terrainNP:
-			self.terrainNP.remove()
-			
-		self.hasGeoMip = True
-		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield(self.geoMipPath)
-		#self.terrain.setMinLevel(2)
-		#self.terrain.setBruteforce(True)
-		self.terrain.setBlockSize(5)
-		self.terrainScale = 5.0
-		self.terrainImgSize = 65.0
-		self.terrainNP = self.terrain.getRoot()
-		self.terrainNP.reparentTo(render)
-		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		#self.terrainNP.setPos(0,0,-self.terrainScale)
-		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
-		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
-		self.terrainNP.flattenStrong()
-		#self.terrainNP.setCollideMask(BitMask32(1))
-		
-	def removeGeoMip(self):
-		if self.terrainNP:
-			self.terrainNP.remove()
 			self.hasGeoMip = False
-			self.terrain = None
-			self.terrainNP = None
-			self.terrainScale = 0
-			self.ground = makeFloor(50, self.x, self.y, self.texPath)
-			self.ground.reparentTo(render)
-			self.update()
-		
-	def addGeoMip(self, geomipPath, texPath="img/textures/ice01.jpg", imgSize = 65.0, scale = 5.0):
-		if self.terrainNP:
-			self.terrainNP.remove()
-		if self.ground:
-			self.ground.remove()
-		
-		self.geoMipPath = geomipPath
-		self.texPath = texPath
-		
-		self.hasGeoMip = True
-		self.terrain = GeoMipTerrain("ground")
-		self.terrain.setHeightfield(self.geoMipPath)
-		#self.terrain.setMinLevel(2)
-		#self.terrain.setBruteforce(True)
-		self.terrainScale = scale
-		self.terrainImgSize = imgSize
-		self.terrainNP = self.terrain.getRoot()
-		self.terrainNP.reparentTo(render)
-		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
-		#self.terrainNP.setPos(0,0,-self.terrainScale)
-		self.terrain.generate()
-		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
-		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
-		self.terrainNP.flattenStrong()
+			self.ground = FlatGround(self.map, self.x, self.y, self.texPath, 50)
+	
 		
 	def collisionHide(self):
 		self.np.hide()
@@ -210,14 +149,8 @@ class CollisionGrid:
 	def getTileHeight(self, x, y):
 		if not self.hasGeoMip:
 			return 0
-		if not (0<=x<self.x): return 0 #- self.terrainScale
-		if not (0<=y<self.y): return 0 #- self.terrainScale
-		
-		xPx = int(float(x)/self.x*self.terrainImgSize)
-		yPx = int(float(y)/self.y*self.terrainImgSize)
-		height = self.terrain.getElevation(xPx, yPx) * self.terrainScale# - self.terrainScale
-		#print "Terrain height in %s / %s : %s" % (x, y, height)
-		return height
+		else:
+			return self.ground.getTileHeight(x, y)
 		
 	def update(self):
 		self.vertex = GeomVertexWriter(self.gvd, 'vertex')
@@ -238,8 +171,10 @@ class CollisionGrid:
 		# Needed to update the map after it has been resized
 		if self.np:
 			self.np.remove()
-		if self.terrainNP:
-			self.terrainNP.remove()
+		
+		if self.ground:
+			self.ground.destroy()
+		
 		self.y = len(self.data)
 		self.x = len(self.data[0])
 		
@@ -269,9 +204,19 @@ class CollisionGrid:
 		#self.np.setColor(0,0,1.0,0.1)
 		self.np.setTransparency(True)
 		
-		if self.hasGeoMip:
-			self.initGeoMip()
-		
+		if self.mipImg is not None:
+			self.hasGeoMip = True
+			self.ground = TerrainGround(self.map,
+			self.x,
+			self.y,
+			"img/textures/ice01.jpg", # terrain texture
+			"img/mipmaps/ground02.jpg", # mipImg
+			imgSize=65.0, # mipImg size
+			scale=5.0) # terrain height scale
+			
+		else:
+			self.hasGeoMip = False
+			self.ground = FlatGround(self.map, self.x, self.y, self.texPath, 50)
 		
 	def addWallTile(self, x, y):
 		
@@ -408,12 +353,14 @@ class CollisionGrid:
 	def destroy(self):
 		if self.np:
 			self.np.remove()
-		if self.terrainNP:
-			self.terrainNP.remove()
+		if self.ground:
+			self.ground.destroy()
+		#if self.terrainNP:
+		#	self.terrainNP.remove()
 		del self.data
 		del self.gvd
 	
-	def setDim(self, x, y):
+	def setSize(self, x, y):
 		oldData = self.data
 		oldX = self.x
 		oldY = self.y
@@ -431,3 +378,107 @@ class CollisionGrid:
 					tmp.append(0)
 			self.data.append(tmp)
 		self.rebuild()
+
+class FlatGround:
+	def __init__(self, map, x=20,y=20, tex="img/textures/ice01.jpg", scale=1.0):
+		self.map = map
+		self.x = x
+		self.y = y
+		self.scale = scale
+		self.texPath = tex
+		self.tex = loader.loadTexture(self.texPath)
+		self.tex.setWrapU(Texture.WMRepeat)
+		self.tex.setWrapV(Texture.WMRepeat)
+		
+		self.cm = CardMaker('card')
+		self.cm.setUvRange(Point2(self.x/self.scale,self.y/self.scale), Point2(0,0))
+		self.cm.setHasNormals(True)
+		self.card = NodePath(self.cm.generate())
+		
+		
+		self.card.setTexture(self.tex)
+		self.card.setScale(self.x,1,self.y)
+		self.card.setPos(0,0,0.0)
+		self.card.setHpr(0,-90,0)
+		#card.setTwoSided(True)
+		#card.setTransparency(TransparencyAttrib.MAlpha)
+		self.card.reparentTo(self.map.mapObjectRoot)
+		
+	def destroy(self):
+		self.card.detachNode()
+		self.card.remove()
+
+	def setSize(self, x, y, scale = None):
+		if scale is None:
+			scale = self.scale
+		else:
+			self.scale = scale
+		self.x = x
+		self.y = y
+		self.card.setScale(self.x,1,self.y)
+
+class TerrainGround:
+	def __init__(self,
+			map,
+			x=20,
+			y=20,
+			tex="img/textures/ice01.jpg",
+			mipImg="img/mipmaps/ground02.jpg",
+			imgSize=65.0,
+			scale=5.0):
+		
+		self.map = map
+		self.x = x
+		self.y = y
+		self.texPath = tex
+		self.terrain = None
+		self.terrainNP = None
+		self.terrainScale = 0
+		self.terrainImgSize = imgSize
+		self.mipImg = mipImg
+		self.terrainScale = scale
+		
+		self.initGeoMip()
+		
+	def initGeoMip(self):
+		self.terrain = GeoMipTerrain("ground")
+		self.terrain.setHeightfield(self.mipImg)
+		#self.terrain.setMinLevel(2)
+		#self.terrain.setBruteforce(True)
+		#self.terrain.setBlockSize(5)
+		
+		self.terrainNP = self.terrain.getRoot()
+		
+		#self.terrainNP.reparentTo(self.map.mapObjectRoot)
+		import direct.directbase.DirectStart
+		self.terrainNP.reparentTo(render)
+		
+		self.terrainNP.setScale(self.x/self.terrainImgSize,self.y/self.terrainImgSize,self.terrainScale)
+		#self.terrainNP.setPos(0,0,-self.terrainScale)
+		self.terrain.generate()
+		self.terrainNP.setTexture(loader.loadTexture(self.texPath))
+		self.terrainNP.setTexScale(TextureStage.getDefault(),self.terrainImgSize/10,self.terrainImgSize/10)
+		self.terrainNP.flattenStrong()
+		#self.terrainNP.setCollideMask(BitMask32(1))
+		
+	def destroy(self):
+		if self.terrainNP:
+			self.terrainNP.remove()
+	
+	def getTileHeight(self, x, y):
+		if not (0<=x<self.x): return 0 #- self.terrainScale
+		if not (0<=y<self.y): return 0 #- self.terrainScale
+		
+		xPx = int(float(x)/self.x*self.terrainImgSize)
+		yPx = int(float(y)/self.y*self.terrainImgSize)
+		height = self.terrain.getElevation(xPx, yPx) * self.terrainScale# - self.terrainScale
+		#print "Terrain height in %s / %s : %s" % (x, y, height)
+		return height
+	
+if __name__ == "__main__":
+	t = TerrainGround("map", 250,120,"img/textures/ice01.jpg", "img/mipmaps/ground02.jpg", 65.0,15.0)
+	import sys
+	import direct.directbase.DirectStart
+	base.accept("escape", sys.exit)
+	#t.destroy()
+	run()
