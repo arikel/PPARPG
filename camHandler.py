@@ -92,7 +92,8 @@ class CamHandler:
 			self.editNp.setPos(self.editNp, (0,0,dt*self.speed*10))
 			if self.editNp.getZ()<0:
 				self.editNp.setZ(0)
-				
+	
+	'''			
 	def update(self):
 		while self.playingNp.getH()<-180.0:
 			self.playingNp.setH(self.playingNp.getH()+360.0)
@@ -102,6 +103,7 @@ class CamHandler:
 			self.editNp.setH(self.editNp.getH()+360.0)
 		while self.editNp.getH()>180.0:
 			self.editNp.setH(self.editNp.getH()-360.0)
+	'''
 	
 	def toggle(self):
 		if self.mode == "playing":
@@ -123,23 +125,14 @@ class CamHandler:
 			render.setShaderInput('cam', self.playingNp)
 			
 			origHpr = base.camera.getHpr()
-			#targetHpr = (0,-45,0)
 			targetHpr = self.prevCamHpr
 			
 			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
 				fitDestAngle2Src(origHpr[1], targetHpr[1]),
 				fitDestAngle2Src(origHpr[2], targetHpr[2]))
-			
-			i1 = LerpPosInterval(base.camera, self.intervalSpeed, (0,0,0), blendType="easeInOut")
-			#i2 = LerpHprInterval(base.camera, self.intervalSpeed, (0,-45,0), blendType="easeInOut")
-			i2 = LerpHprInterval(base.camera, self.intervalSpeed, targetHpr, blendType="easeInOut")
-			
-			paral = Parallel(i1, i2)
-			paral.start()
+			LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=targetHpr, blendType="easeInOut").start()
 			
 		elif self.mode == "edit":
-			
-			
 			base.camera.wrtReparentTo(self.editNp)
 			render.setShaderInput('cam', self.editNp)
 			
@@ -148,9 +141,5 @@ class CamHandler:
 			
 			targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
 				fitDestAngle2Src(origHpr[1], targetHpr[1]),
-				fitDestAngle2Src(origHpr[2], targetHpr[2]))
-				
-			i1 = LerpPosInterval(base.camera, self.intervalSpeed, (0,0,0), blendType="easeInOut")
-			i2 = LerpHprInterval(base.camera, self.intervalSpeed, targetHpr, blendType="easeInOut")
-			paral = Parallel(i1, i2)
-			paral.start()
+				fitDestAngle2Src(origHpr[2], targetHpr[2]))	
+			LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=targetHpr, blendType="easeInOut").start()
