@@ -40,11 +40,8 @@ def makeWall(scalex, scaley, scaleTex):
 	return card
 
 class MapWall:
-	def __init__(self, x, y,z=0):
+	def __init__(self, x, y,z=0, height=6.0, texScale=5.0):
 		self.walls = []
-		
-		height = 6.0
-		texScale = 5.0
 		
 		wall1 = makeWall(x, height, texScale)
 		wall1.reparentTo(render)

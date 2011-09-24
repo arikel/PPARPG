@@ -551,45 +551,6 @@ class MapEditor(MapManagerBase):
 		self.gui.setInfo("stopped scaling object")
 		self.stopObjectAction()
 		
-	#-----------------------------
-	# map file handling
-	def save(self):
-		msg = "Editor : saving map"
-		self.gui.setInfo(msg)
-		self.map.save(self.map.filename)
-		
-	
-	def load(self, filename, extraArgs=[]):
-		#print "Editor : loading map %s" % (filename)
-		msg = "Loading map " + filename + "... Please wait..."
-		self.gui.setInfo(msg)
-		self.gm.load(filename)
-		
-	#-----------------------------
-	# map objects
-	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
-		self.map.addMapObject(genre, name, pos, hpr, scale)
-		
-	def addNewMapObject(self, genre, extraArgs=[]):
-		self.gui.addObjectMenu.retract()
-		name = self.map.getAvailableName(genre)
-		self.addMapObject(genre, name)
-		obj = self.map.mapObjects[name]
-		self.setMode("object")
-		self.startDrag(obj)
-		
-	def removeMapObject(self, name, extraArgs=[]):
-		if name in self.map.mapObjects:
-			self.stopObjectAction()
-			self.map.removeMapObject(name)
-			#self.map.mapObjects[name].destroy()
-			#del self.map.mapObjects[name]
-		
-	def setMapObjectPos(self, name, x, y, z=0):
-		if name in self.mapObjects:
-			self.map.mapObjects[name].setPos(x, y, z)
-	
-	
 	def onClickObject(self):
 		# click on MapObject :
 		name = self.getHoverObjectName()
@@ -619,11 +580,62 @@ class MapEditor(MapManagerBase):
 				self.gui.objectMenu.buttons[2].bind(DGG.B1PRESS, self.startRotate, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[3].bind(DGG.B1PRESS, self.startMoveZ, [self.map.mapObjects[name]])
 				self.gui.objectMenu.buttons[4].bind(DGG.B1PRESS, self.startScale, [self.map.mapObjects[name]])
-				self.gui.objectMenu.buttons[5].bind(DGG.B1PRESS, self.removeMapObject, [name])
+				self.gui.objectMenu.buttons[5].bind(DGG.B1PRESS, self.duplicateMapObject, [self.map.mapObjects[name]])
+				self.gui.objectMenu.buttons[6].bind(DGG.B1PRESS, self.removeMapObject, [name])
 				
 		else:
 			print "map editor : right click on nothing"
 			self.gui.objectMenu.hide()
+		
+	#-----------------------------
+	# map file handling
+	def save(self):
+		msg = "Editor : saving map"
+		self.gui.setInfo(msg)
+		self.map.save(self.map.filename)
+		
+	
+	def load(self, filename, extraArgs=[]):
+		#print "Editor : loading map %s" % (filename)
+		msg = "Loading map " + filename + "... Please wait..."
+		self.gui.setInfo(msg)
+		self.gm.load(filename)
+		
+	#-----------------------------
+	# map objects
+	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
+		self.map.addMapObject(genre, name, pos, hpr, scale)
+		
+	def addNewMapObject(self, genre, extraArgs=[]):
+		self.gui.addObjectMenu.retract()
+		name = self.map.getAvailableName(genre)
+		self.addMapObject(genre, name)
+		obj = self.map.mapObjects[name]
+		self.setMode("object")
+		self.startDrag(obj)
+		
+	def duplicateMapObject(self, obj, extraArgs=[]):
+		self.gui.addObjectMenu.retract()
+		genre = obj.genre
+		name = self.map.getAvailableName(genre)
+		self.addMapObject(genre, name)
+		newObj = self.map.mapObjects[name]
+		newObj.setScale(obj.getScale())
+		newObj.setRot(obj.getRot())
+		self.setMode("object")
+		self.startDrag(newObj)
+		
+		
+	def removeMapObject(self, name, extraArgs=[]):
+		if name in self.map.mapObjects:
+			self.stopObjectAction()
+			self.map.removeMapObject(name)
+			#self.map.mapObjects[name].destroy()
+			#del self.map.mapObjects[name]
+		
+	def setMapObjectPos(self, name, x, y, z=0):
+		if name in self.mapObjects:
+			self.map.mapObjects[name].setPos(x, y, z)
 	
 	#-----------------------------
 	# map collisions	
@@ -855,7 +867,7 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/mapCode.txt")
+	game = Game("maps/mapCode2.txt")
 	
 	
 	w0 = WaterPlane(-1000,-1000,1000,1000)
@@ -871,23 +883,6 @@ if __name__ == "__main__":
 	grassNp.reparentTo(base.camera)
 	p = GrassEngine(grassNp, 100, 100)
 	
-	'''
-	for i in range(200):
-		aloe = loader.loadModel("models/nature/grass_1")
-		aloe.reparentTo(render)
-		aloe.setScale(0.25*random.randint(1,5))
-		aloe.setTwoSided(True)
-		aloe.setBillboardAxis()
-		aloe.setPos(random.randint(1,200),random.randint(1,100),0)
-		
-	for i in range(200):
-		aloe = loader.loadModel("models/nature/grass_2")
-		aloe.reparentTo(render)
-		aloe.setScale(0.25*random.randint(1,5))
-		aloe.setTwoSided(True)
-		aloe.setBillboardAxis()
-		aloe.setPos(random.randint(1,200),random.randint(1,100),0)
-	'''
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)

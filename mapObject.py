@@ -111,6 +111,9 @@ class MapObject:
 	def setHpr(self, hpr):
 		self.model.setHpr(hpr)
 		
+	def getRot(self):
+		return self.model.getH()
+		
 	def setRot(self, n):
 		self.model.setH(n)
 	
