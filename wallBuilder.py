@@ -9,7 +9,6 @@ class WallBuilder:
 		self.width = width
 		self.height = height
 		self.texPath = texPath
-		self.wallPath = []
 		
 		self.node = GeomNode("tiledMesh")
 		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
@@ -28,6 +27,14 @@ class WallBuilder:
 		self.pointList = pointList
 		self.makeFaces()
 		
+	def getSaveData(self):
+		data = []
+		data.append(self.width)
+		data.append(self.height)
+		data.append(self.texPath)
+		data.append(self.pointList)
+		return data
+		
 	def makeFaces(self):
 		if self.np:
 			self.np.remove()
@@ -35,7 +42,6 @@ class WallBuilder:
 		self.node = GeomNode("tiledMesh")
 		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
 		self.geom = Geom(self.gvd)
-		
 		self.prim = GeomTriangles(Geom.UHStatic)
 		
 		self.vertex = GeomVertexWriter(self.gvd, 'vertex')

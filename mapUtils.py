@@ -4,11 +4,11 @@
 import random
 
 from pandac.PandaModules import *
-
+from wallBuilder import WallBuilder
 #-----------------------------------------------------------------------
 # Decor building functions and classes
 #-----------------------------------------------------------------------
-
+'''
 def makeFloor(nbCases, scalex, scaley, texpath):
 	cm = CardMaker('card')
 	cm.setUvRange(Point2(scalex/nbCases,scaley/nbCases), Point2(0,0))
@@ -25,7 +25,7 @@ def makeFloor(nbCases, scalex, scaley, texpath):
 	#card.setTwoSided(True)
 	#card.setTransparency(TransparencyAttrib.MAlpha)
 	return card
-	
+'''
 def makeWall(scalex, scaley, scaleTex):
 	cm = CardMaker('card')
 	cm.setUvRange((scalex/scaleTex,0), (0,scaley/scaleTex))

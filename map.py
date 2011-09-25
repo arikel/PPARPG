@@ -28,6 +28,7 @@ class Map:
 		#self.mapObjectRoot.setTransparency(True)
 		#self.mapObjectRoot.setTransparency(TransparencyAttrib.MAlpha)
 		self.mapObjects = {} # map objects
+		self.walls = [] # dynamic walls, see WallBuilder in wallBuilder.py
 		
 		self.mapWall = None
 		self.collisionGrid = None
@@ -80,6 +81,10 @@ class Map:
 			mapObjectData.append(model.getScale())
 			mapData["mapObjects"].append(mapObjectData)
 		
+		mapData["walls"] = []
+		for wall in self.walls:
+			mapData["walls"].append(wall.getSaveData())
+		
 		if self.sky:
 			mapData["skybox"] = self.sky.name
 		
@@ -109,7 +114,9 @@ class Map:
 			
 		if self.sky:
 			self.sky.destroy()
-			
+		for wall in self.walls:
+			wall.destroy()
+		
 	def load(self, filename=None):
 		"Map : Loading map %s" % (filename)
 		
@@ -154,6 +161,12 @@ class Map:
 			
 		#if not self.collisionGrid:
 		#	print "Map : WARNING : collision grid should be there"
+		
+		if "walls" in mapData:
+			for wallData in mapData["walls"]:
+				wall = WallBuilder(wallData[0], wallData[1], wallData[2], wallData[3])
+				self.walls.append(wall)
+				
 		if "skybox" in mapData:
 			self.setSky(mapData["skybox"])
 			#name = mapData["skybox"]
@@ -269,9 +282,17 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 	map.collisionGrid.data = map.collision
 	map.collisionGrid.rebuild()
 	
+	
+	l1 = [Point3(0,0.5,0), Point3(0,map.y,0), Point3(map.x, map.y, 0), Point3(map.x,0,0), Point3(-0.5,0,0)]
+	map.walls.append(WallBuilder(0.5, 2.6, "img/textures/concrete_wall01.jpg", l1))
+	
+	map.setSky("daysky0")
+	
+	map.setBgSound("sounds/wind.ogg")
+	
 	return map
 	
 if __name__=="__main__":
 	map = makeNewMap("The Start Village", 80, 60, "img/textures/wood18.jpg", 5.0)
-	map.setSize(5,50)
+	#map.setSize(50,30)
 	map.save("maps/startVillage2.txt")

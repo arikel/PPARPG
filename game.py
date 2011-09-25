@@ -126,7 +126,6 @@ class MapManagerBase(DirectObject):
 		
 		if self.keyDic[STRAFE_LEFT]:
 			self.camHandler.strafeLeft(dt)
-			
 		if self.keyDic[STRAFE_RIGHT]:
 			self.camHandler.strafeRight(dt)
 			
@@ -677,6 +676,28 @@ class MapEditor(MapManagerBase):
 		elif self.keyDic[EDITOR_DOWN]:
 			self.selectedObj.scale(-dt)
 	
+	def updateCam(self, dt=0.01):
+		if self.keyDic[FORWARD]:
+			self.camHandler.forward(dt)
+		if self.keyDic[BACKWARD]:
+			self.camHandler.backward(dt)
+		
+		if self.keyDic[STRAFE_LEFT]:
+			self.camHandler.strafeLeft(dt)
+			
+		if self.keyDic[STRAFE_RIGHT]:
+			self.camHandler.strafeRight(dt)
+			
+		if self.keyDic[TURN_LEFT]:
+			self.camHandler.turnLeft(dt)
+		if self.keyDic[TURN_RIGHT]:
+			self.camHandler.turnRight(dt)
+			
+		if self.keyDic[UP]:
+			self.camHandler.lookUp(dt)
+		if self.keyDic[DOWN]:
+			self.camHandler.lookDown(dt)
+	
 	#-----------------------------
 	# editor update task
 	def update(self, task):
@@ -884,12 +905,13 @@ if __name__ == "__main__":
 	size = 200
 	w0 = WaterPlane(-size, -size, size, size)
 	
+	'''
 	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
 	w1 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l1)
 	
 	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(60,120,0)]
 	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
-	
+	'''
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
