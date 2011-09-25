@@ -61,7 +61,10 @@ class WallBuilder:
 		self.np.setTransparency(True)
 		
 		
-	def makeWall(self, startN, p1, p2, h=1.0):
+	def makeWall(self, startN, p1, p2, h=None):
+		if h is None:
+			h = self.height
+		
 		self.addWallRight(p1, p2, h)
 		self.addWallLeft(p1, p2, h)
 		self.addWallTop(p1, p2, h)
@@ -178,7 +181,8 @@ class WallBuilder:
 		pos4 = p1 - vecLeft + Vec3(0,0,h) + vecForward
 		
 		self.addQuad(pos1, pos2, pos3, pos4, vecLeft, self.width)
-		
+	
+	'''	
 	def hideTile(self, x, y):
 		if (0<=x<self.x) and (0<=y<self.y):
 			if self.data[y][x]!=0:
@@ -217,6 +221,7 @@ class WallBuilder:
 				self.addWallTile(x, y)
 				
 				#self.update()
+	'''
 	
 	def destroy(self):
 		if self.np:

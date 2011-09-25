@@ -286,7 +286,7 @@ class ActionSubMenu:
 			menu.retract()
 		self.baseButton.onHover()
 		self.frame.show()
-			
+		
 	def retract(self, extraArgs=[]):
 		self.frame.hide()
 		for menu in self.subMenus:

@@ -38,7 +38,7 @@ import sys
 import cPickle as pickle
 
 
-from camHandler import CamHandler
+from camHandler import CamHandler, GameCamHandler
 from pathFind import *
 
 
@@ -221,6 +221,10 @@ class MapManager(MapManagerBase):
 		self.accept(SAVE, self.save, ["save/sonia.txt"])
 		self.accept(OPEN, self.load, ["save/sonia.txt"])
 		self.accept(INVENTORY, self.gui.inventory.toggle)
+		self.accept("mouse2", self.gm.gameCam.startDrag)
+		self.accept("mouse2-up", self.gm.gameCam.stopDrag)
+		self.accept("wheel_up", self.gm.gameCam.zoom, [1.0])
+		self.accept("wheel_down", self.gm.gameCam.zoom, [-1.0])
 		
 	def save(self, filename):
 		f = open(filename, 'w')
@@ -245,8 +249,8 @@ class MapManager(MapManagerBase):
 			self.accept("mouse1", self.onClickObject) # left click
 			#self.accept("mouse2", self.onClickObject2) # scroll click
 			#self.accept("mouse3", self.onClickObject3) # right click
-			self.accept("wheel_up", self.camHandler.moveHeight, [-0.02])
-			self.accept("wheel_down", self.camHandler.moveHeight, [0.02])
+			#self.accept("wheel_up", self.camHandler.moveHeight, [-0.02])
+			#self.accept("wheel_down", self.camHandler.moveHeight, [0.02])
 				
 		elif mode == "talk":
 			print "Map manager switched to talk mode"
@@ -355,7 +359,9 @@ class MapManager(MapManagerBase):
 		else:
 			print "Error, dialog called for unknown NPC : %s" % (name)
 			
-		
+	def updateCam(self):
+		self.gm.gameCam.update()
+	
 	def update(self, task):
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
@@ -385,7 +391,7 @@ class MapManager(MapManagerBase):
 					self.gui.clearObjInfo()
 					#self.msg.setText("")
 		
-		self.updateCam(dt)
+		self.updateCam()
 		
 		#-------------------------------------------------
 		# NPC random movement
@@ -730,6 +736,8 @@ class Game(FSM, DirectObject):
 				
 		# camera handler
 		self.camHandler = CamHandler()
+		
+		
 		self.setMode("playing")
 		
 		self.cursor = MouseCursor()
@@ -743,6 +751,7 @@ class Game(FSM, DirectObject):
 		
 		self.mapManager.playerData = self.playerData
 		
+		self.gameCam = GameCamHandler(self.mapManager.player.model)
 		'''
 		# light
 		if CONFIG_LIGHT:
@@ -782,8 +791,11 @@ class Game(FSM, DirectObject):
 		
 	def setMode(self, mode):
 		self.mode = mode
-		self.camHandler.setMode(mode)
-	
+		if mode == "game":
+			self.gameCam.start()
+		else:
+			self.camHandler.setMode(mode)
+		
 	def toggle(self):
 		if self.state == "Game":
 			self.request("Editor")
@@ -799,7 +811,7 @@ class Game(FSM, DirectObject):
 		
 	
 	def enterGame(self):
-		self.setMode("playing")
+		self.setMode("game")
 		self.mapManager.start()
 		
 	def exitGame(self):
@@ -867,7 +879,7 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/mapCode2.txt")
+	game = Game("maps/startVillage2.txt")
 	
 	
 	w0 = WaterPlane(-1000,-1000,1000,1000)
@@ -879,7 +891,7 @@ if __name__ == "__main__":
 	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
 	
 	grassNp = NodePath("grass")
-	grassNp.setPos(0,50,0)
+	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
 	p = GrassEngine(grassNp, 100, 100)
 	

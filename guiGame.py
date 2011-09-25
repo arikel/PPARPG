@@ -219,8 +219,16 @@ class GameGui:
 		self.infoLabel.setText("")
 		
 	def setObjInfo(self, mpos, info):
-		self.objectLabel.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+		self.objectLabel.setPos(mpos.getX()*RATIO+0.1, mpos.getY()+0.02)
 		self.objectLabel.setText(str(info))
 		
 	def clearObjInfo(self):
 		self.objectLabel.setText("")
+
+
+if __name__=="__main__":
+	g = GameGui(None)
+	g.inventory.show()
+	import sys
+	base.accept("escape", sys.exit)
+	run()

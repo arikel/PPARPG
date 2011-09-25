@@ -152,7 +152,7 @@ class MapObject:
 class NPC(MapObject):
 	def __init__(self, name, modelPath="models/characters/male", texPath=None):
 		self.name = name
-		
+		self.genre = "NPC"
 		# actor
 		self.model = None
 		self.modelPath = modelPath
@@ -197,6 +197,9 @@ class NPC(MapObject):
 		#self.timerLabel.setColor(1,1,1,0.2)
 		#self.timerLabel.setTransparency(True)
 		
+		self.timerLabel.setShaderOff(True)
+		self.timerLabel.setLightOff(True)
+		
 		self.data = {}
 		self.data["name"] = self.name
 		
@@ -207,7 +210,7 @@ class NPC(MapObject):
 		
 	def addCollision(self):
 		#self.colSphere = CollisionSphere(0,0,0,0.5)
-		self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.4)
+		self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.8)
 		self.colNodepath = CollisionNode(self.name)
 		self.colNode = self.model.attachNewNode(self.colNodepath)
 		self.colNode.node().addSolid(self.colSphere)
@@ -307,9 +310,9 @@ class NPC(MapObject):
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
 		
-		timer = str(round(self.timer, 1))
-		msg = self.name + "\n" + self.mode + " / " + timer
-		self.timerMsg.setText(msg)
+		#timer = str(round(self.timer, 1))
+		#msg = self.name + "\n" + self.mode + " / " + timer
+		#self.timerMsg.setText(msg)
 		
 		'''
 		pos = self.model.getPos()

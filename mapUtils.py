@@ -75,15 +75,16 @@ class MapWall:
 # CollisionGrid : WIP
 #-----------------------------------------------------------------------
 class CollisionGrid:
-	def __init__(self, map, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", mipImg = None):
+	def __init__(self, map, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", mipImg = None, texScale=50.0):
 		self.map = map
 		self.name = name
-		print "CollisionGrid : initiating %s" % (name)
+		print "CollisionGrid : initiating %s, scale = %s" % (name, texScale)
 		
 		self.x = x
 		self.y = y
-		self.texPath = texPath
+		self.groundTex = texPath
 		self.mipImg = mipImg
+		self.groundTexScale = texScale
 		
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
@@ -114,8 +115,8 @@ class CollisionGrid:
 		self.np.reparentTo(render)
 		#self.np.setTwoSided(True)
 		#self.np.setTransparency(True)
-		if self.texPath is not None:
-			self.tex = loader.loadTexture(self.texPath)
+		if self.groundTex is not None:
+			self.tex = loader.loadTexture(self.groundTex)
 		self.colTex = loader.loadTexture("img/textures/collision.png")
 		self.np.setTexture(self.colTex)
 		#self.np.setColor(0,0,1.0,0.1)
@@ -127,14 +128,14 @@ class CollisionGrid:
 			self.ground = TerrainGround(self.map,
 			self.x,
 			self.y,
-			"img/textures/ice01.jpg", # terrain texture
-			"img/mipmaps/ground02.jpg", # mipImg
+			self.groundTex, # terrain texture
+			self.mipImg, # mipImg
 			imgSize=65.0, # mipImg size
 			scale=5.0) # terrain height scale
 			
 		else:
 			self.hasGeoMip = False
-			self.ground = FlatGround(self.map, self.x, self.y, self.texPath, 50)
+			self.ground = FlatGround(self.map, self.x, self.y, self.groundTex, self.groundTexScale)
 	
 		
 	def collisionHide(self):
@@ -213,7 +214,7 @@ class CollisionGrid:
 			
 		else:
 			self.hasGeoMip = False
-			self.ground = FlatGround(self.map, self.x, self.y, self.texPath, 50)
+			self.ground = FlatGround(self.map, self.x, self.y, self.groundTex, self.groundTexScale)
 		
 	def addWallTile(self, x, y):
 		
@@ -344,7 +345,7 @@ class CollisionGrid:
 			if self.data[y][x]==0:
 				#print "returning random free tile : %s %s" % (x, y)
 				return x, y
-		return 10, 10
+		return 2, 2
 		#return None
 	
 	def destroy(self):
@@ -377,7 +378,7 @@ class CollisionGrid:
 		self.rebuild()
 
 class FlatGround:
-	def __init__(self, map, x=20,y=20, tex="img/textures/ice01.jpg", scale=1.0):
+	def __init__(self, map, x=20,y=20, tex="img/textures/ice01.jpg", scale=50.0):
 		self.map = map
 		self.x = x
 		self.y = y
@@ -386,12 +387,14 @@ class FlatGround:
 		self.tex = loader.loadTexture(self.texPath)
 		self.tex.setWrapU(Texture.WMRepeat)
 		self.tex.setWrapV(Texture.WMRepeat)
+		self.makeGround()
 		
+	def makeGround(self):
 		self.cm = CardMaker('card')
 		self.cm.setUvRange(Point2(self.x/self.scale,self.y/self.scale), Point2(0,0))
+		print "making flat ground with scale = %s" % (self.scale)
 		self.cm.setHasNormals(True)
 		self.card = NodePath(self.cm.generate())
-		
 		
 		self.card.setTexture(self.tex)
 		self.card.setScale(self.x,1,self.y)
@@ -405,14 +408,12 @@ class FlatGround:
 		self.card.detachNode()
 		self.card.remove()
 
-	def setSize(self, x, y, scale = None):
-		if scale is None:
-			scale = self.scale
-		else:
-			self.scale = scale
+	def setSize(self, x, y):
+		self.destroy()
 		self.x = x
 		self.y = y
-		self.card.setScale(self.x,1,self.y)
+		self.makeGround()
+		#self.card.setScale(self.x,1,self.y)
 
 class TerrainGround:
 	def __init__(self,

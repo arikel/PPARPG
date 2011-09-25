@@ -32,7 +32,8 @@ class Map:
 		self.mapWall = None
 		self.collisionGrid = None
 		self.sky = None
-		self.music = None
+		self.bgMusic = None
+		self.bgSound = None
 		
 		if self.filename is not None:
 			self.load()
@@ -62,8 +63,11 @@ class Map:
 		mapData["X"] = self.x
 		mapData["Y"] = self.y
 		mapData["collision"] = self.collisionGrid.data
+		mapData["groundTex"] = self.groundTex
+		mapData["groundTexScale"] = self.groundTexScale
+		
 		if self.collisionGrid.hasGeoMip:
-			mapData["geomip"] = [self.collisionGrid.texPath, self.collisionGrid.geoMipPath]
+			mapData["mipImg"] = [self.collisionGrid.texPath, self.collisionGrid.geoMipPath]
 			
 		mapData["mapObjects"] = []
 		for elem in self.mapObjects.values():
@@ -79,9 +83,9 @@ class Map:
 		if self.sky:
 			mapData["skybox"] = self.sky.name
 		
-		if self.music:
+		if self.bgMusic:
 			mapData["music"] = self.music
-		if self.ambientSound:
+		if self.bgSound:
 			mapData["ambientSound"] = self.ambientSound
 		
 		f = open(filename, 'w')
@@ -128,33 +132,48 @@ class Map:
 		if "Y" in mapData:
 			self.y = mapData["Y"]
 		
-		if "geomip" in mapData:
-			tex = mapData["geomip"][0]
-			geomipTex = mapData["geomip"][1]
-			print "Map : Creating mipmap collision grid on Map load"
-			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, tex, geomipTex)
+		if "groundTex" in mapData:
+			self.groundTex = mapData["groundTex"]
 		else:
-			print "Map : Creating flat collision grid on Map load"
-			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name)
-		if not self.collisionGrid:
-			print "Map : WARNING : collision grid should be there"
+			self.groundTex = "img/textures/ice01.jpg"
+			
+		if "groundTexScale" in mapData:
+			self.groundTexScale = mapData["groundTexScale"]
+		else:
+			self.groundTexScale = 50.0
+			
+		if "mipImg" in mapData:
+			#tex = mapData["geomip"][0]
+			#geomipTex = mapData["geomip"][1]
+			#print "Map : Creating mipmap collision grid on Map load"
+			self.mipImg = mapData["mipImg"]
+			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, self.groundTex, self.mipImg, self.groundTexScale)
+		else:
+			#print "Map : Creating flat collision grid on Map load"
+			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, self.groundTex, None, self.groundTexScale)
+			
+		#if not self.collisionGrid:
+		#	print "Map : WARNING : collision grid should be there"
 		if "skybox" in mapData:
-			name = mapData["skybox"]
-			self.sky = SkyBox()
-			self.sky.load(name)
-			self.sky.set(name)
+			self.setSky(mapData["skybox"])
+			#name = mapData["skybox"]
+			#self.sky = SkyBox()
+			#self.sky.load(name)
+			#self.sky.set(name)
 		else:
 			self.sky = None
 		
 		if "music" in mapData:
-			self.music = mapData["music"]
-			self.bgMusic = loader.loadSfx(self.music)
-			self.bgMusic.setLoop(True)
+			self.setBgMusic(mapData["music"])
+			#self.music = mapData["music"]
+			#self.bgMusic = loader.loadSfx(self.music)
+			#self.bgMusic.setLoop(True)
 		
 		if "ambientSound" in mapData:
-			self.ambientSound = mapData["ambientSound"]
-			self.bgSound = loader.loadSfx(self.ambientSound)
-			self.bgSound.setLoop(True)
+			self.setBgSound(mapData["ambientSound"])
+			#self.ambientSound = mapData["ambientSound"]
+			#self.bgSound = loader.loadSfx(self.ambientSound)
+			#self.bgSound.setLoop(True)
 			
 		else:
 			self.ambientSound = None
@@ -199,6 +218,13 @@ class Map:
 		self.bgSound = loader.loadSfx(self.ambientSound)
 		self.bgSound.setLoop(True)
 	
+	def setSky(self, skyName):
+		if self.sky:
+			self.sky.destroy()
+		self.sky = SkyBox()
+		self.sky.load(skyName)
+		self.sky.set(skyName)
+		
 	def addMapObject(self, genre, name, pos=(0,0,0), hpr=(0,0,0), scale=(1,1,1)):
 		if name not in self.mapObjects:
 			mapObject = MapObject(self, genre, name)
@@ -225,3 +251,27 @@ class Map:
 	def fillCollision(self, args=[]):
 		print "Map %s : fill collision called" % (str(self))
 		self.collisionGrid.fill()
+
+def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", groundTexScale = 50.0):
+	map = Map()
+	map.name = name
+	map.x = x
+	map.y = y
+	map.collision = []
+	for y in range(map.y):
+		tmp = []
+		for x in range(map.x):
+			tmp.append(0)
+		map.collision.append(tmp)
+	map.groundTex = groundTex
+	map.groundTexScale = groundTexScale
+	map.collisionGrid = CollisionGrid(map, map.x, map.y, map.name, map.groundTex, None, map.groundTexScale)
+	map.collisionGrid.data = map.collision
+	map.collisionGrid.rebuild()
+	
+	return map
+	
+if __name__=="__main__":
+	map = makeNewMap("The Start Village", 80, 60, "img/textures/wood18.jpg", 5.0)
+	#map.setSize(50,5)
+	map.save("maps/startVillage2.txt")
