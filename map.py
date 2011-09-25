@@ -273,5 +273,5 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 	
 if __name__=="__main__":
 	map = makeNewMap("The Start Village", 80, 60, "img/textures/wood18.jpg", 5.0)
-	#map.setSize(50,5)
+	map.setSize(5,50)
 	map.save("maps/startVillage2.txt")

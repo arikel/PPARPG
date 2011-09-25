@@ -38,7 +38,7 @@ import sys
 import cPickle as pickle
 
 
-from camHandler import CamHandler, GameCamHandler
+from camHandler import EditorCamHandler, GameCamHandler
 from pathFind import *
 
 
@@ -68,7 +68,7 @@ class MapManagerBase(DirectObject):
 		self.gm = gm # Game
 		self.clicker = Clicker()
 		self.map = self.gm.map
-		self.camHandler = self.gm.camHandler
+		#self.camHandler = self.gm.camHandler
 		
 		self.keyDic = {}
 		
@@ -181,7 +181,7 @@ class MapManager(MapManagerBase):
 		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
 		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
-		self.player.setTilePos(5, 3)
+		self.player.setTilePos(2, 2)
 		self.player.reparentTo(render)
 		
 		self.dialog = None # current dialog
@@ -422,7 +422,7 @@ class MapEditor(MapManagerBase):
 		self.mode = "collision"
 		
 		MapManagerBase.__init__(self, gm)
-		
+		self.camHandler = self.gm.editorCam
 		# while self.mode == "edit", self.objectMode can become :
 		# drag, rotating, scaling
 		self.objectMode = None
@@ -735,8 +735,8 @@ class Game(FSM, DirectObject):
 		self.loadGameMap(filename)
 				
 		# camera handler
-		self.camHandler = CamHandler()
-		
+		#self.camHandler = CamHandler()
+		self.editorCam = EditorCamHandler()
 		
 		self.setMode("playing")
 		
@@ -794,7 +794,7 @@ class Game(FSM, DirectObject):
 		if mode == "game":
 			self.gameCam.start()
 		else:
-			self.camHandler.setMode(mode)
+			self.editorCam.start()
 		
 	def toggle(self):
 		if self.state == "Game":
@@ -881,8 +881,8 @@ if __name__ == "__main__":
 	
 	game = Game("maps/startVillage2.txt")
 	
-	
-	w0 = WaterPlane(-1000,-1000,1000,1000)
+	size = 200
+	w0 = WaterPlane(-size, -size, size, size)
 	
 	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
 	w1 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l1)
