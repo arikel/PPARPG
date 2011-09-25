@@ -15,6 +15,15 @@ def jette(n=1,d=6,b=0):
 	print "throw : %s dice of %s faces : %s , + %s , total = %s" % (n, d, resList, b, res)
 	return res
 
+class Item:
+	def __init__(self, name, genre="generic"):
+		self.name = name
+		self.genre = genre
+		self.stackable = True
+	
+
+		
+
 class Weapon:
 	def __init__(self, name, genre, range, rate, ammo, damage, reloadTime):
 		self.name = name
@@ -32,6 +41,22 @@ class Armor:
 		self.genre = genre
 		self.protection = protection
 		self.fireBonus = fireBonus
+
+
+class ItemContainer:
+	def __init__(self, item, nb):
+		self.item = item
+		self.nb = int(nb)
+		
+class Inventory:
+	def __init__(self):
+		self.slots = {}
+		self.limit = 25
+		
+	def hasRoom(self):
+		if len(self.slots)<self.limit:
+			return True
+		return False
 
 class NPCTracker:
 	def __init__(self, mapList = []):

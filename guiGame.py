@@ -64,7 +64,7 @@ class InventorySlot(DirectButton):
 
 	
 	
-class Inventory:
+class InventoryGui:
 	def __init__(self):
 		self.frame = DirectFrame(
 			frameSize = (-1,1,-0.78,0.78),
@@ -153,7 +153,7 @@ class GameGui:
 		self.mapManager = mapManager
 		self.infoLabel = makeMsgRight(0.95*RATIO,-0.95,"")
 		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
-		self.inventory = Inventory()
+		self.inventory = InventoryGui()
 		i = 0
 		for slot in self.inventory.slots:
 			slot.bind(DGG.B1PRESS, self.onSelect, [i])

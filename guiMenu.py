@@ -330,3 +330,25 @@ class ActionSubMenu:
 	def destroy(self):
 		for b in self.buttons:
 			b.destroy()
+
+
+if __name__=="__main__":
+	from pandac.PandaModules import TextNode
+
+	font = loader.loadFont('fonts/cour.ttf')
+	font.setPointSize(72) # a value of 73 or more crashes Panda/Python
+	font.setSpaceAdvance(2) # decrease as point size is decrease
+	font.setLineHeight(5) # decrease as point size is decrease
+
+	text = TextNode('aTextNode')
+	text.setText("This is a test")
+	text.setFont(font)
+	text.setWordwrap(200.0) # decrease as point size is decrease
+
+	textNodePath = aspect2d.attachNewNode(text)
+	textNodePath.setScale(0.008) # -increase- as point size -decrease-
+	textNodePath.setPos(-1.0,0,0)
+	textNodePath.setAntialias(AntialiasAttrib.MMultisample)
+	text2 = makeMsg(-1,-0.15, "this is a test too")
+	b = MenuButton(-0.5,0.5)
+	run()

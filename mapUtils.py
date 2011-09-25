@@ -26,12 +26,12 @@ def makeFloor(nbCases, scalex, scaley, texpath):
 	#card.setTransparency(TransparencyAttrib.MAlpha)
 	return card
 '''
-def makeWall(scalex, scaley, scaleTex):
+def makeWall(scalex, scaley, texPath, scaleTex):
 	cm = CardMaker('card')
 	cm.setUvRange((scalex/scaleTex,0), (0,scaley/scaleTex))
 	cm.setHasNormals(True)
 	card = NodePath(cm.generate())
-	img = loader.loadTexture("img/textures/oldstone4.jpg")
+	img = loader.loadTexture(texPath)
 	card.setTexture(img)
 	card.setScale(scalex,1,scaley)
 	#card.setHpr(0,0,0)
@@ -39,32 +39,42 @@ def makeWall(scalex, scaley, scaleTex):
 	card.setTransparency(TransparencyAttrib.MAlpha)
 	return card
 
-class MapWall:
-	def __init__(self, x, y,z=0, height=6.0, texScale=5.0):
+class InnerWall:
+	def __init__(self, map, height=6.0, texPath = "img/textures/ice01.jpg", texScale=5.0, z=0.0):
+		self.map = map
 		self.walls = []
+		x = self.map.x
+		y = self.map.y
+		self.height = height
+		self.texScale = texScale
+		self.texPath = texPath
 		
-		wall1 = makeWall(x, height, texScale)
-		wall1.reparentTo(render)
+		wall1 = makeWall(x, height,texPath, texScale)
+		wall1.reparentTo(self.map.mapObjectRoot)
 		wall1.setPos(0,y,z)
 		self.walls.append(wall1)
 		
-		wall1 = makeWall(x, height, texScale)
-		wall1.reparentTo(render)
+		wall1 = makeWall(x, height,texPath, texScale)
+		wall1.reparentTo(self.map.mapObjectRoot)
 		wall1.setPos(x,0,z)
 		wall1.setHpr(180,0,0)
 		self.walls.append(wall1)
 		
-		wall1 = makeWall(y, height, texScale)
-		wall1.reparentTo(render)
+		wall1 = makeWall(y, height, texPath ,texScale)
+		wall1.reparentTo(self.map.mapObjectRoot)
 		wall1.setPos(0,0,z)
 		wall1.setHpr(90,0,0)
 		self.walls.append(wall1)
 		
-		wall1 = makeWall(y, height, texScale)
-		wall1.reparentTo(render)
+		wall1 = makeWall(y, height, texPath ,texScale)
+		wall1.reparentTo(self.map.mapObjectRoot)
 		wall1.setPos(x,y,z)
 		wall1.setHpr(-90,0,0)
 		self.walls.append(wall1)
+		
+	def getSaveData(self):
+		data = [self.height, self.texPath, self.texScale]
+		return data
 		
 	def destroy(self):
 		for wall in self.walls:

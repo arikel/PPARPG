@@ -55,12 +55,17 @@ class EditorCamHandler:
 		
 		origHpr = base.camera.getHpr()
 		targetHpr = self.prevCamHpr
-			
+		'''	
 		targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
 			fitDestAngle2Src(origHpr[1], targetHpr[1]),
 			fitDestAngle2Src(origHpr[2], targetHpr[2]))
+		'''
+		targetHpr = VBase3(0, self.prevCamHpr.getY(), 0)
 		LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=targetHpr, blendType="easeInOut").start()
 	
+	def stop(self):
+		self.prevCamHpr = self.editNp.getHpr()
+		
 	def update(self):
 		pass
 	
@@ -112,6 +117,8 @@ class GameCamHandler:
 	def start(self):
 		base.camera.wrtReparentTo(self.gameNp2)
 		LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=(0,0,0), blendType="easeInOut").start()
+		
+	
 		
 	def startDrag(self):
 		if base.mouseWatcherNode.hasMouse():

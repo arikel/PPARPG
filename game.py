@@ -58,7 +58,7 @@ from map import Map
 from effects import WaterPlane, GrassEngine
 from wallBuilder import WallBuilder
 
-
+from gameUtils import NPCTracker
 
 #-----------------------------------------------------------------------
 # MapManagerBase, for MapManager and MapEditor
@@ -448,6 +448,7 @@ class MapEditor(MapManagerBase):
 		taskMgr.remove(self.task)
 		self.ignoreAll()
 		self.map.collisionHide()
+		self.camHandler.stop()
 		
 	def startAccept(self):
 		for key in [
@@ -900,7 +901,7 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/startVillage2.txt")
+	game = Game("maps/startVillage.txt")
 	
 	size = 200
 	w0 = WaterPlane(-size, -size, size, size)

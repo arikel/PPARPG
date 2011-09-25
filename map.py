@@ -29,8 +29,8 @@ class Map:
 		#self.mapObjectRoot.setTransparency(TransparencyAttrib.MAlpha)
 		self.mapObjects = {} # map objects
 		self.walls = [] # dynamic walls, see WallBuilder in wallBuilder.py
+		self.innerWall = None
 		
-		self.mapWall = None
 		self.collisionGrid = None
 		self.sky = None
 		self.bgMusic = None
@@ -85,6 +85,9 @@ class Map:
 		for wall in self.walls:
 			mapData["walls"].append(wall.getSaveData())
 		
+		if self.innerWall:
+			mapData["innerWall"] = self.innerWall.getSaveData()
+		
 		if self.sky:
 			mapData["skybox"] = self.sky.name
 		
@@ -100,8 +103,8 @@ class Map:
 		
 	def destroy(self):
 		print "Map : Map %s destroyed" % (self.name)
-		if self.mapWall:
-			self.mapWall.destroy()
+		if self.innerWall:
+			self.innerWall.destroy()
 			
 		if self.collisionGrid:
 			self.collisionGrid.destroy()
@@ -166,7 +169,12 @@ class Map:
 			for wallData in mapData["walls"]:
 				wall = WallBuilder(wallData[0], wallData[1], wallData[2], wallData[3])
 				self.walls.append(wall)
-				
+		
+		if "innerWall" in mapData:
+			self.innerWall = InnerWall(self, mapData["innerWall"][0], mapData["innerWall"][1],mapData["innerWall"][2])
+		else:
+			self.innerWall = None
+			
 		if "skybox" in mapData:
 			self.setSky(mapData["skybox"])
 			#name = mapData["skybox"]
@@ -192,8 +200,6 @@ class Map:
 			self.ambientSound = None
 			self.bgSound = None
 			
-		#self.mapWall = MapWall(self.x, self.y, 0)
-		
 		self.collisionGrid.data = mapData["collision"]
 		
 		print "Map : rebuild asked in load function"
@@ -282,9 +288,10 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 	map.collisionGrid.data = map.collision
 	map.collisionGrid.rebuild()
 	
+	map.innerWall = InnerWall(map, 4.0, "img/textures/wood03.jpg", 5.0)
 	
-	l1 = [Point3(0,0.5,0), Point3(0,map.y,0), Point3(map.x, map.y, 0), Point3(map.x,0,0), Point3(-0.5,0,0)]
-	map.walls.append(WallBuilder(0.5, 2.6, "img/textures/concrete_wall01.jpg", l1))
+	#l1 = [Point3(0,0.5,0), Point3(0,map.y,0), Point3(map.x, map.y, 0), Point3(map.x,0,0), Point3(-0.5,0,0)]
+	#map.walls.append(WallBuilder(0.5, 2.6, "img/textures/concrete_wall01.jpg", l1))
 	
 	map.setSky("daysky0")
 	
@@ -295,4 +302,4 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 if __name__=="__main__":
 	map = makeNewMap("The Start Village", 80, 60, "img/textures/wood18.jpg", 5.0)
 	#map.setSize(50,30)
-	map.save("maps/startVillage2.txt")
+	map.save("maps/startVillage.txt")
