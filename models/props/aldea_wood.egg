@@ -13,7 +13,7 @@
 }
 <Texture> Material_00_Tex.001 {
   "./aldea.jpg"
-  <Scalar> saved-result { 1 }
+  //<Scalar> saved-result { 1 }
   <Scalar> envtype { MODULATE }
   <Scalar> minfilter { LINEAR_MIPMAP_LINEAR }
   <Scalar> magfilter { LINEAR_MIPMAP_LINEAR }
