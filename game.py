@@ -154,34 +154,35 @@ class MapManager(MapManagerBase):
 			x, y = self.map.collisionGrid.getRandomTile()
 			# yes, we will have to think about something smarter in the long run, i know...
 			if sex == "female":
-				self.addNPC(name, "models/characters/female", "models/characters/female1.jpg", x,y)
+				self.addNPC(name, "models/characters/neoFemale", "models/characters/female1.jpg", x,y)
 			else:
-				self.addNPC(name, "models/characters/male", "models/characters/humanTex2.png", x,y)
+				self.addNPC(name, "models/characters/neoMale", "models/characters/neoMale.jpg", x,y)
 
 		name = self.gm.playerData["name"]
 		sex = self.gm.playerData["sex"]
 		
 		if sex == "male":
-			modelPath = "models/characters/male"
+			modelPath = "models/characters/neoMale"
 		else:
-			modelPath = "models/characters/female"
+			modelPath = "models/characters/neoFemale"
 		
 		
-		self.player = NPC(name, modelPath)
+		self.player = NPC(name, modelPath, "models/characters/female1.jpg")
 		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
-		self.player.addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
+		self.player.addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
+		self.player.setTilePos(20, 12)
+		self.player.reparentTo(render)
 		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
 		self.NPC["Camilla"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
 		self.NPC["ula2"].addEquipment("models/characters/female_hair", "models/characters/female_hair3.jpg")
 		
-		self.NPC["ula2"].addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
-		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag.jpg")
+		self.NPC["ula2"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
+		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
-		self.player.setTilePos(2, 2)
-		self.player.reparentTo(render)
+		
 		
 		self.dialog = None # current dialog
 		
@@ -194,7 +195,7 @@ class MapManager(MapManagerBase):
 		self.startAccept()
 		if self.map.bgMusic:
 			self.map.bgMusic.play()
-			self.map.bgMusic.setVolume(0.4)
+			#self.map.bgMusic.setVolume(0.4)
 		if self.map.bgSound:
 			self.map.bgSound.play()
 			
@@ -774,13 +775,13 @@ class Game(FSM, DirectObject):
 		self.mapManager.playerData = self.playerData
 		
 		self.gameCam = GameCamHandler(self.mapManager.player.model)
-		'''
+		
 		# light
 		if CONFIG_LIGHT:
-			self.light = LightManager()
-			self.light.lightCenter.setPos(0,0,0)
-			self.light.lightCenter.reparentTo(base.camera)
-		'''
+			self.light = LightManager(self.mapManager.player.model)
+			self.light.lightCenter.setPos(0,0,3)
+			self.light.lightCenter.reparentTo(self.mapManager.player.model)
+		
 		self.accept(OPEN_EDITOR, self.toggle)
 			
 		self.request("Game")
@@ -847,9 +848,9 @@ class Game(FSM, DirectObject):
 		self.editor.stop()
 		
 if __name__ == "__main__":
-	#render.setShaderAuto()
+	render.setShaderAuto()
 	
-	
+	'''
 	render.setShaderOff()
 	genShader = loader.loadShader("shaders/arishade2.sha")
 	render.setShaderInput('cam', base.camera)
@@ -862,7 +863,7 @@ if __name__ == "__main__":
 	render.setShaderInput('light', light1)
 	render.setShaderInput('light2', light2)
 	render.setShader(genShader)
-	
+	'''
 	
 	
 	
@@ -901,18 +902,12 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/startVillage.txt")
+	game = Game("maps/interior2.txt")
+	game.map.mapObjectRoot.flattenStrong()
 	
 	size = 200
 	w0 = WaterPlane(-size, -size, size, size)
 	
-	'''
-	l1 = [Point3(0,0,0), Point3(250,0,0), Point3(250,120,0), Point3(0,120,0), Point3(0,0,0)]
-	w1 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l1)
-	
-	l2 = [Point3(50,0,0), Point3(50,40,0), Point3(80,40,0), Point3(60,120,0)]
-	w2 = WallBuilder(0.2, 4.0, "img/textures/wood_wall.jpg", l2)
-	'''
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
@@ -928,8 +923,8 @@ if __name__ == "__main__":
 	base.setFrameRateMeter(True)
 	
 	
-	#color = (0.8,0.8,0.8,0.5)
-	color = (1,1,1,1)
+	color = (0,0,0,1)
+	#color = (1,1,1,1)
 	expfog = Fog("Scene-wide exponential Fog object")
 	expfog.setColor(color)
 	expfog.setExpDensity(0.01)

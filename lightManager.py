@@ -7,21 +7,21 @@ from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import *
 
 class LightManager:
-	def __init__(self):
-		self.lightCenter = render.attachNewNode(PandaNode("center"))
+	def __init__(self, np=render):
+		self.lightCenter = np.attachNewNode(PandaNode("center"))
 		
 		# Create Ambient Light
 		self.ambientLight1 = AmbientLight('ambientLight')
 		self.ambientLight1.setColor(Vec4(0.25,0.25,0.25, 1))
-		self.alight = render.attachNewNode(self.ambientLight1)
+		self.alight = self.lightCenter.attachNewNode(self.ambientLight1)
 		render.setLight(self.alight)
 		#render.setShaderInput("alight0", self.alight)
 		
 		# point light
 		self.pointlight = PointLight("Light")
 		self.light = self.lightCenter.attachNewNode(self.pointlight)
-		self.pointlight.setColor(Vec4(0.85,0.85,0.85,1))
-		#self.light.setPos(-1,-3,0)
+		self.pointlight.setColor(Vec4(1,1,1,1))
+		self.light.setPos(0,6,4)
 		render.setLight(self.light)
 		
 		#render.setShaderInput("plight0", self.light)
@@ -29,11 +29,11 @@ class LightManager:
 		# Spotlight
 		self.spot = Spotlight("spot")
 		#self.spot.getLens().setNearFar(1,50)
-		self.spot.getLens().setFov(80)
+		self.spot.getLens().setFov(60)
 		self.spot.setColor(Vec4(1,1,1,1))
 		self.spotlight = self.lightCenter.attachNewNode(self.spot)
-		self.spotlight.setPos(-2,10,0)
-		#self.spotlight.lookAt(-8,0,2)
+		self.spotlight.setPos(-5,15,8)
+		self.spotlight.lookAt(0,-15,-8)
 		#self.spotlight.setHpr(0,-45,0)
 		
 		self.spotlight.node().setShadowCaster(True)

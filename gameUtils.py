@@ -62,3 +62,15 @@ class NPCTracker:
 	def __init__(self, mapList = []):
 		self.mapList = mapList
 		
+class PlayerData:
+	def __init__(self, name= None):
+		if name is None: self.name = "Galya"
+		else: self.name = str(name)
+		
+		self.HP = 10 # health points, when 0 -> death, game over
+		self.SP = 10 # stun points, when 0 -> messenger.send("player-faint") etc.
+		
+		self.weapons  = {}
+		self.armor = {}
+		self.equip = {}
+		

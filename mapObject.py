@@ -25,6 +25,11 @@ mapObjectDB["barrel"] = ["models/props/barrel", "models/props/barrel.jpg", (0,0,
 mapObjectDB["crate"] = ["models/props/crate1", "models/props/crate1.jpg", (0,0,0.5,0.5)]
 mapObjectDB["rock1"] = ["models/props/rock", "models/props/rock.jpg", (0,0,0.5,0.5)]
 
+mapObjectDB["table"] = ["models/props/table", "models/props/bench.jpg", (0,0,1.0,1.0)]
+mapObjectDB["etagere"] = ["models/props/etagere", "models/props/wood1.jpg", (0,0,1.0,1.0)]
+mapObjectDB["bench"] = ["models/props/bench", "models/props/bench.jpg", (0,0,0.5,0.8)]
+mapObjectDB["bed"] = ["models/props/bed", "models/props/bed.jpg", (0,0,0.5,0.8)]
+
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
 class MapObject:
@@ -75,6 +80,7 @@ class MapObject:
 		if texturePath is not None:
 			tex = loader.loadTexture(texturePath)
 			#self.model.clearTexture(TextureStage.getDefault())
+			self.model.clearTexture()
 			self.model.setTexture(tex)
 		
 	def reparentTo(self, np):
@@ -157,8 +163,10 @@ class NPC(MapObject):
 		self.model = None
 		self.modelPath = modelPath
 		modelName = modelPath.split("/")[-1]
-		walkanim = "models/characters/" + modelName + "-walk"
-		idleanim = "models/characters/" + modelName + "-idle"
+		#walkanim = "models/characters/" + modelName + "-walk"
+		walkanim = "models/characters/neoMale-walk"
+		#idleanim = "models/characters/" + modelName + "-idle"
+		idleanim = "models/characters/neoMale-idle"
 		self.animDic = {
 			"walk":walkanim,
 			"idle": idleanim
@@ -243,7 +251,8 @@ class NPC(MapObject):
 	def lookAt(self, x, y):
 		#self.model.lookAt(self.model, (-x,-y,0))
 		a, b = self.getTilePos()
-		self.model.lookAt(a-x+0.5,b-y+0.5,self.model.getZ())
+		#self.model.lookAt(a-x+0.5,b-y+0.5,self.model.getZ())
+		self.model.lookAt(a+x+0.5,b+y+0.5,self.model.getZ())
 		#print "Looking at %s, %s" % (y, x)
 		
 	def setPath(self, path):
@@ -350,18 +359,23 @@ class EquippedObject(MapObject):
 		self.model = Actor(self.modelPath, self.npc.animDic)
 		#self.model.setTransparency(True)
 		
+		self.model.reparentTo(self.npc.model)
 		if texturePath is not None:
 			self.tex = loader.loadTexture(texturePath)
-			#self.model.clearTexture(TextureStage.getDefault())
-			self.model.setTexture(self.tex)
+			self.model.clearTexture(TextureStage.getDefault())
+			self.model.clearTexture()
+			self.model.setTexture(TextureStage.getDefault(), self.tex)
+			#print "Adding object with texture : %s" % texturePath
 			
-		self.model.reparentTo(self.npc.model)
-		self.model.clearTexture(TextureStage.getDefault())
-		self.model.setTexture(self.tex)
-	
 	def loop(self, animName):
 		self.model.loop(animName)
 		
 	def destroy(self):
 		self.model.cleanup()
 		self.model.remove()	
+
+
+class MapWarp(MapObject):
+	def __init__(self, gm, genre, name):
+		MapObject.__init__(self, gm, genre, name)
+		

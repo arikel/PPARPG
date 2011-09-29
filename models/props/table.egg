@@ -4,7 +4,7 @@
 
 <Texture> bench.jpg {
   "./bench.jpg"
-  <Scalar> saved-result { 1 }
+  //<Scalar> saved-result { 1 }
   <Scalar> envtype { MODULATE }
   <Scalar> minfilter { LINEAR }
   <Scalar> magfilter { LINEAR }
