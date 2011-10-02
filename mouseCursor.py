@@ -83,7 +83,7 @@ class Clicker:
 		self.pickerRay = CollisionRay()
 		self.pickerNode.addSolid(self.pickerRay)
 		self.picker.addCollider(self.pickerNP, self.pq)
-		self.picker.showCollisions(render)
+		#self.picker.showCollisions(render)
 		
 	def setHeight(self, z):
 		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, z))
@@ -91,7 +91,7 @@ class Clicker:
 		
 	def getMouseObject(self, np=render):
 		if base.mouseWatcherNode.hasMouse():
-			self.picker.showCollisions(np)
+			#self.picker.showCollisions(np)
 			
 			mpos = base.mouseWatcherNode.getMouse()
 			self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())

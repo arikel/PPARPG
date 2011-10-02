@@ -75,8 +75,7 @@ class GrassParticle:
 		
 				
 class GrassEngine:
-	# particle engine used for stardust cloud around camera, to simulate
-	# movement in space
+	# grass engine used to have some grass visible only when we're looking at...
 	def __init__(self, model, nb=600, ray=50.0, move = False):
 		self.np = model
 		self.pos = self.np.getPos()
@@ -101,7 +100,7 @@ class GrassEngine:
 		self.generatorNode.setBin("fixed",0)
 		self.generatorNode.setLightOff(True)
 		self.generatorNode.setShaderOff(True)
-		
+		#self.generatorNode.setScale(1.0,1.0,0.25)
 		self.generatorNode.node().setBounds(BoundingSphere((0, 0, 0), 10000000*self.ray))
 		self.generatorNode.node().setFinal(True)
 		seed()
@@ -120,7 +119,7 @@ class GrassEngine:
 				maxDist = dist
 			totalDist += dist
 		moyDist = totalDist/nb
-		print "ParticleEngine generated, minDist = %s, maxDist = %s, averageDist = %s" % (minDist, maxDist, moyDist)
+		#print "ParticleEngine generated, minDist = %s, maxDist = %s, averageDist = %s" % (minDist, maxDist, moyDist)
 		
 		'''
 		# create 100 random lines
@@ -178,7 +177,7 @@ class GrassEngine:
 			#direction = render.getRelativeVector(self.np, (0,speed/5.0,0))
 			#direction = Vec3(0,speed,0)
 			#self.generator.segment(p.pos,p.pos+direction,1,0.5,Vec4(1,1,1,1))
-			self.generator.billboard(p.pos,1,p.size,p.color)
+			self.generator.billboard(p.pos,1,(p.size*2,p.size/2.0,p.size/2.0),p.color)
 		self.generator.end()
 		
 		
@@ -192,7 +191,7 @@ class GrassEngine:
 class WaterNode():
 
 	def __init__(self, world, x1, y1, x2, y2, z):
-		print('setting up water plane at z='+str(z))
+		#print('setting up water plane at z='+str(z))
 
 		# Water surface
 		maker = CardMaker( 'water' )

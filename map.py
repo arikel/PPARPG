@@ -72,15 +72,8 @@ class Map:
 			
 		mapData["mapObjects"] = []
 		for elem in self.mapObjects.values():
-			model = elem.model
-			mapObjectData = []
-			mapObjectData.append(elem.name)
-			mapObjectData.append(elem.genre)
-			mapObjectData.append(model.getPos())
-			mapObjectData.append(model.getHpr())
-			mapObjectData.append(model.getScale())
-			mapData["mapObjects"].append(mapObjectData)
-		
+			mapData["mapObjects"].append(elem.getSaveData())
+			
 		mapData["walls"] = []
 		for wall in self.walls:
 			mapData["walls"].append(wall.getSaveData())
@@ -102,14 +95,14 @@ class Map:
 		print "map data saved as %s" % (filename)
 		
 	def destroy(self):
-		print "Map : Map %s destroyed" % (self.name)
+		#print "Map : Map %s destroyed" % (self.name)
 		if self.innerWall:
 			self.innerWall.destroy()
 			
 		if self.collisionGrid:
 			self.collisionGrid.destroy()
 			del self.collisionGrid
-			print "Map : collisionGrid destroyed"
+			#print "Map : collisionGrid destroyed"
 		for mapObj in self.mapObjects.values():
 			self.removeMapObject(mapObj.name)
 		#if self.ground:
@@ -121,8 +114,6 @@ class Map:
 			wall.destroy()
 		
 	def load(self, filename=None):
-		"Map : Loading map %s" % (filename)
-		
 		if filename is None:
 			filename = self.filename
 		if filename is None:
@@ -201,12 +192,7 @@ class Map:
 			self.bgSound = None
 			
 		self.collisionGrid.data = mapData["collision"]
-		
-		print "Map : rebuild asked in load function"
-		
 		self.collisionGrid.rebuild()
-		
-		print "Map : looks like the rebuild went ok"
 		
 		print "models in use : %s" % (mapData["mapObjects"])
 		for data in mapData["mapObjects"]:
@@ -218,9 +204,12 @@ class Map:
 			self.addMapObject(
 				genre,
 				name,
-				(pos.getX(), pos.getY(), pos.getZ()),
-				(hpr.getX(), hpr.getY(), hpr.getZ()),
-				(scale.getX(), scale.getY(), scale.getZ())
+				pos,
+				hpr,
+				scale
+				#(pos.getX(), pos.getY(), pos.getZ()),
+				#(hpr.getX(), hpr.getY(), hpr.getZ()),
+				#(scale.getX(), scale.getY(), scale.getZ())
 				)
 			
 	def setBgMusic(self, musicPath):
@@ -248,20 +237,17 @@ class Map:
 		if name not in self.mapObjects:
 			mapObject = MapObject(self, genre, name)
 			mapObject.setPos(pos) #-self.collisionGrid.terrainScale/3.0)
+			#print "Map add object : new object %s at position %s" % (name, mapObject.getPos())
 			mapObject.setHpr(hpr)
 			mapObject.setScale(scale)
 			mapObject.reparentTo(self.mapObjectRoot)
 			self.mapObjects[name] = mapObject
+			#print "-> position is : %s" % (mapObject.getPos())
 		
 	def removeMapObject(self, name):
 		if name in self.mapObjects:
 			self.mapObjects[name].destroy()
 			del self.mapObjects[name]
-	'''
-	def setMapObjectPos(self, name, x, y, z=0):
-		if name in self.mapObjects:
-			self.mapObjects[name].setPos(x, y, z)
-	'''	
 			
 	def clearCollision(self, args=[]):
 		print "Map %s : clear collision called" % (str(self))
@@ -290,16 +276,17 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 	
 	map.innerWall = InnerWall(map, 4.0, "img/textures/wood03.jpg", 5.0)
 	
-	#l1 = [Point3(0,0.5,0), Point3(0,map.y,0), Point3(map.x, map.y, 0), Point3(map.x,0,0), Point3(-0.5,0,0)]
-	#map.walls.append(WallBuilder(0.5, 2.6, "img/textures/concrete_wall01.jpg", l1))
+	l1 = [Point3(20,0.5,0), Point3(20,15.5,0)]
+	map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(20,0,0), Point3(20,15,0)]))
+	map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(12,0,0), Point3(12,15,0)]))
 	
 	map.setSky("daysky0")
 	
-	map.setBgSound("sounds/wind.ogg")
-	
+	#map.setBgSound("sounds/wind.ogg")
+	map.setBgMusic("music/Irradiated_Dreams.ogg")
 	return map
 	
 if __name__=="__main__":
-	map = makeNewMap("The Start Village", 80, 60, "img/textures/wood18.jpg", 5.0)
+	map = makeNewMap("The Start Village", 34, 20, "img/textures/woodfloor03.jpg", 5.0)
 	#map.setSize(50,30)
-	map.save("maps/startVillage.txt")
+	map.save("maps/interior2.txt")

@@ -88,7 +88,7 @@ class CollisionGrid:
 	def __init__(self, map, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", mipImg = None, texScale=50.0):
 		self.map = map
 		self.name = name
-		print "CollisionGrid : initiating %s, scale = %s" % (name, texScale)
+		#print "CollisionGrid : initiating %s, scale = %s" % (name, texScale)
 		
 		self.x = x
 		self.y = y
@@ -402,7 +402,7 @@ class FlatGround:
 	def makeGround(self):
 		self.cm = CardMaker('card')
 		self.cm.setUvRange(Point2(self.x/self.scale,self.y/self.scale), Point2(0,0))
-		print "making flat ground with scale = %s" % (self.scale)
+		#print "making flat ground with scale = %s" % (self.scale)
 		self.cm.setHasNormals(True)
 		self.card = NodePath(self.cm.generate())
 		

@@ -232,7 +232,7 @@ class WallBuilder:
 	def destroy(self):
 		if self.np:
 			self.np.remove()
-		del self.data
+		#del self.data
 		del self.gvd
 
 

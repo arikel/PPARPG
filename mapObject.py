@@ -7,14 +7,13 @@ from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.task import Task
 
-from guiBase import *
+from guiBase import FONT, FONT_SCALE
 
 import math, random
 
 mapObjectDB = {} # genre : [modelPath, texturePath, collisionPos]
 mapObjectDB["house1"] = ["models/buildings/house", "models/buildings/house.jpg", (2.5,0,1,2)]
 mapObjectDB["house2"] = ["models/buildings/ruin_house", "models/buildings/ruin_house.jpg", (5.2,-2.8,2,2)]
-
 
 mapObjectDB["aldea1"] = ["models/buildings/aldea/aldea1", "models/buildings/aldea/aldea.jpg", (0,-2,1,1.5)]
 mapObjectDB["aldea2"] = ["models/buildings/aldea/aldea2", "models/buildings/aldea/aldea.jpg", (0,-0.5,1,1.5)]
@@ -49,7 +48,25 @@ class MapObject:
 		if self.genre in mapObjectDB:
 			self.loadModel(mapObjectDB[self.genre][0], mapObjectDB[self.genre][1])
 			self.addCollision(mapObjectDB[self.genre][2])
-			
+			#self.oldPos= Point3()
+		
+		'''	
+		if self.genre is not "NPC":
+			print("\n\n- mapObject init : %s, pos = %s" % (self.name, self.getPos()))
+			self.posTask = taskMgr.add(self.checkPosTask, "posTask")
+		else:
+			self.posTask = None
+		'''
+		
+	def checkPosTask(self, task):
+		if self.getPos() != self.oldPos:
+			print "WARNING : map object pos changed from %s to %s, correcting" % (self.oldPos, self.getPos())
+			#self.oldPos = self.getPos()
+			self.setPos(self.oldPos)
+		#else:
+		#	print "%s pos is still %s" % (self.name, self.oldPos)
+		return task.cont
+		
 	def addCollision(self, pos):
 		self.colSphere = CollisionSphere(pos[0],pos[1],pos[2],pos[3])
 		#self.colSphere = CollisionTube(0,0,0,0,0,1.8,0.4)
@@ -58,13 +75,13 @@ class MapObject:
 		self.colNode.node().addSolid(self.colSphere)
 		
 	def loadModel(self, modelPath, texturePath=None):
-		if self.model is not None:
+		if self.model:
 			self.model.remove()
 		self.modelPath = modelPath
 		self.model = loader.loadModel(modelPath)
 		self.model.setTransparency(TransparencyAttrib.MAlpha)
 		
-		if texturePath is not None:
+		if texturePath:
 			tex = loader.loadTexture(texturePath)
 			self.texturePath = texturePath
 			self.model.setTexture(tex)
@@ -81,21 +98,41 @@ class MapObject:
 			tex = loader.loadTexture(texturePath)
 			#self.model.clearTexture(TextureStage.getDefault())
 			self.model.clearTexture()
-			self.model.setTexture(tex)
+			self.model.setTexture(TextureStage.getDefault(), tex)
 		
 	def reparentTo(self, np):
 		self.model.reparentTo(np)
-	
+		#if self.genre is not "NPC":
+		#	print "Reparenting %s to %s, pos is now %s" % (self.name, str(np), self.getPos())
+		
+	def getSaveData(self):
+		data = []
+		data.append(self.name)
+		data.append(self.genre)
+		data.append(self.model.getPos())
+		data.append(self.model.getHpr())
+		data.append(self.model.getScale())
+		return data
+		
+		
 	#-------------------------------------------------------------------
 	# Pos
 	def setPos(self, pos):
 		#self.model.setPos(pos[0], pos[1], pos[2])
+		'''
+		if self.genre is not "NPC":
+			print "- mapObject (%s): set pos, oldpos = %s, newpos = %s" % (self.name, self.getPos(), pos)
+		'''
 		self.model.setPos(pos)
-	
+		'''
+		if self.genre is not "NPC":
+			print "--- after setPos, mapObject pos = %s" % (self.getPos())
+		self.oldPos = pos
+		'''
+		
 	def getPos(self):
 		if self.model: return self.model.getPos()
-		else: return None
-			
+		else: return None	
 	
 	def setZ(self, z):
 		self.model.setZ(z)
@@ -145,6 +182,9 @@ class MapObject:
 	def destroy(self):
 		if self.task:
 			taskMgr.remove(self.task)
+		if self.posTask:
+			taskMgr.remove(self.posTask)
+			
 		if self.model:
 			self.model.detachNode()
 			self.model.remove()

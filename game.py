@@ -69,7 +69,8 @@ class MapManagerBase(DirectObject):
 		self.clicker = Clicker()
 		self.map = self.gm.map
 		#self.camHandler = self.gm.camHandler
-		
+		#for obj in self.map.mapObjects.values():
+		#	print "map manager base : %s is at %s" % (obj.name, obj.getPos())
 		self.keyDic = {}
 		
 		
@@ -170,7 +171,8 @@ class MapManager(MapManagerBase):
 		self.player = NPC(name, modelPath, "models/characters/female1.jpg")
 		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
 		self.player.addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
-		self.player.setTilePos(20, 12)
+		startX, startY = self.map.collisionGrid.getRandomTile()
+		self.player.setTilePos(startX, startY)
 		self.player.reparentTo(render)
 		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
@@ -188,6 +190,9 @@ class MapManager(MapManagerBase):
 		
 		self.gui = GameGui(self)
 		
+		#for obj in self.map.mapObjects.values():
+		#	print "map manager init says : %s is at %s" % (obj.name, obj.getPos())
+			
 	def start(self):
 		self.gui.show()
 		
@@ -269,8 +274,6 @@ class MapManager(MapManagerBase):
 		modeMsg = "Game mode : " + self.mode
 		#self.msgTilePos.setText(modeMsg)
 		self.gui.setInfo(modeMsg)
-			
-		
 	
 	def onClickObject(self):
 		# click on MapObject :
@@ -282,7 +285,7 @@ class MapManager(MapManagerBase):
 		
 		name = self.getHoverObjectName()
 		if name is not None:
-			print "map manager : left click on map object : %s" % (name)
+			print "map manager : left click on map object : %s, position = %s" % (name, self.map.mapObjects[name].getPos())
 			return
 			
 		if base.mouseWatcherNode.hasMouse():
@@ -375,21 +378,16 @@ class MapManager(MapManagerBase):
 		if self.mode == "move" and mpos is not None:
 			name = self.getHoverObjectName()
 			if name is not None:
-				msg = "in game object : " + name
-				#self.msg.setText(msg)
-				#self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+				msg = "in game object : " + name + "\npos = " + str(self.map.mapObjects[name].getPos())
 				self.gui.setObjInfo(mpos, msg)
 				
 			else:
 				name = self.getHoverNPCName()
 				if name is not None:
-					msg = "talk to : " + name
-					#self.msg.setText(msg)
-					#self.msg.setPos(mpos.getX()*1.33+0.1, mpos.getY()+0.02)
+					msg = "talk to : " + name + "\npos = " + str(self.NPC[name].getPos())
 					self.gui.setObjInfo(mpos, msg)
 				else:
 					self.gui.clearObjInfo()
-					#self.msg.setText("")
 		
 		self.updateCam()
 		
@@ -412,6 +410,8 @@ class MapManager(MapManagerBase):
 						if tile is not None:
 							self.NPCGoto(name, tile[0], tile[1])
 		
+		#for obj in self.map.mapObjects.values():
+		#	print "map manager task says : %s is at %s" % (obj.name, obj.getPos())
 		return task.cont
 
 #-----------------------------------------------------------------------
@@ -439,8 +439,8 @@ class MapEditor(MapManagerBase):
 		self.gui.show()
 		self.startAccept()
 		self.task = taskMgr.add(self.update, "MapEditorTask")
-		if self.map.bgMusic:
-			self.map.bgMusic.stop()
+		#if self.map.bgMusic:
+		#	self.map.bgMusic.stop()
 		self.map.collisionShow()
 		
 	def stop(self):
@@ -734,7 +734,8 @@ class MapEditor(MapManagerBase):
 				
 			name = self.getHoverObjectName()
 			if name is not None:
-				msg = "mapObject : " + name
+				#msg = "mapObject : " + name
+				msg = "Map object : " + name + "\npos = " + str(self.map.mapObjects[name].getPos())
 				self.gui.setObjInfo(mpos, msg)
 			else:
 				self.gui.clearObjInfo()
@@ -769,7 +770,9 @@ class Game(FSM, DirectObject):
 		self.playerData["name"] = "Galya"
 		self.playerData["sex"] = "female"
 		
+		print "Game manager : creating map manager"
 		self.mapManager = MapManager(self)
+		print "Game manager : creating map editor"
 		self.editor = MapEditor(self)
 		
 		self.mapManager.playerData = self.playerData
@@ -795,15 +798,16 @@ class Game(FSM, DirectObject):
 			
 		self.map = Map(filename)
 		if self.map.collisionGrid:
-			print "Game : loaded new game map %s, it has a collisionGrid %s" % (str(self.map), str(self.map.collisionGrid))
+			#print "Game : loaded new game map %s, it has a collisionGrid %s" % (str(self.map), str(self.map.collisionGrid))
+			print "Game : loaded new game map from file %s " % (filename)
 		else:
 			print "Game : loaded new game map %s, but WARNING : collisionGrid not found" % (filename)
 			
 		if self.mapManager:
-			print "Game : assigning new map %s to mapManager" % (filename)
+			#print "Game : assigning new map %s to mapManager" % (filename)
 			self.mapManager.setMap(self.map)
 		if self.editor:
-			print "Game : assigning new map %s to editor" % (filename)
+			#print "Game : assigning new map %s to editor" % (filename)
 			self.editor.setMap(self.map)
 		
 	def load(self, filename):
@@ -837,6 +841,7 @@ class Game(FSM, DirectObject):
 		self.setMode("game")
 		self.mapManager.start()
 		
+			
 	def exitGame(self):
 		self.mapManager.stop()
 		
@@ -903,7 +908,7 @@ if __name__ == "__main__":
 	'''
 	
 	game = Game("maps/interior2.txt")
-	game.map.mapObjectRoot.flattenStrong()
+	#game.map.mapObjectRoot.flattenStrong() # bad idea xD
 	
 	size = 200
 	w0 = WaterPlane(-size, -size, size, size)
