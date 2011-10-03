@@ -148,10 +148,10 @@ class Map:
 			#geomipTex = mapData["geomip"][1]
 			#print "Map : Creating mipmap collision grid on Map load"
 			self.mipImg = mapData["mipImg"]
-			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, self.groundTex, self.mipImg, self.groundTexScale)
+			self.collisionGrid = CollisionGrid(self, self.name, self.groundTex, self.mipImg, self.groundTexScale)
 		else:
 			#print "Map : Creating flat collision grid on Map load"
-			self.collisionGrid = CollisionGrid(self, self.x, self.y, self.name, self.groundTex, None, self.groundTexScale)
+			self.collisionGrid = CollisionGrid(self, self.name, self.groundTex, None, self.groundTexScale)
 			
 		#if not self.collisionGrid:
 		#	print "Map : WARNING : collision grid should be there"
@@ -213,15 +213,15 @@ class Map:
 				)
 			
 	def setBgMusic(self, musicPath):
-		if self.bgMusic:
-			self.bgMusic.stop()
+		#if self.bgMusic:
+		#	self.bgMusic.stop()
 		self.music = musicPath
 		self.bgMusic = loader.loadSfx(self.music)
 		self.bgMusic.setLoop(True)
 		
 	def setBgSound(self, soundPath):
-		if self.bgSound:
-			self.bgSound.stop()
+		#if self.bgSound:
+		#	self.bgSound.stop()
 		self.ambientSound = soundPath
 		self.bgSound = loader.loadSfx(self.ambientSound)
 		self.bgSound.setLoop(True)

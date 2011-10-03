@@ -5,6 +5,7 @@ from pandac.PandaModules import *
 from direct.interval.IntervalGlobal import *
 from direct.showbase.PythonUtil import fitDestAngle2Src 
 from direct.task import Task
+import direct.directbase.DirectStart
 
 class EditorCamHandler:
 	def __init__(self):
@@ -16,8 +17,10 @@ class EditorCamHandler:
 		self.editNp.setPos(10,10,60)
 		self.editNp.reparentTo(render)
 		
-		self.prevCamHpr = Vec3(0,-90,0)
-		base.camera.setHpr(0,-90,0)
+		self.editNp2 = NodePath("Editorcam")
+		self.editNp2.setPos(0,0,0)
+		self.editNp2.setHpr(0,-90,0)
+		self.editNp2.reparentTo(self.editNp)
 		
 	def forward(self, dt):
 		self.editNp.setPos(self.editNp, (0,dt*self.speed, 0))
@@ -37,34 +40,38 @@ class EditorCamHandler:
 		self.editNp.setH(self.editNp, -dt*self.speed*10)
 			
 	def lookUp(self, dt):
-		base.camera.setP(base.camera, dt*self.speed*5)
+		self.editNp2.setP(self.editNp2, dt*self.speed*5)
 		
 	def lookDown(self, dt):
-		base.camera.setP(base.camera, -dt*self.speed*5)
+		self.editNp2.setP(self.editNp2, -dt*self.speed*5)
 
 	
 	def moveHeight(self, dt):
 		self.editNp.setPos(self.editNp, (0,0,dt*self.speed*10))
 		if self.editNp.getZ()<0:
 			self.editNp.setZ(0)
-	
-			
-	def start(self):
-		base.camera.wrtReparentTo(self.editNp)
-		render.setShaderInput('cam', self.editNp)
 		
-		origHpr = base.camera.getHpr()
-		targetHpr = self.prevCamHpr
+	
+	def start(self):
+		base.camera.wrtReparentTo(self.editNp2)
+		#render.setShaderInput('cam', self.editNp)
+		# trick to avoid the camera hiccup, we delay the possible auto shader regenerating
+		taskMgr.doMethodLater(1.0, self.setShaderCam, "setShaderCam")
+		
 		'''	
 		targetHpr = VBase3(fitDestAngle2Src(origHpr[0], targetHpr[0]),
 			fitDestAngle2Src(origHpr[1], targetHpr[1]),
 			fitDestAngle2Src(origHpr[2], targetHpr[2]))
 		'''
-		targetHpr = VBase3(0, self.prevCamHpr.getY(), 0)
-		LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=targetHpr, blendType="easeInOut").start()
+		
+		LerpPosHprInterval(base.camera, self.intervalSpeed, (0,0,0), hpr=(0,0,0), blendType="easeInOut").start()
+	
+	def setShaderCam(self, task):
+		render.setShaderInput('cam', self.editNp)
+		return task.done
 	
 	def stop(self):
-		self.prevCamHpr = self.editNp.getHpr()
+		pass
 		
 	def update(self):
 		pass

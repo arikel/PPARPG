@@ -44,6 +44,7 @@ class MapObject:
 		self.data = {}
 		self.dialog = None
 		self.task = None
+		self.posTask = None
 		
 		if self.genre in mapObjectDB:
 			self.loadModel(mapObjectDB[self.genre][0], mapObjectDB[self.genre][1])

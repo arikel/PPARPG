@@ -42,7 +42,7 @@ class MenuButton(DirectButton):
 			text_fg = (0.8,0.8,0.8,1),
 			text = name,
 			text_align = TextNode.ALeft,
-			text_pos = (-self.w*RATIO, -0.02),
+			text_pos = (-self.w*RATIO+0.01, -0.02),
 			text_mayChange = True,
 			sortOrder=1
 		)
@@ -81,7 +81,8 @@ class TopMenu:
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
 			sortOrder=-1,
-			state = DGG.NORMAL
+			state = DGG.NORMAL,
+			suppressMouse = False
 		)
 		
 		self.topButton = MenuButton(0, 0, self.w, self.h, self.topCmd)
@@ -99,13 +100,13 @@ class TopMenu:
 		self.frame.setPos(pos)
 		
 	def expand(self, extraArgs=[]):
-		print "top menu : expand"
+		#print "top menu : expand"
 		self.topButton.onHover()
 		self.menu.expand()
 		self.frame.bind(DGG.EXIT, self.retract)
 			
 	def retract(self, extraArgs=[]):
-		print "top menu : retract"
+		#print "top menu : retract"
 		self.topButton.onOut()
 		self.menu.retract()
 		self.frame.ignore(DGG.EXIT)
@@ -146,7 +147,8 @@ class ActionMenu:
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
-			state = DGG.NORMAL
+			state = DGG.NORMAL,
+			suppressMouse = False
 		)
 		
 		self.buttons = []
@@ -210,11 +212,13 @@ class ActionMenu:
 		self.frame.show()
 		self.frame.bind(DGG.EXIT, self.retract)
 		
+		
 	def retract(self, extraArgs=[]):
 		for submenu in self.subMenus:
 			submenu.retract()
 		self.frame.hide()
 		self.frame.ignore(DGG.EXIT)
+		
 		
 	def clear(self):
 		for b in self.buttons:
@@ -264,7 +268,8 @@ class ActionSubMenu:
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
 			state = DGG.NORMAL,
-			sortOrder=-1
+			sortOrder=-1,
+			suppressMouse = False
 		)
 		self.frame.reparentTo(self.baseButton)
 		
@@ -287,10 +292,12 @@ class ActionSubMenu:
 		self.baseButton.onHover()
 		self.frame.show()
 		
+		
 	def retract(self, extraArgs=[]):
 		self.frame.hide()
 		for menu in self.subMenus:
 			menu.retract()
+		
 		
 	def clear(self):
 		for b in self.buttons:

@@ -190,6 +190,7 @@ class MapManager(MapManagerBase):
 		
 		self.gui = GameGui(self)
 		
+		self.map.collisionHide()
 		#for obj in self.map.mapObjects.values():
 		#	print "map manager init says : %s is at %s" % (obj.name, obj.getPos())
 			
@@ -208,7 +209,13 @@ class MapManager(MapManagerBase):
 		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
-	
+		if self.map.bgMusic:
+			self.map.bgMusic.stop()
+			#self.map.bgMusic.setVolume(0.4)
+		if self.map.bgSound:
+			self.map.bgSound.stop()
+			
+		
 	def startAccept(self):
 		for key in [
 			"mouse1", "mouse3",
@@ -249,7 +256,7 @@ class MapManager(MapManagerBase):
 		
 	def setMode(self, mode="move"):
 		if mode == "move":
-			print "Map Manager switched to move mode"
+			#print "Map Manager switched to move mode"
 			self.mode = "move"
 			self.accept("mouse1", self.onClickObject) # left click
 			#self.accept("mouse2", self.onClickObject2) # scroll click
@@ -430,12 +437,11 @@ class MapEditor(MapManagerBase):
 		
 		self.gui = EditorGui(self)
 		
-		
 	#-----------------------------
 	# modes and input
 	
 	def start(self):
-		print "Starting editor"
+		#print "Starting editor"
 		self.gui.show()
 		self.startAccept()
 		self.task = taskMgr.add(self.update, "MapEditorTask")
@@ -444,7 +450,7 @@ class MapEditor(MapManagerBase):
 		self.map.collisionShow()
 		
 	def stop(self):
-		print "Stopping editor"
+		#print "Stopping editor"
 		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
@@ -911,12 +917,12 @@ if __name__ == "__main__":
 	#game.map.mapObjectRoot.flattenStrong() # bad idea xD
 	
 	size = 200
-	w0 = WaterPlane(-size, -size, size, size)
+	#w0 = WaterPlane(-size, -size, size, size)
 	
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
-	p = GrassEngine(grassNp, 100, 100)
+	#p = GrassEngine(grassNp, 100, 100)
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 
@@ -928,18 +934,15 @@ if __name__ == "__main__":
 	base.setFrameRateMeter(True)
 	
 	
+	'''
 	color = (0,0,0,1)
 	#color = (1,1,1,1)
 	expfog = Fog("Scene-wide exponential Fog object")
 	expfog.setColor(color)
 	expfog.setExpDensity(0.01)
-	#render.setFog(expfog)
+	render.setFog(expfog)
 	base.setBackgroundColor(color)
-	
-	
-	#render.flattenStrong()
-	#render.flattenMedium()
-	#render.setTransparency(TransparencyAttrib.MAlpha)
+	'''
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)
 	

@@ -85,13 +85,13 @@ class InnerWall:
 # CollisionGrid : WIP
 #-----------------------------------------------------------------------
 class CollisionGrid:
-	def __init__(self, map, x=50, y=30, name=None, texPath="img/textures/ice01.jpg", mipImg = None, texScale=50.0):
+	def __init__(self, map, name=None, texPath="img/textures/ice01.jpg", mipImg = None, texScale=50.0):
 		self.map = map
 		self.name = name
 		#print "CollisionGrid : initiating %s, scale = %s" % (name, texScale)
 		
-		self.x = x
-		self.y = y
+		self.x = self.map.x
+		self.y = self.map.y
 		self.groundTex = texPath
 		self.mipImg = mipImg
 		self.groundTexScale = texScale
@@ -108,6 +108,8 @@ class CollisionGrid:
 		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
 		self.geom = Geom(self.gvd)
 		self.prim = GeomTriangles(Geom.UHStatic)
+		
+		self.openTiles = []
 		
 		self.update()
 		
@@ -146,7 +148,6 @@ class CollisionGrid:
 		else:
 			self.hasGeoMip = False
 			self.ground = FlatGround(self.map, self.x, self.y, self.groundTex, self.groundTexScale)
-	
 		
 	def collisionHide(self):
 		self.np.hide()
@@ -167,12 +168,14 @@ class CollisionGrid:
 		self.normal = GeomVertexWriter(self.gvd, 'normal')
 		
 		i = 0
+		self.openTiles = []
 		for y in range(self.y):
 			for x in range(self.x):
 				if self.data[y][x] == 1:
 					self.addWallTile(x, y)
 				else:
 					self.addEmptyTile(x, y)
+					self.openTiles.append((x,y))
 				i += 4
 			
 	def rebuild(self):
@@ -296,7 +299,9 @@ class CollisionGrid:
 				
 				self.addEmptyTile(x, y)
 				#self.update()
-	
+				if (x,y) not in self.openTiles:
+					self.openTiles.append((x,y))
+					
 	def showTile(self, x, y):
 		if (0<=x<self.x) and (0<=y<self.y):
 			if self.data[y][x]!=1:
@@ -314,7 +319,8 @@ class CollisionGrid:
 				self.normal.setRow(row)
 				
 				self.addWallTile(x, y)
-				
+				if (x,y) in self.openTiles:
+					self.openTiles.remove((x,y))
 				#self.update()
 		
 		
@@ -348,6 +354,11 @@ class CollisionGrid:
 		self.update()
 		
 	def getRandomTile(self):
+		if len(self.openTiles)>1:
+			a = random.randint(0,len(self.openTiles)-1)
+			return self.openTiles[a][0], self.openTiles[a][1]
+		return None
+		'''
 		#while True:
 		for i in range(10):# if no success after ten tries, give up and wait
 			x = random.randint(1,self.x-1)
@@ -357,7 +368,7 @@ class CollisionGrid:
 				return x, y
 		return 2, 2
 		#return None
-	
+		'''
 	def destroy(self):
 		if self.np:
 			self.np.remove()

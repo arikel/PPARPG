@@ -22,13 +22,15 @@ class EditorGui:
 		for i, map in enumerate(mapList):
 			path = "maps/" + map
 			self.topMenu.menu.subMenus[0].buttons[i].bind(DGG.B1PRESS, self.editor.load, [path])
+		self.topMenu.frame.setBin("fixed", -149)
 		
 		objMenu = ["Add object"]
 		self.objList = mapObjectDB.keys()
 		objMenu.extend(self.objList)
-		self.addObjectMenu = TopMenu(0.4*RATIO, 0.9, 0.16, 0.04, objMenu)
+		self.addObjectMenu = TopMenu(-0.4*RATIO, 0.9, 0.16, 0.04, objMenu)
 		for i, objName in enumerate(self.objList):
 			self.addObjectMenu.menu.buttons[i].bind(DGG.B1PRESS, self.editor.addNewMapObject, [objName])
+		self.addObjectMenu.frame.setBin("fixed", -150) # this line is needed so that the list of maps doesn't get unclickable
 		
 		self.objectMenu = ActionMenu(-0.7*RATIO, 0.9, 0.16,0.035, ["Object", "Grab", "Rotate", "MoveZ", "Scale","Duplicate", "Destroy"])
 		
@@ -58,7 +60,7 @@ class EditorGui:
 	def openObjectMenu(self, obj, mpos):
 		"""obj is a MapObject"""
 		self.objectMenu.show()
-		pos = (mpos[0] + self.objectMenu.w, mpos[1])
+		pos = (mpos[0] + self.objectMenu.w/2.0, mpos[1])
 		self.objectMenu.setPos(pos)
 		
 	def toggleVisible(self):
