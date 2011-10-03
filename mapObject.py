@@ -196,7 +196,7 @@ class MapObject:
 # NPC
 #-----------------------------------------------------------------------
 
-class NPC(MapObject):
+class MapNPC(MapObject):
 	def __init__(self, gm, name, modelPath="models/characters/male", texPath=None,genre="NPC"):
 		self.gm = gm # MapManager
 		self.name = name
@@ -303,6 +303,20 @@ class NPC(MapObject):
 		#self.model.lookAt(a+x,b+y,self.model.getZ())
 		#print "%s looking at %s, %s" % (self.name, y, x)
 		
+	def goTo(self, x, y):
+		start = (self.getTilePos())
+		end = (x, y)
+		data = self.gm.map.collisionGrid.data
+		path = astar(start, end, data)
+		if path is []:
+			#print "... but no good path found"
+			return False
+		newPath = []
+		for tile in path:
+			newPath.append((tile[0], tile[1], self.map.collisionGrid.getTileHeight(tile[0], tile[1])))
+		self.setPath(newPath)
+		return True
+		
 	def setPath(self, path):
 		if path == []:
 			#if self.sequence.isPlaying():
@@ -349,7 +363,7 @@ class NPC(MapObject):
 		#print "On NPC start sequence, timer = %s" % (self.timer)
 		f = Func(self.setMode, "idle")
 		self.sequence.append(f)
-		
+		#print "Setting path for %s" % (self.name)
 		self.sequence.start()
 		
 	def resetTimer(self, args=[]):
@@ -379,6 +393,9 @@ class NPC(MapObject):
 		else:self.showLabel()
 		
 	def update(self, task):
+		if self.genre == "player":
+			return task.cont
+			
 		dt = globalClock.getDt()
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
@@ -387,7 +404,7 @@ class NPC(MapObject):
 		msg = self.name + "\n" + self.mode + " / " + timer
 		self.timerMsg.setText(msg)
 		
-		if self.mode == "idle" and self.genre=="NPC" and not self.gm.dialog:
+		if self.mode == "idle" and not self.gm.dialog:
 			if self.getDistToPlayer()<5.0:
 				self.loop("fightStanceHand")
 			else:

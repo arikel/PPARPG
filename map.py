@@ -123,7 +123,6 @@ class Map:
 		f = open(filename, 'r')
 		mapData = pickle.load(f)
 		f.close()
-		del f
 		
 		if "name" in mapData:
 			self.name = mapData["name"]

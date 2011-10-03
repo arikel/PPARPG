@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 import random
+import cPickle as pickle
 
 def jette(n=1,d=6,b=0):
 	resList = []
@@ -83,6 +84,9 @@ class CharacterState:
 		if name is None: self.name = "Red Shirt"
 		else: self.name = str(name)
 		
+	def initSex(self, sex):# yeah, yeah :p
+		self.sex = sex
+		
 	def initHp(self, hp=10, hpMax=10):
 		self.hp = hp # health points, when 0 -> death, game over
 		self.hpMax = hpMax # stun points, when 0 -> messenger.send("player-faint") etc.
@@ -106,24 +110,53 @@ class PlayerState(CharacterState):
 		
 	def onDie(self):
 		messenger.send("playerDied")
-
+		#print "oops, player died :("
+	
+	def setMap(self, filename):
+		self.map = filename	
+		
+def makePlayerState(name="Galya", sex="female", hp=10, sp=10):
+	p = PlayerState(name)
+	p.initSex(sex)
+	p.initHp(hp)
+	p.initSp(sp)
+	p.setMap("maps/interior2.txt")
+	return p
+		
 class NPCTracker:
 	def __init__(self, mapList = []):
 		'''tracks where NPCs are, map and coordinates, the quests values and other data are in GameState'''
 		self.mapList = mapList
 		
 class GameState:
-	def __init__(self, filename, playerState):
+	def __init__(self, filename="save/default.txt", playerState=makePlayerState()):
 		self.filename = filename
 		self.playerState = playerState
+		self.NPCTracker = NPCTracker()
+		self.questDic = {}
 		
 	def load(self, filename):
 		self.filename = filename
+		f = open(filename, 'r')
+		data = pickle.load(f)
+		f.close()
+		self.playerState = data["playerState"]
+		self.NPCTracker = data["NPCTracker"]
+		self.questDic = data["questDic"]
+		print "game loaded, data was %s" % data
 		
 	def save(self):
-		pass
+		self.saveAs(self.filename)
 		
 	def saveAs(self, filename):
-		pass
+		f = open(filename, 'w')
+		pickle.dump(self.getSaveData(), f)
+		f.close()
+		print "game data saved as %s" % (filename)
 		
-		
+	def getSaveData(self):
+		data = {}
+		data["playerState"] = self.playerState
+		data["NPCTracker"] = self.NPCTracker
+		data["questDic"] = self.questDic
+		return data

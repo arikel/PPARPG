@@ -150,21 +150,25 @@ class MapManager(MapManagerBase):
 		MapManagerBase.__init__(self, gm)
 		
 		# player
+		
 		name = self.gm.playerData["name"]
 		sex = self.gm.playerData["sex"]
+		self.playerState = PlayerState(name)
+		self.playerState.initSex(sex)
 		
 		if sex == "male":
 			modelPath = "models/characters/neoMale"
 		else:
 			modelPath = "models/characters/neoFemale"
 			
-		self.player = NPC(self, name, modelPath, "models/characters/female1.jpg", "player")
+		self.player = MapNPC(self, name, modelPath, "models/characters/female1.jpg", "player")
 		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
 		self.player.addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		startX, startY = self.map.collisionGrid.getRandomTile()
 		self.player.setTilePos(startX, startY)
 		self.player.reparentTo(render)
 		self.player.toggleLabel()
+		
 		
 		# NPCs
 		self.NPC = {}
@@ -244,6 +248,13 @@ class MapManager(MapManagerBase):
 		self.accept("wheel_up", self.gm.gameCam.zoom, [1.0])
 		self.accept("wheel_down", self.gm.gameCam.zoom, [-1.0])
 		
+		self.accept("playerDied", self.onPlayerDie)
+		
+		
+		
+	def onPlayerDie(self):
+		print "Map Manager : the player has died, let's move to title screen..."
+		
 	def save(self, filename):
 		f = open(filename, 'w')
 		pickle.dump(self.gm.playerData, f)
@@ -290,6 +301,8 @@ class MapManager(MapManagerBase):
 	
 	def onClickObject(self):
 		# click on MapObject :
+		if self.dialog:return
+		
 		name = self.getHoverNPCName()
 		if name is not None:
 			print "map manager : left click on NPC : %s, opening dialog" % (name)
@@ -318,10 +331,20 @@ class MapManager(MapManagerBase):
 	
 	def onClickObject3(self):
 		# click on MapObject :
+		if self.dialog:return
+		
 		name = self.getHoverNPCName()
 		if name is not None:
 			print "map manager : right click on NPC : %s, label toggle" % (name)
 			self.NPC[name].toggleLabel()
+			self.gui.objectMenu.rebuild(["look", "talk", "attack"])
+			self.gui.objectMenu.buttons[0].bind(DGG.B1PRESS, self.onTalkTo, [name])
+			self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.onTalkTo, [name])
+			self.gui.objectMenu.buttons[2].bind(DGG.B1PRESS, self.onTalkTo, [name])
+			self.gui.objectMenu.expand()
+			if base.mouseWatcherNode.hasMouse():
+				mpos = base.mouseWatcherNode.getMouse()
+				self.gui.objectMenu.setPos(mpos)
 			#self.openDialog(name)
 			return
 		
@@ -340,8 +363,18 @@ class MapManager(MapManagerBase):
 		print "WARNING : map manager : right click on nothing?!"
 		return False
 	
+	def onTalkTo(self, name, extraArgs=[]):
+		if self.getPlayerDistToNPC(name)< 4.0:
+			self.openDialog(name)
+		else:
+			x, y = self.map.getClosestOpenTile(self.NPC[name].getTilePos()[0], self.NPC[name].getTilePos()[1])
+			self.playerGoto(x, y)
+			self.player.sequence.append(Func(self.onTalkTo, name))
+			self.player.sequence.resume() # ?
+			#print "Appended talkTo %s to sequence %s" % (name, self.player.sequence)
+			
 	def addNPC(self, name, modelName, tex, x, y):
-		npc = NPC(self, name, modelName, tex)
+		npc = MapNPC(self, name, modelName, tex)
 		npc.setTilePos(x, y)
 		self.NPC[name] = npc
 		npc.reparentTo(self.map.NPCroot)
@@ -395,7 +428,7 @@ class MapManager(MapManagerBase):
 			newPath.append((tile[0], tile[1], self.map.collisionGrid.getTileHeight(tile[0], tile[1])))
 		self.NPC[name].setPath(newPath)
 	
-	def openDialog(self, name):
+	def openDialog(self, name, extraArgs=[]):
 		if self.dialog:
 			#print "There was dialog garbage left, %s got his/her dialog shut unpolitely." % (self.dialog.name)
 			#self.dialog.destroy()
@@ -805,19 +838,18 @@ class MapEditor(MapManagerBase):
 # Game : FSM, switch between game playing and map editing
 #-----------------------------------------------------------------------
 class Game(FSM, DirectObject):
-	def __init__(self, filename):
+	def __init__(self, gamefilename=None):
 		FSM.__init__(self, 'Game')
+		self.gameState = GameState()
+		if gamefilename is not None:
+			self.gameState.load(gamefilename)
 		self.map = None
 		self.mapManager = None
 		self.editor = None
+		self.loadGameMap(self.gameState.playerState.map)
 		
-		self.loadGameMap(filename)
-				
-		# camera handler
-		#self.camHandler = CamHandler()
+		# editor camera handler
 		self.editorCam = EditorCamHandler()
-		
-		
 		
 		self.cursor = MouseCursor()
 		
@@ -825,13 +857,15 @@ class Game(FSM, DirectObject):
 		self.playerData["name"] = "Galya"
 		self.playerData["sex"] = "female"
 		
-		print "Game manager : creating map manager"
+		#print "Game manager : creating map manager"
 		self.mapManager = MapManager(self)
 		self.mapManager.playerData = self.playerData
+		
+		# game camera handler
 		self.gameCam = GameCamHandler(self.mapManager.player.model)
 		self.setMode("playing")
 		
-		print "Game manager : creating map editor"
+		#print "Game manager : creating map editor"
 		self.editor = MapEditor(self)
 		
 		
@@ -964,7 +998,7 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("maps/interior2.txt")
+	game = Game("save/default.txt")
 	#game.map.mapObjectRoot.flattenStrong() # bad idea xD
 	
 	size = 200

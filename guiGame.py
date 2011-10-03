@@ -156,13 +156,16 @@ class GameGui:
 		self.inventory = InventoryGui()
 		i = 0
 		for slot in self.inventory.slots:
-			slot.bind(DGG.B1PRESS, self.onSelect, [i])
+			slot.bind(DGG.B1PRESS, self.onSelectItem, [i])
 			i += 1
 		self.pickedItem = InventorySlot(0,0,"pickedItem",0.1)
 		self.pickedItem.hide()
 		self.pickedItem.setBin("gui-popup", 50)
 		
-	def onSelect(self, i, extraArgs=[]):
+		self.objectMenu = ActionMenu(0,0)
+		self.objectMenu.rebuild(["look", "talk", "attack"])
+		
+	def onSelectItem(self, i, extraArgs=[]):
 		print "selected slot number %s, extraArgs = %s" % (i, extraArgs)
 		self.inventory.getMouseSlot()
 		if self.inventory.slots[i].imgPath:
@@ -204,12 +207,14 @@ class GameGui:
 		self.infoLabel.hide()
 		self.objectLabel.hide()
 		self.inventory.hide()
+		self.objectMenu.hide()
 		self.visible = False
 		
 	def show(self):
 		self.infoLabel.show()
 		self.objectLabel.show()
 		#self.inventory.show()
+		self.objectMenu.show()
 		self.visible = True
 		
 	def setInfo(self, info):
