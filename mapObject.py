@@ -32,8 +32,8 @@ mapObjectDB["bed"] = ["models/props/bed", "models/props/bed.jpg", (0,0,0.5,0.8)]
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
 class MapObject:
-	def __init__(self, gm, genre, name):
-		self.gm = gm # reference to the game map the object belongs to
+	def __init__(self, map, genre, name):
+		self.map = map # reference to the game map the object belongs to
 		self.genre = genre # NPC, building, decor, item, warp...
 		self.name = name
 		self.model = None
@@ -197,9 +197,10 @@ class MapObject:
 #-----------------------------------------------------------------------
 
 class NPC(MapObject):
-	def __init__(self, name, modelPath="models/characters/male", texPath=None):
+	def __init__(self, gm, name, modelPath="models/characters/male", texPath=None,genre="NPC"):
+		self.gm = gm # MapManager
 		self.name = name
-		self.genre = "NPC"
+		self.genre = genre
 		# actor
 		self.model = None
 		self.modelPath = modelPath
@@ -208,9 +209,14 @@ class NPC(MapObject):
 		walkanim = "models/characters/neoMale-walk"
 		#idleanim = "models/characters/" + modelName + "-idle"
 		idleanim = "models/characters/neoMale-idle"
+		fightStanceAnim = "models/characters/neoMale-fightStanceHand"
+		kick = "models/characters/neoMale-kick"
+		
 		self.animDic = {
 			"walk":walkanim,
-			"idle": idleanim
+			"idle": idleanim,
+			"fightStanceHand" : fightStanceAnim,
+			"kick" : kick
 		}
 		self.texPath = texPath
 		self.loadActor(self.modelPath, self.animDic, self.texPath)
@@ -239,7 +245,6 @@ class NPC(MapObject):
 		self.timerLabel.reparentTo(self.model)
 		self.timerLabel.setPos(1,0,3)
 		self.timerLabel.setBillboardAxis()
-		self.timerLabel.setLightOff()
 		#self.timerLabel.clearTexture(TextureStage.getDefault())
 		self.timerLabel.setTexture(loader.loadTexture("img/generic/label.png"))
 		self.timerLabel.setScale(0.4)
@@ -248,6 +253,7 @@ class NPC(MapObject):
 		
 		self.timerLabel.setShaderOff(True)
 		self.timerLabel.setLightOff(True)
+		self.labelVisible = True
 		
 		self.data = {}
 		self.data["name"] = self.name
@@ -294,7 +300,8 @@ class NPC(MapObject):
 		a, b = self.getTilePos()
 		#self.model.lookAt(a-x+0.5,b-y+0.5,self.model.getZ())
 		self.model.lookAt(a+x+0.5,b+y+0.5,self.model.getZ())
-		#print "Looking at %s, %s" % (y, x)
+		#self.model.lookAt(a+x,b+y,self.model.getZ())
+		#print "%s looking at %s, %s" % (self.name, y, x)
 		
 	def setPath(self, path):
 		if path == []:
@@ -348,22 +355,43 @@ class NPC(MapObject):
 	def resetTimer(self, args=[]):
 		self.timer = random.random()*15.0
 		
+	def getDistToPlayer(self):
+		return Vec3(self.getPos() - self.gm.player.getPos()).length()
+		
 	def setMode(self, mode):
 		self.mode = mode
 		self.loop(mode)
 		
+			
 	def setTimer(self, n):
 		self.timer = float(n)
+		
+	def hideLabel(self):
+		self.timerLabel.detachNode()
+		self.labelVisible = False
+		
+	def showLabel(self):
+		self.timerLabel.reparentTo(self.model)
+		self.labelVisible = True
+		
+	def toggleLabel(self):
+		if self.labelVisible:self.hideLabel()
+		else:self.showLabel()
 		
 	def update(self, task):
 		dt = globalClock.getDt()
 		self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
 		
-		#timer = str(round(self.timer, 1))
-		#msg = self.name + "\n" + self.mode + " / " + timer
-		#self.timerMsg.setText(msg)
+		timer = str(round(self.timer, 1))
+		msg = self.name + "\n" + self.mode + " / " + timer
+		self.timerMsg.setText(msg)
 		
+		if self.mode == "idle" and self.genre=="NPC" and not self.gm.dialog:
+			if self.getDistToPlayer()<5.0:
+				self.loop("fightStanceHand")
+			else:
+				self.loop("idle")
 		'''
 		pos = self.model.getPos()
 		

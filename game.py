@@ -58,7 +58,7 @@ from map import Map
 from effects import WaterPlane, GrassEngine
 from wallBuilder import WallBuilder
 
-from gameUtils import NPCTracker
+from gameUtils import *
 
 #-----------------------------------------------------------------------
 # MapManagerBase, for MapManager and MapEditor
@@ -149,6 +149,23 @@ class MapManager(MapManagerBase):
 		
 		MapManagerBase.__init__(self, gm)
 		
+		# player
+		name = self.gm.playerData["name"]
+		sex = self.gm.playerData["sex"]
+		
+		if sex == "male":
+			modelPath = "models/characters/neoMale"
+		else:
+			modelPath = "models/characters/neoFemale"
+			
+		self.player = NPC(self, name, modelPath, "models/characters/female1.jpg", "player")
+		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
+		self.player.addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
+		startX, startY = self.map.collisionGrid.getRandomTile()
+		self.player.setTilePos(startX, startY)
+		self.player.reparentTo(render)
+		self.player.toggleLabel()
+		
 		# NPCs
 		self.NPC = {}
 		for name, sex in [("ula2", "female"), ("Kimmo", "male"), ("Drunkard", "male"), ("Camilla", "female")]:
@@ -159,21 +176,10 @@ class MapManager(MapManagerBase):
 			else:
 				self.addNPC(name, "models/characters/neoMale", "models/characters/neoMale.jpg", x,y)
 
-		name = self.gm.playerData["name"]
-		sex = self.gm.playerData["sex"]
-		
-		if sex == "male":
-			modelPath = "models/characters/neoMale"
-		else:
-			modelPath = "models/characters/neoFemale"
 		
 		
-		self.player = NPC(name, modelPath, "models/characters/female1.jpg")
-		self.player.addEquipment("models/characters/female_hair", "models/characters/female_hair.jpg")
-		self.player.addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
-		startX, startY = self.map.collisionGrid.getRandomTile()
-		self.player.setTilePos(startX, startY)
-		self.player.reparentTo(render)
+		
+		
 		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
 		self.NPC["Camilla"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
@@ -228,7 +234,7 @@ class MapManager(MapManagerBase):
 			self.accept(key, self.setKey, [key, 1])
 			keyUp = key + "-up"
 			self.accept(keyUp, self.setKey, [key, 0])
-		self.setMode(self.mode)
+		self.setMode(self.mode) # mouse click events
 		
 		self.accept(SAVE, self.save, ["save/sonia.txt"])
 		self.accept(OPEN, self.load, ["save/sonia.txt"])
@@ -260,7 +266,7 @@ class MapManager(MapManagerBase):
 			self.mode = "move"
 			self.accept("mouse1", self.onClickObject) # left click
 			#self.accept("mouse2", self.onClickObject2) # scroll click
-			#self.accept("mouse3", self.onClickObject3) # right click
+			self.accept("mouse3", self.onClickObject3) # right click
 			#self.accept("wheel_up", self.camHandler.moveHeight, [-0.02])
 			#self.accept("wheel_down", self.camHandler.moveHeight, [0.02])
 				
@@ -287,7 +293,11 @@ class MapManager(MapManagerBase):
 		name = self.getHoverNPCName()
 		if name is not None:
 			print "map manager : left click on NPC : %s, opening dialog" % (name)
-			self.openDialog(name)
+			if self.getPlayerDistToNPC(name)< 4.0:
+				self.openDialog(name)
+			else:
+				x, y = self.map.getClosestOpenTile(self.NPC[name].getTilePos()[0], self.NPC[name].getTilePos()[1])
+				self.playerGoto(x, y)
 			return
 		
 		name = self.getHoverObjectName()
@@ -304,9 +314,34 @@ class MapManager(MapManagerBase):
 		# and this should never happen
 		print "WARNING : map manager : left click on nothing?!"
 		return False
+	
+	
+	def onClickObject3(self):
+		# click on MapObject :
+		name = self.getHoverNPCName()
+		if name is not None:
+			print "map manager : right click on NPC : %s, label toggle" % (name)
+			self.NPC[name].toggleLabel()
+			#self.openDialog(name)
+			return
+		
+		name = self.getHoverObjectName()
+		if name is not None:
+			print "map manager : right click on map object : %s, position = %s" % (name, self.map.mapObjects[name].getPos())
+			return
 			
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+			self.playerGoto(pos[0], pos[1])
+			print "Player goto %s/%s" % (pos[0], pos[1])
+			return
+		# and this should never happen
+		print "WARNING : map manager : right click on nothing?!"
+		return False
+	
 	def addNPC(self, name, modelName, tex, x, y):
-		npc = NPC(name, modelName, tex)
+		npc = NPC(self, name, modelName, tex)
 		npc.setTilePos(x, y)
 		self.NPC[name] = npc
 		npc.reparentTo(self.map.NPCroot)
@@ -335,6 +370,12 @@ class MapManager(MapManagerBase):
 		self.player.setPath(newPath)
 		return True
 	
+	def getPlayerDistToNPC(self, name):
+		return Vec3(self.NPC[name].getPos() - self.player.getPos()).length()
+		
+	def getPlayerDistToMapObject(self, name):
+		return Vec3(self.map.mapObjects[name].getPos() - self.player.getPos()).length()
+	
 	def NPCGoto(self, name, x, y):
 		#print "NPCGoto called!"
 		if name not in self.NPC:
@@ -362,6 +403,14 @@ class MapManager(MapManagerBase):
 			return False
 		if name in self.NPC:
 			self.NPC[name].stop()
+			playerPos = self.player.getTilePos()
+			npcPos = self.NPC[name].getTilePos()
+			lookDirX, lookDirY = playerPos[0]-npcPos[0], playerPos[1]-npcPos[1]
+			self.NPC[name].lookAt(lookDirX, lookDirY)
+			
+			self.player.stop()
+			self.player.lookAt(-lookDirX, -lookDirY)
+			
 			if name in dialogDic:
 				self.dialog = dialogDic[name](self, name)
 			else:
@@ -768,7 +817,7 @@ class Game(FSM, DirectObject):
 		#self.camHandler = CamHandler()
 		self.editorCam = EditorCamHandler()
 		
-		self.setMode("playing")
+		
 		
 		self.cursor = MouseCursor()
 		
@@ -778,12 +827,14 @@ class Game(FSM, DirectObject):
 		
 		print "Game manager : creating map manager"
 		self.mapManager = MapManager(self)
+		self.mapManager.playerData = self.playerData
+		self.gameCam = GameCamHandler(self.mapManager.player.model)
+		self.setMode("playing")
+		
 		print "Game manager : creating map editor"
 		self.editor = MapEditor(self)
 		
-		self.mapManager.playerData = self.playerData
 		
-		self.gameCam = GameCamHandler(self.mapManager.player.model)
 		
 		# light
 		if CONFIG_LIGHT:

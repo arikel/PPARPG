@@ -214,6 +214,8 @@ class CollisionGrid:
 		self.np.setTexture(self.colTex)
 		#self.np.setColor(0,0,1.0,0.1)
 		self.np.setTransparency(True)
+		self.np.setShaderOff()
+		self.np.setLightOff()
 		
 		if self.mipImg is not None:
 			self.hasGeoMip = True
@@ -353,22 +355,23 @@ class CollisionGrid:
 					
 		self.update()
 		
+	def isOpen(self, x, y):
+		if self.data[y][x]==0:return True
+		return False
+		
 	def getRandomTile(self):
 		if len(self.openTiles)>1:
 			a = random.randint(0,len(self.openTiles)-1)
 			return self.openTiles[a][0], self.openTiles[a][1]
 		return None
-		'''
-		#while True:
-		for i in range(10):# if no success after ten tries, give up and wait
-			x = random.randint(1,self.x-1)
-			y = random.randint(1,self.y-1)
-			if self.data[y][x]==0:
-				#print "returning random free tile : %s %s" % (x, y)
-				return x, y
-		return 2, 2
-		#return None
-		'''
+		
+	def getClosestOpenTile(self, x, y):
+		for loc in [(x-1,y-1),(x,y-1),(x+1,y-1),(x-1,y),(x+1,y),(x-1,y+1),(x,y+1),(x+1,y+1)]:
+			#if self.data[loc[1]][loc[0]] == 0:
+			if self.isOpen(loc[0], loc[1]):
+				return loc
+		return None
+		
 	def destroy(self):
 		if self.np:
 			self.np.remove()

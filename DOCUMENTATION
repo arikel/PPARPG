@@ -12,11 +12,12 @@ The keys of such a map dictionary can be :
 - collision : this contains a list of lists with collision data meant to be fed to the CollisionGrid class on init.
 - groundTex : the path to the texture used for the ground
 - mipImg : the path to the image to use to create a TerrainGround (mapUtils.py)
-- mapObjects : a list of lists containing data about map objects : name(string), genre(string),
-pos (Point3),	hpr (Point3), scale(Point3 or float)
+- mapObjects : a list of lists containing data about map objects : name(string), genre(string, see mapObjectDB in mapObject.py), pos (Point3),	hpr (Point3), scale(Point3 or float)
 - skybox : name (string) of the skybox, to use with SkyBox.load(name) (it's not a path, it's just a name)
 - music : the path to the default background music to play on this map
 - ambientSound : the path to the ambient sound to play on this map
+- walls : list of lists containing the data related to dynamic walls : [width, height, texturePath, points list], see WallBuilder.getSaveData in wallBuilder.py
+- innerWall : [height, texturePath, textureScale], four single sided walls matching the map's width and height, for interior maps
 
-TODO : handle water, plants, dynamic inner and solid walls and their texture
+TODO : handle water, plants
 

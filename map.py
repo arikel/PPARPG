@@ -256,7 +256,10 @@ class Map:
 	def fillCollision(self, args=[]):
 		print "Map %s : fill collision called" % (str(self))
 		self.collisionGrid.fill()
-
+	
+	def getClosestOpenTile(self, x, y):
+		return self.collisionGrid.getClosestOpenTile(x,y)
+	
 def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", groundTexScale = 50.0):
 	map = Map()
 	map.name = name
