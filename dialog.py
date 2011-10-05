@@ -41,6 +41,8 @@ class Dialog:
 		
 	def intro(self):
 		msg = "You are talking to " + self.name
+		msg = msg + ". Please note that this is a work in progress, and as such it features things spread here and there without much sense or reason, just for the sake of testing them. No real gameplay is available yet. We're sorry about that, join #PPARPG on Freenode if you want to ask anything, make suggestions, or even help...\nThanks for testing anyway."
+		
 		self.setMainText(msg)
 		
 		msg1 = "'Hello, " + self.name + "!'"
@@ -84,10 +86,7 @@ class DialogCamilla(Dialog):
 		self.setMainText(msg)
 		
 		msg1 = "'Hello, " + self.name + "!'"
-		msg2 = "'Camilla, you seem to know a lot of stuff about what's going on here...'"
-		
-		
-		
+		msg2 = "'Camilla, you seem to know a lot of stuff about what's going on here...'"		
 		menu = [
 			[msg1, self.l_hello, []],
 			[msg2, self.l_askStuff, []],
@@ -122,7 +121,7 @@ class DialogCamilla(Dialog):
 				["'Don't try to lie to me...'", self.l_insist, []],
 				["'I knew you'd try to lie to me...'", self.l_insist, []],
 				["'You know who you're lying to, girl?'", self.l_insist, []],
-				["'Ah, my bad, forget about that...'", self.l_close, []],
+				["'Ah, my bad, forget about that...'", self.l_close2, []],
 			]
 			self.setMenu(menu)
 		return 1
@@ -134,7 +133,12 @@ class DialogCamilla(Dialog):
 		self.l_close();
 		return 1
 		
-	
+	def l_close2(self, args=[]):
+		self.setMainText("...")
+		menu = [["Close", self.destroy, []]]
+		self.setMenu(menu)
+		return 1
+		
 dialogDic = {}
 dialogDic["Camilla"] = DialogCamilla
 for name in ["Kimmo", "ula2", "Drunkard"]:

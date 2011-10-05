@@ -12,7 +12,7 @@ class LightManager:
 		
 		# Create Ambient Light
 		self.ambientLight1 = AmbientLight('ambientLight')
-		self.ambientLight1.setColor(Vec4(0.25,0.25,0.25, 1))
+		self.ambientLight1.setColor(Vec4(0.2,0.2,0.2, 1))
 		self.alight = self.lightCenter.attachNewNode(self.ambientLight1)
 		render.setLight(self.alight)
 		#render.setShaderInput("alight0", self.alight)
@@ -20,8 +20,8 @@ class LightManager:
 		# point light
 		self.pointlight = PointLight("Light")
 		self.light = self.lightCenter.attachNewNode(self.pointlight)
-		self.pointlight.setColor(Vec4(1,1,1,1))
-		self.light.setPos(0,6,4)
+		self.pointlight.setColor(Vec4(0.8,0.8,0.8,1))
+		self.light.setPos(0,0,2)
 		render.setLight(self.light)
 		
 		#render.setShaderInput("plight0", self.light)
@@ -37,7 +37,7 @@ class LightManager:
 		#self.spotlight.setHpr(0,-45,0)
 		
 		self.spotlight.node().setShadowCaster(True)
-		render.setLight(self.spotlight)
+		#render.setLight(self.spotlight)
 		#render.setShaderInput("slight0", self.spotlight)
 		
 		'''

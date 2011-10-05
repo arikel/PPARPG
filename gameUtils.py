@@ -1,8 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
+from direct.fsm.FSM import FSM
+
 import random
 import cPickle as pickle
+
+from pathFind import *
 
 def jette(n=1,d=6,b=0):
 	resList = []
@@ -24,7 +28,7 @@ class Item:
 		self.stackable = stackable
 		self.size = size # room taken by this item in an Inventory
 
-		
+
 '''
 class Weapon:
 	def __init__(self, name, genre, range, rate, ammo, damage, reloadTime):
@@ -68,6 +72,7 @@ class Inventory:
 	def __init__(self):
 		self.slots = {}
 		self.nbSlots = 25
+		self.room = 100
 		#for i in range(self.nbSlots):
 		#	self.slots[]
 			
@@ -79,13 +84,10 @@ class Inventory:
 	def addItem(self, item, nb):
 		pass
 		
-class CharacterState:
-	def __init__(self, name= None):
-		if name is None: self.name = "Red Shirt"
-		else: self.name = str(name)
 		
-	def initSex(self, sex):# yeah, yeah :p
-		self.sex = sex
+class CreatureState:
+	def __init__(self, name):
+		self.name = name
 		
 	def initHp(self, hp=10, hpMax=10):
 		self.hp = hp # health points, when 0 -> death, game over
@@ -94,6 +96,41 @@ class CharacterState:
 	def initSp(self, sp=10, spMax=10):
 		self.sp = sp# stun points, when 0 -> messenger.send("player-faint") etc.
 		self.spMax = spMax 
+		
+	def checkHp(self):
+		if self.hp > self.maxHp:
+			self.hp = self.maxHp
+		elif self.hp < 0:
+			self.hp = 0
+	
+	def addHp(self, n):
+		self.hp += n
+		self.checkHp()
+		
+	def remHp(self, n):
+		self.addHp(-n)
+	
+	def checkSp(self):
+		if self.sp > self.maxSp:
+			self.sp = self.maxSp
+		elif self.sp < 0:
+			self.sp = 0
+		
+	def addSp(self, n):
+		self.sp += n
+		self.checkSp()
+		
+	def remSp(self, n):
+		self.addSp(-n)
+		
+		
+class CharacterState(CreatureState):
+	def __init__(self, name= None):
+		if name is None: self.name = "Red Shirt"
+		else: self.name = str(name)
+		
+	def initSex(self, sex):# yeah, yeah :p
+		self.sex = sex
 		
 	def initInventory(self):
 		self.inventory = Inventory()
@@ -122,7 +159,9 @@ def makePlayerState(name="Galya", sex="female", hp=10, sp=10):
 	p.initSp(sp)
 	p.setMap("maps/interior2.txt")
 	return p
-		
+
+
+
 class NPCTracker:
 	def __init__(self, mapList = []):
 		'''tracks where NPCs are, map and coordinates, the quests values and other data are in GameState'''
@@ -160,3 +199,75 @@ class GameState:
 		data["NPCTracker"] = self.NPCTracker
 		data["questDic"] = self.questDic
 		return data
+
+
+class CreatureAI(FSM):
+	def __init__(self, gm, name = "CreatureAI"):
+		FSM.__init__(self, name)
+		self.gm = gm # MapManager
+		self.name = name
+		self.timer = 0.0
+		
+	def start(self):
+		self.task = taskMgr.add(self.update, self.name)
+		
+	def update(self, task):
+		dt = globalClock.getDt()
+		self.timer -= dt
+		#print "%s timer is at %s" % (self.name, self.timer)
+		return task.cont
+		
+	def stop(self):
+		taskMgr.remove(self.task)
+		
+	def goto(self, x, y):
+		print "AI sent a goto instruction for %s : %s / %s" % (self.name, x, y)
+		start = (self.mapChar.getTilePos())
+		end = (x, y)
+		data = self.gm.map.collisionGrid.data
+		path = astar(start, end, data)
+		if path is []:
+			return False
+		newPath = []
+		for tile in path:
+			newPath.append((tile[0], tile[1], self.gm.map.collisionGrid.getTileHeight(tile[0], tile[1])))
+		delay = self.mapChar.setPath(newPath)
+		if delay is not None:
+			self.timer += delay + random.random()*10.0
+		
+class NPCAI(CreatureAI):
+	def __init__(self, gm, name = "NPCAI"):
+		CreatureAI.__init__(self, gm, name)
+		self.mapChar = self.gm.NPC[name]
+		self.request("Wander")
+		
+	def enterWander(self):
+		self.task = taskMgr.add(self.updateWander, self.name)
+		
+	def exitWander(self):
+		self.stop()
+		
+	def update(self, task):
+		dt = globalClock.getDt()
+		self.timer -= dt
+		#print "NPC '%s' timer is at %s" % (self.name, self.timer)
+		return task.cont
+	
+	def updateWander(self, task):
+		dt = globalClock.getDt()
+		self.timer -= dt
+		if self.timer <= 0:
+			if self.mapChar.mode == "idle":
+				if self.gm.dialog:
+					if self.gm.dialog.name != self.name:
+						#print "Sending NPC to random pos"
+						tile = self.gm.map.collisionGrid.getRandomTile()
+						if tile is not None:
+							self.goto(tile[0], tile[1])
+						else:
+							self.mapChar.resetTimer()
+				else:
+					tile = self.gm.map.collisionGrid.getRandomTile()
+					if tile is not None:
+						self.goto(tile[0], tile[1])
+		return task.cont

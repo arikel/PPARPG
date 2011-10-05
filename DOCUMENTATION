@@ -1,3 +1,8 @@
+To run the game : python game.py
+
+You can edit config.py to change the game settings.
+
+
 #-----------------------------------------------------------------------
 # Map format :
 #-----------------------------------------------------------------------
@@ -21,3 +26,8 @@ The keys of such a map dictionary can be :
 
 TODO : handle water, plants
 
+#-----------------------------------------------------------------------
+# Custom events :
+#-----------------------------------------------------------------------
+- playerDied
+- NPCDied [name]

@@ -299,6 +299,9 @@ class WaterPlane():
 		self.prevtime = task.time
 		return Task.cont
 		
+	def destroy(self):
+		taskMgr.remove(self.task)
+		
 if __name__ == "__main__":
 	base.setFrameRateMeter(True)
 	#w = WaterPlane()

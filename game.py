@@ -23,6 +23,7 @@ win-fixed-size 1
 basic-shaders-only #f
 fullscreen %s
 #audio-library-name null
+text-minfilter linear_mipmap_nearest
 """ % (CONFIG_W, CONFIG_H, fullscreen))
 
 
@@ -172,6 +173,8 @@ class MapManager(MapManagerBase):
 		
 		# NPCs
 		self.NPC = {}
+		self.NPCAI = {}
+		
 		for name, sex in [("ula2", "female"), ("Kimmo", "male"), ("Drunkard", "male"), ("Camilla", "female")]:
 			x, y = self.map.collisionGrid.getRandomTile()
 			# yes, we will have to think about something smarter in the long run, i know...
@@ -336,7 +339,7 @@ class MapManager(MapManagerBase):
 		name = self.getHoverNPCName()
 		if name is not None:
 			print "map manager : right click on NPC : %s, label toggle" % (name)
-			self.NPC[name].toggleLabel()
+			#self.NPC[name].toggleLabel()
 			self.gui.objectMenu.rebuild(["look", "talk", "attack"])
 			self.gui.objectMenu.buttons[0].bind(DGG.B1PRESS, self.onTalkTo, [name])
 			self.gui.objectMenu.buttons[1].bind(DGG.B1PRESS, self.onTalkTo, [name])
@@ -378,17 +381,25 @@ class MapManager(MapManagerBase):
 		npc.setTilePos(x, y)
 		self.NPC[name] = npc
 		npc.reparentTo(self.map.NPCroot)
-	
+		ai = NPCAI(self, name)
+		self.NPCAI[name] = ai
+		
 	def removeNPC(self, name):
 		if name in self.NPC:
 			self.NPC[name].destroy()
 			del self.NPC[name]
-		
+		if name in self.NPCAI:
+			self.NPCAI[name].stop()
+			del self.NPCAI[name]
+			
 	def removeAllNPC(self):
 		for name in self.NPC.keys():
 			self.NPC[name].destroy()
 			del self.NPC[name]
-		
+			if name in self.NPCAI:
+				self.NPCAI[name].stop()
+				del self.NPCAI[name]
+
 	def playerGoto(self, x, y):
 		start = (self.player.getTilePos())
 		end = (x, y)
@@ -482,6 +493,7 @@ class MapManager(MapManagerBase):
 		
 		#-------------------------------------------------
 		# NPC random movement
+		'''
 		for name in self.NPC:
 			npc = self.NPC[name]
 			if npc.timer <= 0:
@@ -498,7 +510,7 @@ class MapManager(MapManagerBase):
 						tile = self.map.collisionGrid.getRandomTile()
 						if tile is not None:
 							self.NPCGoto(name, tile[0], tile[1])
-		
+		'''
 		#for obj in self.map.mapObjects.values():
 		#	print "map manager task says : %s is at %s" % (obj.name, obj.getPos())
 		return task.cont
@@ -999,15 +1011,28 @@ if __name__ == "__main__":
 	'''
 	
 	game = Game("save/default.txt")
-	#game.map.mapObjectRoot.flattenStrong() # bad idea xD
 	
 	size = 200
-	#w0 = WaterPlane(-size, -size, size, size)
+	w0 = WaterPlane(-size, -size, size, size)
+	#w0.destroy()
 	
+	for i in range(5):
+		crystal = loader.loadModel("models/props/crystal2")
+		crystal.reparentTo(render)
+		crystal.setShaderOff()
+		crystal.setLightOff()
+		crystal.setPos(22,12,0)
+		h = random.randint(-30,30)
+		p = random.randint(-30,30)
+		r = random.randint(-30,30)
+		s = random.random()*0.5+0.1
+		crystal.setHpr(h,p,r)
+		crystal.setScale(s)
+		
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
-	#p = GrassEngine(grassNp, 100, 100)
+	p = GrassEngine(grassNp, 100, 100)
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 

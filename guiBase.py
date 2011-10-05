@@ -16,6 +16,22 @@ textColors = {}
 textColors["white"] = ((1,1,1,1), (0,0,0,0.8))
 textColors["white_transp"] = ((1,1,1,1), (0,0,0,0.0))
 
+
+def loadFont(ref, size=15, spaceAdvance=None, 
+	lineHeight=None, scaleFactor=1, 
+	textureMargin=2, minFilter=Texture.FTNearest,
+	magFilter=Texture.FTNearest, 
+	renderMode=None):
+	return loader.loadFont(ref, spaceAdvance=spaceAdvance,
+		lineHeight=lineHeight, 
+		pixelsPerUnit=size,
+		scaleFactor=scaleFactor,
+		textureMargin=textureMargin,
+		minFilter=minFilter, magFilter=magFilter)
+
+
+
+
 #FONT = loader.loadFont("fonts/oldtypewriter.ttf")
 #FONT_SCALE = 0.035
 
@@ -38,6 +54,13 @@ FONT_SCALE2 = 0.035
 
 
 
+size = 12.0
+sx = 0.04*600.0/base.win.getYSize()
+FONT = loadFont("fonts/arial.ttf", size=size)
+#FONT = loadFont("fonts/DejaVuSans.ttf", size=size)
+#FONT_SCALE = (3*size/base.win.getXSize(), 3*size/base.win.getYSize(), 0.0)
+FONT_SCALE = (sx,sx,1)
+
 #-------------------------------------------------------------------------------
 # makeImg
 #-------------------------------------------------------------------------------
@@ -52,7 +75,7 @@ def makeImg(x,y, path, scale = 1):
 def makeMsg(x,y, txt = "msg", color = "white"):
 	fg = textColors[color][0]
 	bg = textColors[color][1]
-	M = OnscreenText(style=1, fg=fg, bg=bg, pos=(x, y), align=TextNode.ALeft, scale = FONT_SCALE, mayChange = 1, font = FONT)
+	M = OnscreenText(style=1, fg=fg, bg=bg, pos=(x, y), align=TextNode.ALeft, scale = FONT_SCALE, mayChange = 1, font = FONT,wordwrap=40*base.win.getXSize()/800.0)
 	M.setText(txt)
 	return M
 

@@ -32,8 +32,9 @@ mapObjectDB["bed"] = ["models/props/bed", "models/props/bed.jpg", (0,0,0.5,0.8)]
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
 class MapObject:
+	"""MapObject can't move or change map in game"""
 	def __init__(self, map, genre, name):
-		self.map = map # reference to the game map the object belongs to
+		self.map = map # reference to the Map the object belongs to
 		self.genre = genre # NPC, building, decor, item, warp...
 		self.name = name
 		self.model = None
@@ -96,10 +97,11 @@ class MapObject:
 		self.model.setTransparency(True)
 		
 		if texturePath is not None:
-			tex = loader.loadTexture(texturePath)
+			self.tex = loader.loadTexture(texturePath)
 			#self.model.clearTexture(TextureStage.getDefault())
 			self.model.clearTexture()
-			self.model.setTexture(TextureStage.getDefault(), tex)
+			self.model.setTexture(TextureStage.getDefault(), self.tex)
+		self.currentAnim = None
 		
 	def reparentTo(self, np):
 		self.model.reparentTo(np)
@@ -261,7 +263,10 @@ class MapNPC(MapObject):
 		self.equipped = []
 		
 		self.setMode("idle")
-		self.task = taskMgr.add(self.update, self.name)
+		self.timerMsg.setText(self.name)
+		
+		#self.task = taskMgr.add(self.update, self.name)
+		self.task = None
 		
 	def addCollision(self):
 		#self.colSphere = CollisionSphere(0,0,0,0.5)
@@ -284,6 +289,7 @@ class MapNPC(MapObject):
 		self.model.loop(animName)
 		for item in self.equipped:
 			item.loop(animName)
+		self.currentAnim = animName
 		
 	def stop(self):
 		if self.sequence:
@@ -365,6 +371,8 @@ class MapNPC(MapObject):
 		self.sequence.append(f)
 		#print "Setting path for %s" % (self.name)
 		self.sequence.start()
+		# return the time it will take, used by NPCAI
+		return self.speed * len(path)
 		
 	def resetTimer(self, args=[]):
 		self.timer = random.random()*15.0
@@ -397,7 +405,7 @@ class MapNPC(MapObject):
 			return task.cont
 			
 		dt = globalClock.getDt()
-		self.timer -= dt
+		#self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
 		
 		timer = str(round(self.timer, 1))
@@ -406,7 +414,9 @@ class MapNPC(MapObject):
 		
 		if self.mode == "idle" and not self.gm.dialog:
 			if self.getDistToPlayer()<5.0:
-				self.loop("fightStanceHand")
+				#self.loop("fightStanceHand")
+				if self.currentAnim != "kick":
+					self.loop("kick")
 			else:
 				self.loop("idle")
 		'''
@@ -432,7 +442,8 @@ class MapNPC(MapObject):
 	def destroy(self):
 		if self.sequence:
 			self.sequence.pause()
-		taskMgr.remove(self.task)
+		if self.task:
+			taskMgr.remove(self.task)
 		self.model.cleanup()
 		self.model.remove()
 		
