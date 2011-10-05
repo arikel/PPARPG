@@ -98,10 +98,7 @@ class CreatureState:
 		self.spMax = spMax 
 		
 	def checkHp(self):
-		if self.hp > self.maxHp:
-			self.hp = self.maxHp
-		elif self.hp < 0:
-			self.hp = 0
+		self.hp = max(0, min(self.maxHp, self.hp))
 	
 	def addHp(self, n):
 		self.hp += n
@@ -111,10 +108,7 @@ class CreatureState:
 		self.addHp(-n)
 	
 	def checkSp(self):
-		if self.sp > self.maxSp:
-			self.sp = self.maxSp
-		elif self.sp < 0:
-			self.sp = 0
+		self.sp = max(0, min(self.maxSp, self.sp))	
 		
 	def addSp(self, n):
 		self.sp += n
