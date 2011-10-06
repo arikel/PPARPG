@@ -35,7 +35,7 @@ class InventorySlot(DirectButton):
 		#self.bind(DGG.EXIT, command=self.onOut, extraArgs=[self])
 		
 		
-		self.bgImg = makeImg(0,0,"img/items/default.jpg", self.size)
+		self.bgImg = makeImg(0,0,"img/items/empty.png", self.size)
 		self.bgImg.reparentTo(self)
 		
 		self.imgPath = None
@@ -229,7 +229,9 @@ class GameGui:
 		
 	def clearObjInfo(self):
 		self.objectLabel.setText("")
-
+	
+	def closeMenu(self):
+		self.objectMenu.retract()
 
 if __name__=="__main__":
 	g = GameGui(None)

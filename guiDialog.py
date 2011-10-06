@@ -254,14 +254,15 @@ class DialogGui:
 		
 		self.frame = DirectFrame(
 			frameSize = (-1,1,-0.18,0.18),
-			frameColor=(0.61, 0.61, 0.61, 0.99),
+			#frameColor=(0.61, 0.61, 0.61, 0.99),
+			frameColor=(0., 0., 0., 0.8),
 			pos = (x, 0, y),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
 			relief = DGG.GROOVE,
-			image = "img/items/bg1.png",
-			image_scale = (0.998,0,0.178),
-			image_pos = (0,0,0)
+			#image = "img/items/bg1.png",
+			#image_scale = (0.998,0,0.178),
+			#image_pos = (0,0,0)
 		)
 		
 		self.portraitPath = "img/portraits/" + name + ".png"

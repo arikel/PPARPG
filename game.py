@@ -348,6 +348,7 @@ class MapManager(MapManagerBase):
 			if base.mouseWatcherNode.hasMouse():
 				mpos = base.mouseWatcherNode.getMouse()
 				self.gui.objectMenu.setPos(mpos)
+				self.gm.cursor.setMode()
 			#self.openDialog(name)
 			return
 		
@@ -361,12 +362,15 @@ class MapManager(MapManagerBase):
 			pos = self.clicker.getMouseTilePos(mpos)
 			self.playerGoto(pos[0], pos[1])
 			print "Player goto %s/%s" % (pos[0], pos[1])
+			self.gm.cursor.setMode()
 			return
 		# and this should never happen
 		print "WARNING : map manager : right click on nothing?!"
 		return False
 	
 	def onTalkTo(self, name, extraArgs=[]):
+		self.gui.closeMenu() # in case we asked the talk to from this context menu
+		
 		if self.getPlayerDistToNPC(name)< 4.0:
 			self.openDialog(name)
 		else:
@@ -375,6 +379,7 @@ class MapManager(MapManagerBase):
 			self.player.sequence.append(Func(self.onTalkTo, name))
 			self.player.sequence.resume() # ?
 			#print "Appended talkTo %s to sequence %s" % (name, self.player.sequence)
+		self.gm.cursor.setMode()
 			
 	def addNPC(self, name, modelName, tex, x, y):
 		npc = MapNPC(self, name, modelName, tex)
@@ -466,6 +471,11 @@ class MapManager(MapManagerBase):
 		self.gm.gameCam.update()
 	
 	def update(self, task):
+		if self.dialog:
+			self.updateCam()
+			self.gm.cursor.setMode()
+			return task.cont
+			
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
 			mpos = base.mouseWatcherNode.getMouse()
@@ -486,7 +496,10 @@ class MapManager(MapManagerBase):
 				if name is not None:
 					msg = "talk to : " + name + "\npos = " + str(self.NPC[name].getPos())
 					self.gui.setObjInfo(mpos, msg)
+					if not self.gui.objectMenu.open:
+						self.gm.cursor.setMode("talk")
 				else:
+					self.gm.cursor.setMode("default")
 					self.gui.clearObjInfo()
 		
 		self.updateCam()

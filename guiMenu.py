@@ -104,12 +104,14 @@ class TopMenu:
 		self.topButton.onHover()
 		self.menu.expand()
 		self.frame.bind(DGG.EXIT, self.retract)
-			
+		self.open = True
+		
 	def retract(self, extraArgs=[]):
 		#print "top menu : retract"
 		self.topButton.onOut()
 		self.menu.retract()
 		self.frame.ignore(DGG.EXIT)
+		self.open = False
 		
 	def hide(self):
 		self.frame.hide()
@@ -163,7 +165,7 @@ class ActionMenu:
 		
 		#self.frame.bind(DGG.ENTER, self.expand)
 		self.frame.bind(DGG.EXIT, self.retract)
-		
+		self.open = True
 		self.retract()
 		
 	def hide(self):
@@ -211,14 +213,14 @@ class ActionMenu:
 		
 		self.frame.show()
 		self.frame.bind(DGG.EXIT, self.retract)
-		
+		self.open = True
 		
 	def retract(self, extraArgs=[]):
 		for submenu in self.subMenus:
 			submenu.retract()
 		self.frame.hide()
 		self.frame.ignore(DGG.EXIT)
-		
+		self.open = False
 		
 	def clear(self):
 		for b in self.buttons:
