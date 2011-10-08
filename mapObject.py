@@ -193,6 +193,40 @@ class MapObject:
 			self.model.remove()
 		
 		
+#-----------------------------------------------------------------------
+# Drops
+#-----------------------------------------------------------------------
+
+class MapDrop(MapObject):
+	def __init__(self, gm, name, genre, nb, pos):
+		self.gm = gm
+		self.name = name
+		self.genre = genre
+		self.pos = pos
+		self.model = loader.loadModel("models/generic/drop")
+		self.model.setPos(pos)
+		self.model.reparentTo(self.gm.map.creatureRoot)
+		self.addCollision((0,0,0,0.2))
+		
+#-----------------------------------------------------------------------
+# Creatures
+#-----------------------------------------------------------------------
+
+class MapCreature(MapObject):
+	def __init__(self, gm, name, modelPath="models/characters/male", texPath=None,genre="NPC"):
+		self.gm = gm # MapManager
+		self.name = name
+		self.genre = genre
+		# actor
+		self.model = None
+		self.modelPath = modelPath
+		modelName = modelPath.split("/")[-1]
+		#walkanim = "models/characters/" + modelName + "-walk"
+		walkanim = "models/characters/neoMale-walk"
+		#idleanim = "models/characters/" + modelName + "-idle"
+		idleanim = "models/characters/neoMale-idle"
+		fightStanceAnim = "models/characters/neoMale-fightStanceHand"
+		
 
 #-----------------------------------------------------------------------
 # NPC

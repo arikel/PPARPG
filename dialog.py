@@ -18,20 +18,20 @@ class Dialog:
 		self.playerData = gm.playerData
 		print "Initialising script for NPC %s, playerData = %s" % (name, self.playerData)
 		self.name = name # the name of the NPC running this dialog with the player
-		self.gui = DialogGui(0,-0.5,name)
+		#self.gui = DialogGui(name) # replaced by self.gm.gui.dialogGui
 		self.intro()
 		
 	def destroy(self, args=[]):
-		self.gui.destroy()
+		self.gm.gui.dialogGui.destroy()
 		self.gm.dialog = None
 		if self.name in self.gm.NPC:
 			self.gm.NPC[self.name].resetTimer()
 		
 	def setMainText(self, text):
-		self.gui.setMainText(text)
+		self.gm.gui.dialogGui.setMainText(text)
 	
 	def setMenu(self, menu):
-		self.gui.setMenu(menu)
+		self.gm.gui.dialogGui.setMenu(menu)
 		
 	def getQuestValue(self):
 		if self.name not in self.playerData:

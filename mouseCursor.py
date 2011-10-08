@@ -10,7 +10,8 @@ class MouseCursor:
 	def __init__(self):
 		self.img = {}
 		self.img["default"] = loader.loadTexture("img/cursors/cursor3.png")
-		self.img["talk"] = loader.loadTexture("img/cursors/talk.png")
+		self.img["talk"] = loader.loadTexture("img/cursors/mouth.png")
+		self.img["hand"] = loader.loadTexture("img/cursors/hand.png")
 		
 		self.crosshair = loader.loadModel('models/generic/cursor.egg')
 		self.crosshair.setTransparency(TransparencyAttrib.MAlpha)
@@ -30,12 +31,13 @@ class MouseCursor:
 		if self.mode != mode:
 			self.crosshair.setTexture(self.img[mode],1)
 			self.mode = mode
-		if self.mode == "default":
-			self.crosshair.setScale(0.075,0,0.075*RATIO)
-		else:
-			self.crosshair.setScale(0.0375,0,0.0375*RATIO)
+			if self.mode == "default":
+				self.crosshair.setScale(0.075,0,0.075*RATIO)
+			else:
+				self.crosshair.setScale(0.0375,0,0.0375*RATIO)
 		
-
+	def setImage(self):
+		pass
 
 #-----------------------------------------------------------------------
 # Clicker
@@ -62,7 +64,7 @@ class Clicker:
 		
 	def getMouseObject(self, np=render):
 		if base.mouseWatcherNode.hasMouse():
-			#self.picker.showCollisions(np)
+			self.picker.showCollisions(np)
 			
 			mpos = base.mouseWatcherNode.getMouse()
 			self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())

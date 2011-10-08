@@ -31,6 +31,9 @@ class Map:
 		self.walls = [] # dynamic walls, see WallBuilder in wallBuilder.py
 		self.innerWall = None
 		
+		self.creatureRoot = NodePath("creatureRoot")
+		self.creatureRoot.reparentTo(render)
+		
 		self.collisionGrid = None
 		self.sky = None
 		self.bgMusic = None

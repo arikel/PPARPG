@@ -245,7 +245,7 @@ class DialogButtonList:
 		
 		
 class DialogGui:
-	def __init__(self, x, y, name):
+	def __init__(self, name, x=0,y=-0.5,):
 		self.x = x
 		self.y = y
 		

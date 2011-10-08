@@ -9,59 +9,36 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.interval.IntervalGlobal import *
 
 from guiBase import *
-from guiMenu import *
+from guiMenu import ActionMenu
+from guiDialog import DialogGui
 
-class InventorySlot(DirectButton):
-	def __init__(self, x, y, name, size=0.1):
-		self.name = name
-		self.x = x
-		self.y = y
-		self.size = size
-		
+class ItemSlot(DirectButton):
+	def __init__(self):
+		self.clear()
+		self.size = 0.09
 		DirectButton.__init__(self,
 			frameSize = (-self.size,self.size,-self.size,self.size),
-			pos = (x, 1, y),
+			pos = (0, 1, 0),
 			pad = (0,0),
 			borderWidth=(0.008,0.008),
 			frameColor=(0.2,0.2,0.2,0.6),
 			relief = DGG.GROOVE,
-			rolloverSound = None,#soundDic["rollover"],
-			clickSound = None,#soundDic["select_confirm"],
-			sortOrder=-100
+			rolloverSound = None,
+			clickSound = None,
+			sortOrder=-100,
+			image = "img/items/empty.png",
+			image_scale=0.08,
 		)
-		self.initialiseoptions(InventorySlot)
-		#print "at init, slot %s has sortOrder %s" % (self.name, self["sortOrder"])
-		#self.bind(DGG.ENTER, command=self.onHover, extraArgs=[self])
-		#self.bind(DGG.EXIT, command=self.onOut, extraArgs=[self])
+		self.initialiseoptions(ItemSlot)
 		
-		
-		self.bgImg = makeImg(0,0,"img/items/empty.png", self.size)
-		self.bgImg.reparentTo(self)
-		
-		self.imgPath = None
-		self.img = None
-		self.following = False
-		self.parent = None
-		
-	def setImg(self, imgPath):
-		self.setEmpty()
-		self.imgPath = imgPath
-		self.img = makeImg(0,0,imgPath, self.size*0.9)
-		self.img.reparentTo(self)
-		
-	def setEmpty(self):
-		if self.img:
-			self.img.destroy()
-			self.img = None
-			self.imgPath = None
-	
-	def onHover(self, extraArgs, sentArgs):
-		pass
-		
-	def onOut(self, extraArgs, sentArgs):
-		pass
-		
-
+	def setItem(self, name, nb=1):
+		if nb >= 1:
+			self.isEmpty = False
+			self.itemName = name
+			self.itemNb = int(nb)
+	def clear(self):
+		self.isEmpty = True
+		self.itemName = None
 	
 	
 class InventoryGui:
@@ -81,8 +58,9 @@ class InventoryGui:
 		self.x = 5
 		self.y = 8
 		self.step = 2*self.size + 0.01
-		self.startx = -0.91
-		self.starty = 0.69
+		#self.startx = -0.91
+		self.startx = 0.15
+		self.starty = 0.65
 		
 		self.w = (self.x-1)*self.step + 2*self.size
 		self.h = (self.y-1)*self.step + 2*self.size
@@ -92,17 +70,22 @@ class InventoryGui:
 			for x in range(self.x):
 				name = "slot_" + str(i)
 				i += 1
-				slot = InventorySlot(x*self.step+self.startx, -y*self.step+self.starty, name, size=self.size)
+				slot = ItemSlot()
+				slot.setPos(x*self.step+self.startx, -1, -y*self.step+self.starty)
 				slot.reparentTo(self.frame)
 				slot.parent = self.frame
 				self.slots.append(slot)
 				
-		self.slots[2].setImg("img/items/weapons/rifle.png")
-		self.slots[3].setImg("img/items/weapons/katana.png")
+		#self.slots[2].setImg("img/items/weapons/rifle.png")
+		#self.slots[3].setImg("img/items/weapons/katana.png")
+		
 		self.visible = True
 		
 		self.info = makeMsg(-0.8,0.8, "Inventory info")
 		self.info.reparentTo(self.frame)
+		
+		self.equipImg = makeImg(-0.55,-0.025,"img/generic/PPARPG_model-sheet-Galya2.png", (0.4,1,0.8))
+		self.equipImg.reparentTo(self.frame)
 		
 		self.hide()
 		
@@ -151,38 +134,42 @@ class InventoryGui:
 class GameGui:
 	def __init__(self, mapManager):
 		self.mapManager = mapManager
-		self.infoLabel = makeMsgRight(0.95*RATIO,-0.95,"")
+		self.infoLabel = makeMsg(-0.95*RATIO,0.95,"")
 		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
 		self.inventory = InventoryGui()
 		i = 0
-		for slot in self.inventory.slots:
-			slot.bind(DGG.B1PRESS, self.onSelectItem, [i])
-			i += 1
-		self.pickedItem = InventorySlot(0,0,"pickedItem",0.1)
-		self.pickedItem.hide()
-		self.pickedItem.setBin("gui-popup", 50)
+		
+		#for slot in self.inventory.slots:
+		#	slot.bind(DGG.B1PRESS, self.onSelectItem, [i])
+		#	i += 1
+			
+		#self.pickedItem = InventorySlot(0,0,"pickedItem",0.1)
+		#self.pickedItem.hide()
+		#self.pickedItem.setBin("gui-popup", 50)
 		
 		self.objectMenu = ActionMenu(0,0)
 		self.objectMenu.rebuild(["look", "talk", "attack"])
 		
-	def onSelectItem(self, i, extraArgs=[]):
-		print "selected slot number %s, extraArgs = %s" % (i, extraArgs)
-		self.inventory.getMouseSlot()
-		if self.inventory.slots[i].imgPath:
-			self.pickedItem.setImg(self.inventory.slots[i].imgPath)
-		self.startFollowMouse()
-		self.pickedItem.bind(DGG.B1PRESS, self.stopFollowMouse)
+		self.dialogGui = None
+		
+	def openDialog(self, name):
+		self.dialogGui = DialogGui(name)
+		
+	def closeDialog(self):
+		self.dialogGui.destroy()
+		self.dialogGui = None
+		
 		
 	def startFollowMouse(self, extraArgs=[]):
-		self.pickedItem["sortOrder"] = 101
-		self.pickedItem.show()
-		#print "starting follow, slot %s has sortOrder %s" % (self.name, self["sortOrder"])
+		#self.pickedItem["sortOrder"] = 101
+		#self.pickedItem.show()
+		print "starting follow, slot %s has sortOrder %s" % (self.pickedItem.name, self.pickedItem["sortOrder"])
 		self.task = taskMgr.add(self.followTask, "follow")
 		
 	def followTask(self, task):
 		if base.mouseWatcherNode.hasMouse():
 			mpos = base.mouseWatcherNode.getMouse()
-			self.pickedItem.setPos(mpos.getX()*RATIO, 1, mpos.getY())
+			#self.pickedItem.setPos(mpos.getX()*RATIO, 1, mpos.getY())
 			
 			m = self.inventory.getMouseSlot()
 			if m is not None:
@@ -198,9 +185,9 @@ class GameGui:
 	def stopFollowMouse(self, extraArgs=[]):
 		
 		taskMgr.remove(self.task)
-		self.pickedItem["sortOrder"] = 100
-		self.pickedItem.setBin("fixed", 100)
-		self.pickedItem.hide()
+		#self.pickedItem["sortOrder"] = 100
+		#self.pickedItem.setBin("fixed", 100)
+		#self.pickedItem.hide()
 		print "stopped follow, slot %s has sortOrder %s" % (self.pickedItem.name, self.pickedItem["sortOrder"])
 		
 	def hide(self):
@@ -214,7 +201,7 @@ class GameGui:
 		self.infoLabel.show()
 		self.objectLabel.show()
 		#self.inventory.show()
-		self.objectMenu.show()
+		#self.objectMenu.show()
 		self.visible = True
 		
 	def setInfo(self, info):

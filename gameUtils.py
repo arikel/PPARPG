@@ -185,7 +185,8 @@ class GameState:
 		f = open(filename, 'w')
 		pickle.dump(self.getSaveData(), f)
 		f.close()
-		print "game data saved as %s" % (filename)
+		print "game state data saved as %s" % (filename)
+		self.filename = filename
 		
 	def getSaveData(self):
 		data = {}
@@ -193,7 +194,6 @@ class GameState:
 		data["NPCTracker"] = self.NPCTracker
 		data["questDic"] = self.questDic
 		return data
-
 
 class CreatureAI(FSM):
 	def __init__(self, gm, name = "CreatureAI"):
@@ -215,7 +215,7 @@ class CreatureAI(FSM):
 		taskMgr.remove(self.task)
 		
 	def goto(self, x, y):
-		print "AI sent a goto instruction for %s : %s / %s" % (self.name, x, y)
+		#print "AI sent a goto instruction for %s : %s / %s" % (self.name, x, y)
 		start = (self.mapChar.getTilePos())
 		end = (x, y)
 		data = self.gm.map.collisionGrid.data

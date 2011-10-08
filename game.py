@@ -120,6 +120,16 @@ class MapManagerBase(DirectObject):
 				return name
 		return None
 	
+	def getHoverCreatureName(self):
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			pos = self.clicker.getMouseTilePos(mpos)
+			res = self.clicker.getMouseObject(self.map.creatureRoot)
+			if res is not None:
+				name = res.getIntoNodePath().getName()
+				return name
+		return None
+	
 	def updateCam(self, dt=0.01):
 		if self.keyDic[FORWARD]:
 			self.camHandler.forward(dt)
@@ -151,11 +161,10 @@ class MapManager(MapManagerBase):
 		MapManagerBase.__init__(self, gm)
 		
 		# player
-		
-		name = self.gm.playerData["name"]
-		sex = self.gm.playerData["sex"]
-		self.playerState = PlayerState(name)
-		self.playerState.initSex(sex)
+		self.gameState = self.gm.gameState
+		self.playerState = self.gm.playerState
+		name = self.playerState.name
+		sex = self.playerState.sex
 		
 		if sex == "male":
 			modelPath = "models/characters/neoMale"
@@ -182,11 +191,15 @@ class MapManager(MapManagerBase):
 				self.addNPC(name, "models/characters/neoFemale", "models/characters/female1.jpg", x,y)
 			else:
 				self.addNPC(name, "models/characters/neoMale", "models/characters/neoMale.jpg", x,y)
-
 		
+		# monsters
+		self.mobs = {}
 		
-		
-		
+		# drops
+		self.drops = {}
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,0,0.25))
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(0,2,0.25))
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,2,0.25))
 		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
 		self.NPC["Camilla"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
@@ -259,9 +272,10 @@ class MapManager(MapManagerBase):
 		print "Map Manager : the player has died, let's move to title screen..."
 		
 	def save(self, filename):
-		f = open(filename, 'w')
-		pickle.dump(self.gm.playerData, f)
-		f.close()
+		#f = open(filename, 'w')
+		#pickle.dump(self.gm.playerData, f)
+		#f.close()
+		self.gm.gameState.saveAs(filename)
 		print "player data saved as %s" % (filename)
 		
 	def load(self, filename):
@@ -307,7 +321,7 @@ class MapManager(MapManagerBase):
 		if self.dialog:return
 		
 		name = self.getHoverNPCName()
-		if name is not None:
+		if name is not None and not self.gui.inventory.visible and not self.dialog:
 			print "map manager : left click on NPC : %s, opening dialog" % (name)
 			if self.getPlayerDistToNPC(name)< 4.0:
 				self.openDialog(name)
@@ -317,11 +331,16 @@ class MapManager(MapManagerBase):
 			return
 		
 		name = self.getHoverObjectName()
-		if name is not None:
+		if name is not None and not self.gui.inventory.visible and not self.dialog:
 			print "map manager : left click on map object : %s, position = %s" % (name, self.map.mapObjects[name].getPos())
 			return
 			
-		if base.mouseWatcherNode.hasMouse():
+		name = self.getHoverCreatureName()
+		if name is not None:
+			print "Click on %s" % (name)
+			return
+			
+		if base.mouseWatcherNode.hasMouse() and not self.gui.inventory.visible and not self.dialog:
 			mpos = base.mouseWatcherNode.getMouse()
 			pos = self.clicker.getMouseTilePos(mpos)
 			self.playerGoto(pos[0], pos[1])
@@ -337,7 +356,7 @@ class MapManager(MapManagerBase):
 		if self.dialog:return
 		
 		name = self.getHoverNPCName()
-		if name is not None:
+		if name is not None and not self.gui.inventory.visible and not self.dialog:
 			print "map manager : right click on NPC : %s, label toggle" % (name)
 			#self.NPC[name].toggleLabel()
 			self.gui.objectMenu.rebuild(["look", "talk", "attack"])
@@ -353,11 +372,11 @@ class MapManager(MapManagerBase):
 			return
 		
 		name = self.getHoverObjectName()
-		if name is not None:
+		if name is not None and not self.gui.inventory.visible and not self.dialog:
 			print "map manager : right click on map object : %s, position = %s" % (name, self.map.mapObjects[name].getPos())
 			return
 			
-		if base.mouseWatcherNode.hasMouse():
+		if base.mouseWatcherNode.hasMouse() and not self.gui.inventory.visible and not self.dialog:
 			mpos = base.mouseWatcherNode.getMouse()
 			pos = self.clicker.getMouseTilePos(mpos)
 			self.playerGoto(pos[0], pos[1])
@@ -380,6 +399,20 @@ class MapManager(MapManagerBase):
 			self.player.sequence.resume() # ?
 			#print "Appended talkTo %s to sequence %s" % (name, self.player.sequence)
 		self.gm.cursor.setMode()
+		
+		
+	def getDropNewName(self, genre):
+		i = 1
+		tmpName = genre + "_" + str(i)
+		while tmpName in self.drops:
+			i = i+1
+			tmpName = genre + "_" + str(i)
+		return tmpName
+		
+	def addDrop(self, genre, nb, pos):
+		name = self.getDropNewName(genre)
+		drop = MapDrop(self, name, genre, nb, pos)
+		self.drops[name] = drop
 			
 	def addNPC(self, name, modelName, tex, x, y):
 		npc = MapNPC(self, name, modelName, tex)
@@ -461,8 +494,10 @@ class MapManager(MapManagerBase):
 			self.player.lookAt(-lookDirX, -lookDirY)
 			
 			if name in dialogDic:
+				self.gui.openDialog(name)
 				self.dialog = dialogDic[name](self, name)
 			else:
+				self.gui.openDialog(name)
 				self.dialog = Dialog(self, name)
 		else:
 			print "Error, dialog called for unknown NPC : %s" % (name)
@@ -471,11 +506,12 @@ class MapManager(MapManagerBase):
 		self.gm.gameCam.update()
 	
 	def update(self, task):
-		if self.dialog:
-			self.updateCam()
+		self.updateCam()
+		if self.dialog or self.gui.inventory.visible:
+			self.gui.clearObjInfo()
 			self.gm.cursor.setMode()
 			return task.cont
-			
+		
 		dt = globalClock.getDt()
 		if base.mouseWatcherNode.hasMouse():
 			mpos = base.mouseWatcherNode.getMouse()
@@ -490,19 +526,28 @@ class MapManager(MapManagerBase):
 			if name is not None:
 				msg = "in game object : " + name + "\npos = " + str(self.map.mapObjects[name].getPos())
 				self.gui.setObjInfo(mpos, msg)
+				self.gm.cursor.setMode("hand")
+				return task.cont
+			
+			name = self.getHoverNPCName()
+			if name is not None:
+				msg = "talk to : " + name + "\npos = " + str(self.NPC[name].getPos())
+				self.gui.setObjInfo(mpos, msg)
+				if not self.gui.objectMenu.open:
+					self.gm.cursor.setMode("talk")
+				return task.cont
+			
+			name = self.getHoverCreatureName()
+			if name is not None:
+				self.gm.cursor.setMode("hand")
+				msg = "drop : " + name
+				self.gui.setObjInfo(mpos, msg)
+				return task.cont
 				
-			else:
-				name = self.getHoverNPCName()
-				if name is not None:
-					msg = "talk to : " + name + "\npos = " + str(self.NPC[name].getPos())
-					self.gui.setObjInfo(mpos, msg)
-					if not self.gui.objectMenu.open:
-						self.gm.cursor.setMode("talk")
-				else:
-					self.gm.cursor.setMode("default")
-					self.gui.clearObjInfo()
+			self.gm.cursor.setMode("default")
+			self.gui.clearObjInfo()
+			return task.cont
 		
-		self.updateCam()
 		
 		#-------------------------------------------------
 		# NPC random movement
@@ -868,6 +913,8 @@ class Game(FSM, DirectObject):
 		self.gameState = GameState()
 		if gamefilename is not None:
 			self.gameState.load(gamefilename)
+			self.playerState = self.gameState.playerState
+			
 		self.map = None
 		self.mapManager = None
 		self.editor = None
@@ -1031,9 +1078,12 @@ if __name__ == "__main__":
 	
 	for i in range(5):
 		crystal = loader.loadModel("models/props/crystal2")
-		crystal.reparentTo(render)
-		crystal.setShaderOff()
-		crystal.setLightOff()
+		
+		crystal.setShaderAuto()
+		#crystal.setLightOff()
+		ts = TextureStage('ts')
+		ts.setMode(TextureStage.MGlow)
+		crystal.setTexture(ts, loader.loadTexture("img/generic/glow.png"))
 		crystal.setPos(22,12,0)
 		h = random.randint(-30,30)
 		p = random.randint(-30,30)
@@ -1041,7 +1091,7 @@ if __name__ == "__main__":
 		s = random.random()*0.5+0.1
 		crystal.setHpr(h,p,r)
 		crystal.setScale(s)
-		
+		crystal.reparentTo(render)
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
@@ -1071,11 +1121,5 @@ if __name__ == "__main__":
 	
 	#PStatClient.connect()
 	#loadPrcFileData('setup', 'dump-generated-shaders #t')
-	
-	#shader = loader.loadShader("shaders/arishade2.sha")
-	#render.setShader(shader)
-	#render.setShaderInput("light", game.light.light)
-	#render.setShaderInput("light2", game.light.lightCenter)
-	#render.setShaderInput("cam", base.camera)
 	
 	run()
