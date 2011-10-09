@@ -433,11 +433,12 @@ class MapNPC(MapObject):
 	def toggleLabel(self):
 		if self.labelVisible:self.hideLabel()
 		else:self.showLabel()
-		
+	
+	"""
 	def update(self, task):
 		if self.genre == "player":
 			return task.cont
-			
+		print "NPC updating!"	
 		dt = globalClock.getDt()
 		#self.timer -= dt
 		#print "NPC update : timer = %s" % (self.timer)
@@ -472,6 +473,7 @@ class MapNPC(MapObject):
 			self.timerMsg.setText("")
 		'''
 		return task.cont
+	"""
 	
 	def destroy(self):
 		if self.sequence:

@@ -11,11 +11,15 @@ from direct.interval.IntervalGlobal import *
 from guiBase import *
 from guiMenu import ActionMenu
 from guiDialog import DialogGui
+from gameUtils import itemDB
 
 class ItemSlot(DirectButton):
-	def __init__(self):
-		self.clear()
-		self.size = 0.09
+	def __init__(self, name, transp = False):
+		self.name = name
+		self.size = 0.07
+		if transp:imgPath = None
+		else:imgPath="img/items/empty.png"
+		
 		DirectButton.__init__(self,
 			frameSize = (-self.size,self.size,-self.size,self.size),
 			pos = (0, 1, 0),
@@ -26,23 +30,55 @@ class ItemSlot(DirectButton):
 			rolloverSound = None,
 			clickSound = None,
 			sortOrder=-100,
-			image = "img/items/empty.png",
-			image_scale=0.08,
+			image = imgPath,
+			image_scale=0.06,
 		)
 		self.initialiseoptions(ItemSlot)
+		self.setBin("fixed", -149)
+		self.nb = 0
+		self.nbLabel = makeMsgRight(0.05,-0.05,str(self.nb), "white_transp")
+		self.nbLabel.setBin("fixed", -148)
+		self.nbLabel.reparentTo(self)
+		
+		self.itemImg = None
+		self.clear()
 		
 	def setItem(self, name, nb=1):
 		if nb >= 1:
-			self.isEmpty = False
-			self.itemName = name
-			self.itemNb = int(nb)
+			if name in itemDB:
+				item = itemDB[name]
+				self.isEmpty = False
+				self.nb = int(nb)
+				self.itemName = name
+				if nb > 1:
+					self.nbLabel.setText(str(self.nb))
+					print "Setting item number : %s" % (nb)
+					
+				else:
+					self.nbLabel.setText("")
+					print "item number is 1"
+				
+				if self.itemImg:self.itemImg.destroy()
+				self.itemImg = makeImg(0,0,item.imgPath,0.06)
+				self.itemImg.reparentTo(self)
+			else:
+				print "Name %s not found in itemDB, nb was %s" % (name, nb)
+		else:
+			print "impossible to set %s %s on this slot %s" % (nb, name, self.name)
+			self.clear()
+				
 	def clear(self):
 		self.isEmpty = True
 		self.itemName = None
-	
-	
+		self.nb = 0
+		self.nbLabel.setText("")
+		if self.itemImg:
+			self.itemImg.destroy()
+		self.itemImg = None
+		
 class InventoryGui:
-	def __init__(self):
+	def __init__(self, mapManager):
+		self.mapManager = mapManager
 		self.frame = DirectFrame(
 			frameSize = (-1,1,-0.78,0.78),
 			frameColor=(0.1, 0.1, 0.1, 0.8),
@@ -54,10 +90,10 @@ class InventoryGui:
 		)
 		self.frame.setBin("fixed", -150)
 		self.size = 0.08
-		self.slots = []
+		self.slots = {}
 		self.x = 5
-		self.y = 8
-		self.step = 2*self.size + 0.01
+		self.y = 6
+		self.step = 1.8*self.size# + 0.01
 		#self.startx = -0.91
 		self.startx = 0.15
 		self.starty = 0.65
@@ -70,15 +106,38 @@ class InventoryGui:
 			for x in range(self.x):
 				name = "slot_" + str(i)
 				i += 1
-				slot = ItemSlot()
+				slot = ItemSlot(name)
 				slot.setPos(x*self.step+self.startx, -1, -y*self.step+self.starty)
 				slot.reparentTo(self.frame)
 				slot.parent = self.frame
-				self.slots.append(slot)
-				
+				self.slots[name] = slot
+				#self.slots[name].bind(DGG.B1PRESS, self.onSlotClick, [self.slots[name].name])
 		#self.slots[2].setImg("img/items/weapons/rifle.png")
 		#self.slots[3].setImg("img/items/weapons/katana.png")
 		
+		
+		self.slots["head"] = ItemSlot("head", True)
+		self.slots["head"].setPos(-0.565, 0, 0.55)
+		
+		self.slots["torso"] = ItemSlot("torso", True)
+		self.slots["torso"].setPos(-0.565, 0, 0.2)
+		
+		self.slots["legs"] = ItemSlot("legs", True)
+		self.slots["legs"].setPos(-0.565, 0, -0.2)
+		
+		self.slots["feet"] = ItemSlot("feet", True)
+		self.slots["feet"].setPos(-0.565, 0, -0.6)
+		
+		
+		self.slots["right-hand"] = ItemSlot("right-hand", True)
+		self.slots["right-hand"].setPos(-0.815, 0, -0.01)
+		
+		self.slots["left-hand"] = ItemSlot("left-hand", True)
+		self.slots["left-hand"].setPos(-0.315, 0, -0.01)
+		
+		for key in self.slots:
+			self.slots[key].reparentTo(self.frame)
+			self.slots[key].bind(DGG.B1PRESS, self.onSlotClick, [self.slots[key].name])
 		self.visible = True
 		
 		self.info = makeMsg(-0.8,0.8, "Inventory info")
@@ -87,7 +146,63 @@ class InventoryGui:
 		self.equipImg = makeImg(-0.55,-0.025,"img/generic/PPARPG_model-sheet-Galya2.png", (0.4,1,0.8))
 		self.equipImg.reparentTo(self.frame)
 		
+		self.slots["slot_1"].setItem("katana", 1)
+		self.slots["slot_2"].setItem("shotgunShells", 25)
+		
 		self.hide()
+		
+	def onSlotClick(self, slotName, extraArgs=[]):
+		#print "InventoryGui : slot %s has been clicked on." % (slotName)
+		#item = self.slots[slotName]
+		if self.slots[slotName].isEmpty:
+			print "Slot %s clicked (empty)" % (slotName)
+			if self.mapManager.cursor.item is not None:
+				print "cursor puts %s * %s on empty slot" % (self.mapManager.cursor.item, self.mapManager.cursor.itemNb)
+				#self.slots[slotName].setItem(self.mapManager.cursor.item, self.mapManager.cursor.itemNb)
+				#self.mapManager.cursor.clear()
+				self.onPutItem(slotName)
+		else:
+			print "Slot %s containing %s %s clicked." % (slotName, self.slots[slotName].nb, self.slots[slotName].itemName)
+			if self.mapManager.cursor.item is None:
+				print "Picking item from inventory"
+				#self.mapManager.cursor.setItem(self.slots[slotName].itemName, self.slots[slotName].nb)
+				#self.slots[slotName].clear()
+				self.onPickItem(slotName)
+			else:
+				print "Switching items"
+				self.onSwitchItem(slotName)
+				#item1 = self.slots[slotName].itemName
+				#nb1 = self.slots[slotName].nb
+				#item2 = self.mapManager.cursor.item
+				#nb2 = self.mapManager.cursor.itemNb
+				
+				#self.mapManager.cursor.setItem(item1, nb1)
+				#self.slots[slotName].setItem(item2, nb2)
+				
+	def onPickItem(self, slotName):
+		self.mapManager.cursor.setItem(self.slots[slotName].itemName, self.slots[slotName].nb)
+		self.slots[slotName].clear()
+	
+	def onSwitchItem(self, slotName):
+		item1 = self.slots[slotName].itemName
+		nb1 = self.slots[slotName].nb
+		item2 = self.mapManager.cursor.item
+		nb2 = self.mapManager.cursor.itemNb
+		
+		self.mapManager.cursor.setItem(item1, nb1)
+		self.slots[slotName].setItem(item2, nb2)
+		
+	def onPutItem(self, slotName):
+		itemName = self.mapManager.cursor.item
+		itemNb = self.mapManager.cursor.itemNb
+		
+		for equipName in ["torso", "head", "legs", "feet"]:
+			if slotName == equipName and itemDB[itemName].equip != equipName:
+				print "item %s won't fit on slot %s" % (itemName, slotName)
+				return
+		
+		self.slots[slotName].setItem(self.mapManager.cursor.item, self.mapManager.cursor.itemNb)
+		self.mapManager.cursor.clear()
 		
 	def setInfo(self, msg):
 		self.info.setText(str(msg))
@@ -103,12 +218,12 @@ class InventoryGui:
 		self.frame.hide()
 		self.visible = False
 	
-	def toggle(self):
+	def toggle(self, extraArgs=[]):
 		if self.visible:
 			self.hide()
 		else:
 			self.show()
-		
+	'''	
 	def getMouseSlot(self):
 		if base.mouseWatcherNode.hasMouse():
 			mpos = base.mouseWatcherNode.getMouse()
@@ -130,13 +245,14 @@ class InventoryGui:
 				
 			return x, y
 		return None
-		
+	'''
+	
 class GameGui:
 	def __init__(self, mapManager):
 		self.mapManager = mapManager
 		self.infoLabel = makeMsg(-0.95*RATIO,0.95,"")
 		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
-		self.inventory = InventoryGui()
+		self.inventory = InventoryGui(self.mapManager)
 		i = 0
 		
 		#for slot in self.inventory.slots:
@@ -151,6 +267,26 @@ class GameGui:
 		self.objectMenu.rebuild(["look", "talk", "attack"])
 		
 		self.dialogGui = None
+		
+		self.size = 0.09
+		self.invButton = DirectButton(
+			frameSize = (-self.size,self.size,-self.size,self.size),
+			pos = (0.92*RATIO, 1, -0.9),
+			pad = (0,0),
+			borderWidth=(0.008,0.008),
+			frameColor=(0.0,0.0,0.0,0.0),
+			relief = DGG.GROOVE,
+			rolloverSound = None,
+			clickSound = None,
+			sortOrder=-100,
+			#image = "img/items/backpack6.png",
+			#image_scale=0.08,
+		)
+		
+		self.bagImg = makeImg(0.92*RATIO, -0.9, "img/items/bag.png", 0.08)
+		
+		
+		self.invButton.bind(DGG.B1PRESS, self.inventory.toggle)
 		
 	def openDialog(self, name):
 		self.dialogGui = DialogGui(name)
@@ -195,11 +331,15 @@ class GameGui:
 		self.objectLabel.hide()
 		self.inventory.hide()
 		self.objectMenu.hide()
+		self.invButton.hide()
+		self.bagImg.hide()
 		self.visible = False
 		
 	def show(self):
 		self.infoLabel.show()
 		self.objectLabel.show()
+		self.invButton.show()
+		self.bagImg.show()
 		#self.inventory.show()
 		#self.objectMenu.show()
 		self.visible = True

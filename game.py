@@ -67,6 +67,7 @@ from gameUtils import *
 class MapManagerBase(DirectObject):
 	def __init__(self, gm):
 		self.gm = gm # Game
+		self.cursor = self.gm.cursor
 		self.clicker = Clicker()
 		self.map = self.gm.map
 		#self.camHandler = self.gm.camHandler
@@ -375,6 +376,11 @@ class MapManager(MapManagerBase):
 		if name is not None and not self.gui.inventory.visible and not self.dialog:
 			print "map manager : right click on map object : %s, position = %s" % (name, self.map.mapObjects[name].getPos())
 			return
+		
+		name = self.getHoverCreatureName()
+		if name is not None and not self.gui.inventory.visible and not self.dialog:
+			print "map manager : right click on map creature / drop : %s, position = %s" % (name, self.drops[name].getPos())
+			return
 			
 		if base.mouseWatcherNode.hasMouse() and not self.gui.inventory.visible and not self.dialog:
 			mpos = base.mouseWatcherNode.getMouse()
@@ -384,7 +390,7 @@ class MapManager(MapManagerBase):
 			self.gm.cursor.setMode()
 			return
 		# and this should never happen
-		print "WARNING : map manager : right click on nothing?!"
+		#print "WARNING : map manager : right click on nothing?!"
 		return False
 	
 	def onTalkTo(self, name, extraArgs=[]):
@@ -507,9 +513,11 @@ class MapManager(MapManagerBase):
 	
 	def update(self, task):
 		self.updateCam()
+		
 		if self.dialog or self.gui.inventory.visible:
-			self.gui.clearObjInfo()
-			self.gm.cursor.setMode()
+			#self.gui.clearObjInfo()
+			#self.cursor.clear()
+			#self.gm.cursor.setMode()
 			return task.cont
 		
 		dt = globalClock.getDt()
@@ -525,27 +533,34 @@ class MapManager(MapManagerBase):
 			name = self.getHoverObjectName()
 			if name is not None:
 				msg = "in game object : " + name + "\npos = " + str(self.map.mapObjects[name].getPos())
-				self.gui.setObjInfo(mpos, msg)
-				self.gm.cursor.setMode("hand")
+				#self.gui.setObjInfo(mpos, msg)
+				self.cursor.setMode("hand")
+				self.cursor.setInfo(msg)
 				return task.cont
 			
 			name = self.getHoverNPCName()
 			if name is not None:
 				msg = "talk to : " + name + "\npos = " + str(self.NPC[name].getPos())
-				self.gui.setObjInfo(mpos, msg)
+				#self.gui.setObjInfo(mpos, msg)
+				self.cursor.setInfo(msg)
 				if not self.gui.objectMenu.open:
-					self.gm.cursor.setMode("talk")
+					self.cursor.setMode("talk")
 				return task.cont
 			
 			name = self.getHoverCreatureName()
 			if name is not None:
-				self.gm.cursor.setMode("hand")
+				self.cursor.setMode("hand")
 				msg = "drop : " + name
-				self.gui.setObjInfo(mpos, msg)
+				self.cursor.setInfo(msg)
+				#self.gui.setObjInfo(mpos, msg)
 				return task.cont
 				
-			self.gm.cursor.setMode("default")
-			self.gui.clearObjInfo()
+			#self.gm.cursor.setMode("default")
+			#self.gui.clearObjInfo()
+			if self.cursor.item is None and self.cursor.mode is not "default":
+				self.cursor.clear()
+			#self.cursor.setItem("cigarettes")
+			
 			return task.cont
 		
 		

@@ -5,6 +5,7 @@ from pandac.PandaModules import *
 from direct.directbase import DirectStart
 
 from guiBase import *
+from gameUtils import itemDB
 
 class MouseCursor:
 	def __init__(self):
@@ -27,6 +28,59 @@ class MouseCursor:
 		self.mode = None
 		self.setMode("default")
 		
+		self.msg = makeMsg(0,0,"cursor info")
+		self.msg.setPos(0.05,0.05)
+		self.msg.setBin("gui-popup", 101)
+		self.msg.reparentTo(self.dummyNP)
+		self.msg.setScale(0.0316/RATIO,0.032)
+		
+		self.item = None
+		self.itemNb = 0
+		
+		#self.start()
+		
+	def start(self):
+		self.task = taskMgr.add(self.update, "cursorTask")
+		
+	def stop(self):
+		taskMgr.remove(self.task)
+		
+	def setItem(self, name, nb=1):
+		if name in itemDB:
+			print "Setting cursor item : %s %s" % (nb, name)
+			item = itemDB[name]
+			self.itemNb = nb
+			self.item = item.name
+			path = item.imgPath
+			tex = loader.loadTexture(path)
+			self.crosshair.setTexture(tex,1)
+			self.crosshair.setScale(0.06,0,0.06*RATIO)
+			self.setInfo(str(self.itemNb))
+			
+	def clearItem(self):
+		print "removing cursor item"
+		self.itemNb = 0
+		self.item = None
+		self.crosshair.setTexture(self.img["default"],1)
+		self.crosshair.setScale(0.075,0,0.075*RATIO)
+		self.mode = "default"
+		
+	def hasItem(self):
+		if self.item is not None:
+			return True
+		return False
+		
+	def setInfo(self, msg):
+		self.msg.setText(msg)
+		
+	def clearInfo(self):
+		self.msg.setText("")
+		
+	def clear(self):
+		self.clearInfo()
+		self.clearItem()
+		
+		
 	def setMode(self, mode="default"):
 		if self.mode != mode:
 			self.crosshair.setTexture(self.img[mode],1)
@@ -36,9 +90,19 @@ class MouseCursor:
 			else:
 				self.crosshair.setScale(0.0375,0,0.0375*RATIO)
 		
-	def setImage(self):
-		pass
-
+	def setImage(self, name):
+		if name in self.img:
+			self.setMode(name)
+		else:
+			
+			img = loader.loadTexture()
+	'''
+	def update(self, task):
+		if base.mouseWatcherNode.hasMouse():
+			mpos = base.mouseWatcherNode.getMouse()
+			self.msg.setPos(mpos.getX()*RATIO+0.05,mpos.getY()+0.05)
+		return task.cont
+	'''
 #-----------------------------------------------------------------------
 # Clicker
 #-----------------------------------------------------------------------

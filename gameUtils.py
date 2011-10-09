@@ -21,41 +21,40 @@ def jette(n=1,d=6,b=0):
 	return res
 
 class Item:
-	def __init__(self, name, genre="generic", imgPath="img/items/empty.png", size=1, stackable=True):
+	def __init__(self, name):
 		self.name = name
-		self.genre = genre
-		self.imgPath = imgPath
-		self.stackable = stackable
-		self.size = size # room taken by this item in an Inventory
-
-
-'''
-class Weapon:
-	def __init__(self, name, genre, range, rate, ammo, damage, reloadTime):
-		self.name = name
-		self.genre = genre
-		self.range = range
-		self.rate = rate
-		self.ammo = ammo
-		self.damage = damage
-		self.reloadTime = reloadTime
+		self.descName = name
+		self.genre = "generic"
+		self.imgPath = "img/items/default.png"
+		self.stackable = True
+		self.size = 1 # room taken by this item in an Inventory
+		self.equip = None # "torso"...
 		
-		
-class Armor:
-	def __init__(self, name, genre, protection, fireBonus):
-		self.name = name
-		self.genre = genre
-		self.protection = protection
-		self.fireBonus = fireBonus
-		
-'''
+def makeItemGeneric(name, imgPath, size = 1):
+	item = Item(name)
+	item.imgPath = imgPath
+	item.size = size
+	return item
+	
+def makeItemEquip(name, imgPath, size = 1,equip="head"):
+	item = makeItemGeneric(name, imgPath, size)
+	item.equip = equip
+	item.genre = "equip"
+	item.stackable = False
+	return item
+	
+itemDB = {}
+itemDB["stick"] = makeItemEquip("stick", "img/items/weapons/stick.png", 1, "hand")
+itemDB["katana"] = makeItemEquip("katana", "img/items/weapons/katana.png", 1, "hand")
+itemDB["shotgunShells"] = makeItemGeneric("shotgunShells", "img/items/weapons/shotgunShells.png", 1)
 
 class ItemContainer:
-	def __init__(self):
+	def __init__(self, genre = "generic"):
 		self.item = None
 		self.nb = 0
 		
 	def setItem(self, item, nb=1):
+		#if item
 		self.item = item
 		self.nb = int(nb)
 		
@@ -69,18 +68,22 @@ class ItemContainer:
 			print("Error : can't stack %s with %s" % (item.name, self.item.name))
 		
 class Inventory:
-	def __init__(self):
+	def __init__(self, slots = 25, room = 50.0):
 		self.slots = {}
-		self.nbSlots = 25
-		self.room = 100
-		#for i in range(self.nbSlots):
-		#	self.slots[]
-			
+		self.nbSlots = slots
+		for i in range(self.nbSlots):
+			self.slots[i] = None
+		self.room = room
+		
+		self.equipSlots = {}
+		for key in ["head", "torso", "legs", "feet", "left-hand", "right-hand"]:
+			self.equipSlots[key] = None
+		
 	def hasRoom(self):
-		if len(self.slots)<self.limit:
+		if len(self.slots)<self.nbSlots:
 			return True
 		return False
-
+	
 	def addItem(self, item, nb):
 		pass
 		
@@ -116,6 +119,21 @@ class CreatureState:
 		
 	def remSp(self, n):
 		self.addSp(-n)
+		
+	def initCarac(self):
+		self.carac = {}
+		self.carac["STR"] = 1 # strength
+		self.carac["DEX"] = 1 # dexterity
+		self.carac["END"] = 1 # endurance / constitution
+		self.carac["WIL"] = 1 # willpower
+		self.carac["PER"] = 1 # perception
+		self.carac["TEC"] = 1 # technology
+		#self.carac[""] = 1
+		#self.carac[""] = 1
+	
+	def initSkill(self):
+		self.skill = {}
+		
 		
 		
 class CharacterState(CreatureState):
@@ -224,6 +242,7 @@ class CreatureAI(FSM):
 			return False
 		newPath = []
 		for tile in path:
+			#newPath.append((tile[0], tile[1], 0))
 			newPath.append((tile[0], tile[1], self.gm.map.collisionGrid.getTileHeight(tile[0], tile[1])))
 		delay = self.mapChar.setPath(newPath)
 		if delay is not None:
