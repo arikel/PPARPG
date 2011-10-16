@@ -19,6 +19,7 @@ class SkyBox:
 		self.name = None
 		
 	def load(self, name):
+		if name is None:return
 		path = "models/skies/" + str(name) + "/generic_skybox"
 		model = loader.loadModel(path)
 		model.setScale(1024)
@@ -36,6 +37,12 @@ class SkyBox:
 			del self.models[name]
 
 	def set(self, name):
+		if name is None:
+			if self.currentModel:
+				self.currentModel.detachNode()
+			self.name = None
+			return
+			
 		if name in self.models:
 			self.name = name
 			if self.currentModel:

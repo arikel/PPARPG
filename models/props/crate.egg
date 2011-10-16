@@ -11,14 +11,6 @@
   <Scalar> specb {0.25}
   <Scalar> shininess {12.5}
 }
-<Texture> crate_00_Tex.002 {
-  "./crate1.jpg"
-  <Scalar> saved-result { 1 }
-  <Scalar> envtype { MODULATE }
-  <Scalar> minfilter { LINEAR_MIPMAP_LINEAR }
-  <Scalar> magfilter { LINEAR_MIPMAP_LINEAR }
-  <Scalar> wrap { REPEAT }
-}
 <Group> Cube.001 {
   <VertexPool> Cube.001 {
     <Vertex> 0 {
@@ -215,42 +207,42 @@
     }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { 0.000000 0.000000 -1.000000
     }
     <VertexRef> { 0 1 2 3 <Ref> { Cube.001 } }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { 0.000000 -0.000000 1.000000
     }
     <VertexRef> { 4 5 6 7 <Ref> { Cube.001 } }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { 1.000000 -0.000000 0.000000
     }
     <VertexRef> { 8 9 10 11 <Ref> { Cube.001 } }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { -0.000000 -1.000000 0.000000
     }
     <VertexRef> { 12 13 14 15 <Ref> { Cube.001 } }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { -1.000000 0.000000 -0.000000
     }
     <VertexRef> { 16 17 18 19 <Ref> { Cube.001 } }
   }
   <Polygon> {
-    <TRef> { crate_00_Tex.002 }
+    
     <MRef> { crate }
     <Normal> { 0.000000 1.000000 0.000000
     }

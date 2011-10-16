@@ -79,9 +79,11 @@ class ItemSlot(DirectButton):
 class InventoryGui:
 	def __init__(self, mapManager):
 		self.mapManager = mapManager
+		self.playerState = self.mapManager.playerState
+		
 		self.frame = DirectFrame(
 			frameSize = (-1,1,-0.78,0.78),
-			frameColor=(0.1, 0.1, 0.1, 0.8),
+			frameColor=(0.1, 0.1, 0.1, 0.95),
 			pos = (0, 0, 0),
 			pad = (0,0),
 			borderWidth=(0.0,0.0),
@@ -140,11 +142,61 @@ class InventoryGui:
 			self.slots[key].bind(DGG.B1PRESS, self.onSlotClick, [self.slots[key].name])
 		self.visible = True
 		
-		self.info = makeMsg(-0.8,0.8, "Inventory info")
+		self.info = makeMsg(-0.74*RATIO,0.72, "INVENTORY")
 		self.info.reparentTo(self.frame)
 		
 		self.equipImg = makeImg(-0.55,-0.025,"img/generic/PPARPG_model-sheet-Galya2.png", (0.4,1,0.8))
 		self.equipImg.reparentTo(self.frame)
+		
+		
+		self.eyeButton = DirectButton(
+			frameSize = (-self.size,self.size,-self.size,self.size),
+			pos = (-0.25, 1, 0.6),
+			pad = (0,0),
+			borderWidth=(0.008,0.008),
+			frameColor=(0.2,0.2,0.2,0.6),
+			relief = DGG.GROOVE,
+			rolloverSound = None,
+			clickSound = None,
+			sortOrder=-100,
+			image = "img/items/eye2.png",
+			image_scale=0.07,
+		)
+		self.eyeButton.reparentTo(self.frame)
+		
+		self.mouthButton = DirectButton(
+			frameSize = (-self.size,self.size,-self.size,self.size),
+			pos = (-0.85, 1, 0.6),
+			pad = (0,0),
+			borderWidth=(0.008,0.008),
+			frameColor=(0.2,0.2,0.2,0.6),
+			relief = DGG.GROOVE,
+			rolloverSound = None,
+			clickSound = None,
+			sortOrder=-100,
+			image = "img/items/mouth2.png",
+			image_scale=0.07,
+		)
+		self.mouthButton.reparentTo(self.frame)
+		
+		x = 0.15
+		y = -0.2
+		step = 0.06
+		
+		
+		
+		self.heatBar = Barre(0.12,0.01,x,y,30, color1 = (0.4, 0.25, 0.2, 1.0), color2 = (0.85, 0.65, 0.25, 0.9), text = "Heat")
+		self.heatBar.reparentTo(self.frame)
+		
+		self.foodBar = Barre(0.12,0.01,x,y-step,30, color1 = (0.2, 0.1, 0.05, 1.0), color2 = (0.45, 0.15, 0.0, 0.9), text = "Food")
+		self.foodBar.reparentTo(self.frame)
+		
+		self.waterBar = Barre(0.12,0.01,x,y-2*step,30, color1 = (0.1, 0.25, 0.4, 1.0), color2 = (0.30, 0.45, 0.85, 0.9), text = "Water")
+		self.waterBar.reparentTo(self.frame)
+		
+		self.heatBar.setHp(27)
+		self.foodBar.setHp(12)
+		self.waterBar.setHp(20)
 		
 		self.slots["slot_1"].setItem("katana", 1)
 		self.slots["slot_2"].setItem("shotgunShells", 25)
@@ -202,7 +254,8 @@ class InventoryGui:
 				return
 		
 		self.slots[slotName].setItem(self.mapManager.cursor.item, self.mapManager.cursor.itemNb)
-		self.mapManager.cursor.clear()
+		self.mapManager.cursor.clearItem()
+		self.mapManager.cursor.clearInfo()
 		
 	def setInfo(self, msg):
 		self.info.setText(str(msg))
@@ -250,6 +303,8 @@ class InventoryGui:
 class GameGui:
 	def __init__(self, mapManager):
 		self.mapManager = mapManager
+		self.playerState = self.mapManager.playerState
+		
 		self.infoLabel = makeMsg(-0.95*RATIO,0.95,"")
 		self.objectLabel = makeMsg(-0.95*RATIO,-0.85,"")
 		self.inventory = InventoryGui(self.mapManager)
@@ -282,11 +337,12 @@ class GameGui:
 			#image = "img/items/backpack6.png",
 			#image_scale=0.08,
 		)
-		
-		self.bagImg = makeImg(0.92*RATIO, -0.9, "img/items/bag.png", 0.08)
-		
-		
+		self.bagImg = makeImg(0.95*RATIO, -0.92, "img/items/bag.png", 0.08)
 		self.invButton.bind(DGG.B1PRESS, self.inventory.toggle)
+		
+		self.hpBar = Barre(0.12,0.01,-0.95,-0.85,30, color1 = (0.1, 0.4, 0.25, 1.0), color2 = (0.30, 0.85, 0.45, 0.9), text = "HP")
+		self.spBar = Barre(0.12,0.01,-0.95,-0.90,30, color1 = (0.1, 0.25, 0.4, 1.0), color2 = (0.30, 0.45, 0.85, 0.9), text = "SP")
+		self.spBar.setHp(20)
 		
 	def openDialog(self, name):
 		self.dialogGui = DialogGui(name)
@@ -333,6 +389,9 @@ class GameGui:
 		self.objectMenu.hide()
 		self.invButton.hide()
 		self.bagImg.hide()
+		
+		self.hpBar.hide()
+		
 		self.visible = False
 		
 	def show(self):
@@ -342,6 +401,9 @@ class GameGui:
 		self.bagImg.show()
 		#self.inventory.show()
 		#self.objectMenu.show()
+		
+		self.hpBar.show()
+		
 		self.visible = True
 		
 	def setInfo(self, info):

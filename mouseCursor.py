@@ -26,25 +26,19 @@ class MouseCursor:
 		
 		self.crosshair.setBin("gui-popup", 100)
 		self.mode = None
-		self.setMode("default")
 		
 		self.msg = makeMsg(0,0,"cursor info")
 		self.msg.setPos(0.05,0.05)
 		self.msg.setBin("gui-popup", 101)
 		self.msg.reparentTo(self.dummyNP)
-		self.msg.setScale(0.0316/RATIO,0.032)
-		
+		#self.msg.setScale(0.0316/RATIO,0.032)
+		self.msg.setScale(24.0/base.win.getXSize(), 24.0/base.win.getYSize())
 		self.item = None
 		self.itemNb = 0
 		
+		self.setMode("default")
 		#self.start()
-		
-	def start(self):
-		self.task = taskMgr.add(self.update, "cursorTask")
-		
-	def stop(self):
-		taskMgr.remove(self.task)
-		
+
 	def setItem(self, name, nb=1):
 		if name in itemDB:
 			print "Setting cursor item : %s %s" % (nb, name)
@@ -58,17 +52,14 @@ class MouseCursor:
 			self.setInfo(str(self.itemNb))
 			
 	def clearItem(self):
-		print "removing cursor item"
+		#print "removing cursor item"
 		self.itemNb = 0
 		self.item = None
 		self.crosshair.setTexture(self.img["default"],1)
 		self.crosshair.setScale(0.075,0,0.075*RATIO)
 		self.mode = "default"
 		
-	def hasItem(self):
-		if self.item is not None:
-			return True
-		return False
+	
 		
 	def setInfo(self, msg):
 		self.msg.setText(msg)
@@ -77,11 +68,18 @@ class MouseCursor:
 		self.msg.setText("")
 		
 	def clear(self):
-		self.clearInfo()
-		self.clearItem()
+		if not self.item:
+			self.clearInfo()
+			self.clearItem()
+		else:
+			self.setInfo(str(self.itemNb))
 		
 		
 	def setMode(self, mode="default"):
+		if self.item:
+			#print "we have an item : %s" % (self.item)
+			self.setInfo(str(self.itemNb))
+			return
 		if self.mode != mode:
 			self.crosshair.setTexture(self.img[mode],1)
 			self.mode = mode
@@ -90,26 +88,14 @@ class MouseCursor:
 			else:
 				self.crosshair.setScale(0.0375,0,0.0375*RATIO)
 		
-	def setImage(self, name):
-		if name in self.img:
-			self.setMode(name)
-		else:
-			
-			img = loader.loadTexture()
-	'''
-	def update(self, task):
-		if base.mouseWatcherNode.hasMouse():
-			mpos = base.mouseWatcherNode.getMouse()
-			self.msg.setPos(mpos.getX()*RATIO+0.05,mpos.getY()+0.05)
-		return task.cont
-	'''
+
 #-----------------------------------------------------------------------
 # Clicker
 #-----------------------------------------------------------------------
 class Clicker:
 	def __init__(self, z=0):
 		"""
-		This class is used to handle clicks on the collision / pathfinding grid
+		This class is used to handle clicks on the collision / pathfinding grid and all other map objects
 		"""
 		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, z))
 		self.picker = CollisionTraverser()
@@ -135,13 +121,8 @@ class Clicker:
 			self.picker.traverse(np)
 			if self.pq.getNumEntries() > 0:
 				self.pq.sortEntries()
-				#print "y'a eu %s collisions!!!" % (self.pq.getNumEntries())
 				res = self.pq.getEntry(0)
-				#print "Entry = %s" % (res)
-				#print dir(res)
 				return res
-			#else:
-			#	print "y'a rien eu..."
 		return None
 		
 	def getMouseTilePos(self, mpos=None):

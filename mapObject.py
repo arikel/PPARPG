@@ -21,7 +21,8 @@ mapObjectDB["aldea_wood"] = ["models/props/aldea_wood", "models/buildings/aldea/
 mapObjectDB["aldea_pot"] = ["models/props/aldea_pot", "models/buildings/aldea/aldea.jpg", (0,0,0.5,0.5)]
 
 mapObjectDB["barrel"] = ["models/props/barrel", "models/props/barrel.jpg", (0,0,1,0.75)]
-mapObjectDB["crate"] = ["models/props/crate1", "models/props/crate1.jpg", (0,0,0.5,0.5)]
+mapObjectDB["crate"] = ["models/props/crate", "models/props/crate1.jpg", (0,0,0.5,0.5)]
+mapObjectDB["crate2"] = ["models/props/crate", "models/props/crate2.jpg", (0,0,0.5,0.5)]
 mapObjectDB["rock1"] = ["models/props/rock", "models/props/rock.jpg", (0,0,0.5,0.5)]
 
 mapObjectDB["table"] = ["models/props/table", "models/props/bench.jpg", (0,0,1.0,1.0)]
@@ -213,19 +214,14 @@ class MapDrop(MapObject):
 #-----------------------------------------------------------------------
 
 class MapCreature(MapObject):
-	def __init__(self, gm, name, modelPath="models/characters/male", texPath=None,genre="NPC"):
+	def __init__(self, gm, name, modelPath, texPath=None,genre="mob"):
 		self.gm = gm # MapManager
 		self.name = name
 		self.genre = genre
 		# actor
 		self.model = None
 		self.modelPath = modelPath
-		modelName = modelPath.split("/")[-1]
-		#walkanim = "models/characters/" + modelName + "-walk"
-		walkanim = "models/characters/neoMale-walk"
-		#idleanim = "models/characters/" + modelName + "-idle"
-		idleanim = "models/characters/neoMale-idle"
-		fightStanceAnim = "models/characters/neoMale-fightStanceHand"
+		#modelName = modelPath.split("/")[-1]
 		
 
 #-----------------------------------------------------------------------

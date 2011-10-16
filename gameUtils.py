@@ -48,6 +48,7 @@ itemDB["stick"] = makeItemEquip("stick", "img/items/weapons/stick.png", 1, "hand
 itemDB["katana"] = makeItemEquip("katana", "img/items/weapons/katana.png", 1, "hand")
 itemDB["shotgunShells"] = makeItemGeneric("shotgunShells", "img/items/weapons/shotgunShells.png", 1)
 
+'''
 class ItemContainer:
 	def __init__(self, genre = "generic"):
 		self.item = None
@@ -86,7 +87,7 @@ class Inventory:
 	
 	def addItem(self, item, nb):
 		pass
-		
+'''		
 		
 class CreatureState:
 	def __init__(self, name):
@@ -134,7 +135,11 @@ class CreatureState:
 	def initSkill(self):
 		self.skill = {}
 		
+	def setMap(self, filename):
+		self.map = filename
 		
+	def setPos(self, pos):
+		self.pos = pos
 		
 class CharacterState(CreatureState):
 	def __init__(self, name= None):
@@ -150,19 +155,24 @@ class CharacterState(CreatureState):
 	def onDie(self):
 		messenger.send("NPCDied", [self.name])
 		
+	
 		
 class PlayerState(CharacterState):
 	def __init__(self, name=None):
 		#CharacterState.__init__(self, name)
 		if name is None: self.name = "Galya"
 		else: self.name = str(name)
+		self.questDic = {} # NPCname : {quest1 : value1, quest2, value2...}
 		
 	def onDie(self):
 		messenger.send("playerDied")
 		#print "oops, player died :("
 	
-	def setMap(self, filename):
-		self.map = filename	
+	def setQuest(self, questName, questKey="main", questVal=0):
+		if questName not in self.questDic:
+			self.questDic[questName] = {}
+		self.questDic[questName][questKey] = questVal
+		print "playerState setQuest : %s : %s at %s" % (questName, questKey, questVal)
 		
 def makePlayerState(name="Galya", sex="female", hp=10, sp=10):
 	p = PlayerState(name)
@@ -184,7 +194,7 @@ class GameState:
 		self.filename = filename
 		self.playerState = playerState
 		self.NPCTracker = NPCTracker()
-		self.questDic = {}
+		
 		
 	def load(self, filename):
 		self.filename = filename
@@ -193,7 +203,7 @@ class GameState:
 		f.close()
 		self.playerState = data["playerState"]
 		self.NPCTracker = data["NPCTracker"]
-		self.questDic = data["questDic"]
+		#self.questDic = data["questDic"]
 		print "game loaded, data was %s" % data
 		
 	def save(self):
@@ -210,7 +220,7 @@ class GameState:
 		data = {}
 		data["playerState"] = self.playerState
 		data["NPCTracker"] = self.NPCTracker
-		data["questDic"] = self.questDic
+		#data["questDic"] = self.questDic
 		return data
 
 class CreatureAI(FSM):
@@ -246,13 +256,17 @@ class CreatureAI(FSM):
 			newPath.append((tile[0], tile[1], self.gm.map.collisionGrid.getTileHeight(tile[0], tile[1])))
 		delay = self.mapChar.setPath(newPath)
 		if delay is not None:
-			self.timer += delay + random.random()*10.0
+			self.timer += delay + random.random()*10.0 + 5.0
 		
 class NPCAI(CreatureAI):
 	def __init__(self, gm, name = "NPCAI"):
 		CreatureAI.__init__(self, gm, name)
 		self.mapChar = self.gm.NPC[name]
 		self.request("Wander")
+		
+	def resetTimer(self):
+		self.timer = random.random() * 10.0 + 5.0
+		
 		
 	def enterWander(self):
 		self.task = taskMgr.add(self.updateWander, self.name)
@@ -277,8 +291,8 @@ class NPCAI(CreatureAI):
 						tile = self.gm.map.collisionGrid.getRandomTile()
 						if tile is not None:
 							self.goto(tile[0], tile[1])
-						else:
-							self.mapChar.resetTimer()
+						#else:
+						#	self.mapChar.resetTimer()
 				else:
 					tile = self.gm.map.collisionGrid.getRandomTile()
 					if tile is not None:

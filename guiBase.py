@@ -84,12 +84,79 @@ def makeMsgRight(x,y, txt = "msg", color = "white"):
 	m["align"]=TextNode.ARight
 	return m
 
-
-
 #-------------------------------------------------------------------------------
-# MainButton
+# Barre
 #-------------------------------------------------------------------------------
-class MainButton(DirectButton):
+class Barre(DirectFrame):
+	def __init__(self, w=0.2,h=0.05,x=0.0,y=0.0,hpMax=10.0,color1 = (0.1, 0.4, 0.25, 1.0), color2 = (0.30, 0.85, 0.45, 0.9), text = None):
+		self.w = w
+		self.wMax = w
+		self.h = h
+		self.x = x
+		self.y = y
+		self.hp = hpMax
+		self.hpMax = hpMax
+		
+		#pad = 0.0025
+		pad = 2.0/base.win.getYSize()
+		DirectFrame.__init__(self,
+			frameSize = (-self.w*RATIO-pad,self.w*RATIO+pad,-self.h-pad,self.h+pad),
+			frameColor=color1,
+			pos = ((self.x+self.w)*RATIO,1,self.y),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+		)
+		self.initialiseoptions(Barre)
+		self.setBin("fixed", 0)
+		
+		self.bgFrame = DirectFrame(
+			frameSize = (-self.w*RATIO-pad*2.0,self.w*RATIO+pad*2.0,-self.h-pad*2.0,self.h+pad*2.0),
+			frameColor=color2,
+			pos = (0,1,0),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+		)
+		self.bgFrame.reparentTo(self)
+		self.bgFrame.setBin("fixed", -1)
+		
+		
+		self.hpFrame = DirectFrame(
+			frameSize = (-self.w*RATIO,self.w*RATIO,-self.h,self.h),
+			frameColor=color2,
+			pos = (0,1,0),
+			pad = (0,0),
+			borderWidth=(0.0,0.0),
+			relief = DGG.GROOVE,
+		)
+		self.hpFrame.reparentTo(self)
+		self.hpFrame.setBin("fixed", 1)
+		
+		if text is not None:
+			self.msg = makeMsgRight((-0.01-self.w)*RATIO,-0.01,text,"white_transp")
+			self.msg.reparentTo(self)
+			
+	def getHp(self):
+		return self.hp
+		
+	def setHp(self, hp):
+		self.hp = float(max(0, min(hp, self.hpMax)))
+		self.update()
+		
+	def update(self):
+		self.w = self.wMax * (self.hp / self.hpMax)
+		self.hpFrame["frameSize"] = (-self.w*RATIO,self.w*RATIO,-self.h,self.h)
+		self.hpFrame.setPos((self.w-self.wMax)*RATIO,1,0)
+		
+	def setHpMax(self, hp):
+		self.hpMax = float(hp)
+		self.update()
+		
+#-------------------------------------------------------------------------------
+# MainMenuButton
+#-------------------------------------------------------------------------------
+class MainMenuButton(DirectButton):
 	def __init__(self, x, y, name):
 		DirectButton.__init__(self,
 			frameSize = (-0.35,0.35,-0.07,0.07),
@@ -104,7 +171,7 @@ class MainButton(DirectButton):
 			#relief = DGG.RIDGE,
 			rolloverSound = None,#soundDic["rollover"],
 			clickSound = None,#soundDic["select_confirm"],
-			text_font = FONT,
+			text_font = FONT2,
 			#text_scale = (0.01,0.0125,1),
 			text_scale = (0.06,0.06,1.0),
 			text_fg = (0.8,0.8,0.8,1),

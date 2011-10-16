@@ -24,6 +24,7 @@ basic-shaders-only #f
 fullscreen %s
 #audio-library-name null
 text-minfilter linear_mipmap_nearest
+text-flatten 0
 """ % (CONFIG_W, CONFIG_H, fullscreen))
 
 
@@ -256,9 +257,10 @@ class MapManager(MapManagerBase):
 			keyUp = key + "-up"
 			self.accept(keyUp, self.setKey, [key, 0])
 		self.setMode(self.mode) # mouse click events
+
+		self.accept(SAVE, self.save, [self.gameState.filename])
+		self.accept(OPEN, self.load, [self.gameState.filename])
 		
-		self.accept(SAVE, self.save, ["save/sonia.txt"])
-		self.accept(OPEN, self.load, ["save/sonia.txt"])
 		self.accept(INVENTORY, self.gui.inventory.toggle)
 		self.accept("mouse2", self.gm.gameCam.startDrag)
 		self.accept("mouse2-up", self.gm.gameCam.stopDrag)
@@ -382,12 +384,13 @@ class MapManager(MapManagerBase):
 			print "map manager : right click on map creature / drop : %s, position = %s" % (name, self.drops[name].getPos())
 			return
 			
-		if base.mouseWatcherNode.hasMouse() and not self.gui.inventory.visible and not self.dialog:
-			mpos = base.mouseWatcherNode.getMouse()
-			pos = self.clicker.getMouseTilePos(mpos)
-			self.playerGoto(pos[0], pos[1])
-			print "Player goto %s/%s" % (pos[0], pos[1])
-			self.gm.cursor.setMode()
+		if base.mouseWatcherNode.hasMouse() and not self.dialog:
+			#mpos = base.mouseWatcherNode.getMouse()
+			#pos = self.clicker.getMouseTilePos(mpos)
+			#self.playerGoto(pos[0], pos[1])
+			#print "Player goto %s/%s" % (pos[0], pos[1])
+			#self.gm.cursor.setMode()
+			self.gui.inventory.toggle()
 			return
 		# and this should never happen
 		#print "WARNING : map manager : right click on nothing?!"
@@ -513,8 +516,11 @@ class MapManager(MapManagerBase):
 	
 	def update(self, task):
 		self.updateCam()
-		
-		if self.dialog or self.gui.inventory.visible:
+		if self.dialog:
+			self.cursor.clear()
+			return task.cont
+			
+		if self.gui.inventory.visible:
 			#self.gui.clearObjInfo()
 			#self.cursor.clear()
 			#self.gm.cursor.setMode()
@@ -557,35 +563,14 @@ class MapManager(MapManagerBase):
 				
 			#self.gm.cursor.setMode("default")
 			#self.gui.clearObjInfo()
-			if self.cursor.item is None and self.cursor.mode is not "default":
+			if self.cursor.item is None:
 				self.cursor.clear()
-			#self.cursor.setItem("cigarettes")
-			
+			#if self.cursor.item is not None and self.cursor.mode is "default":
+			else:
+				self.cursor.setInfo(str(self.cursor.itemNb))
+				
 			return task.cont
 		
-		
-		#-------------------------------------------------
-		# NPC random movement
-		'''
-		for name in self.NPC:
-			npc = self.NPC[name]
-			if npc.timer <= 0:
-				if npc.mode == "idle":
-					if self.dialog:
-						if self.dialog.name != name:
-							#print "Sending NPC to random pos"
-							tile = self.map.collisionGrid.getRandomTile()
-							if tile is not None:
-								self.NPCGoto(name, tile[0], tile[1])
-							else:
-								npc.resetTimer()
-					else:
-						tile = self.map.collisionGrid.getRandomTile()
-						if tile is not None:
-							self.NPCGoto(name, tile[0], tile[1])
-		'''
-		#for obj in self.map.mapObjects.values():
-		#	print "map manager task says : %s is at %s" % (obj.name, obj.getPos())
 		return task.cont
 
 #-----------------------------------------------------------------------
@@ -1007,6 +992,12 @@ class Game(FSM, DirectObject):
 		elif self.state == "Editor":
 			self.request("Game")
 	
+	def enterMainMenu(self):
+		self.mainMenu = MainMenuGui()
+	
+	def exitMainMenu(self):
+		self.mainMenu.destroy()
+	
 	def enterLoadMode(self):
 		print "Game : Entering load mode"
 		
@@ -1085,11 +1076,16 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("save/default.txt")
+	game = Game("save/sonia.txt")
+	game.map.setSky("hipshot2")
+	#game.map.setSky(None)
 	
-	size = 200
+	#print "hp = ", game.playerState.hp
+	
+	size = 100
 	w0 = WaterPlane(-size, -size, size, size)
 	#w0.destroy()
+	
 	
 	for i in range(5):
 		crystal = loader.loadModel("models/props/crystal2")
@@ -1107,17 +1103,21 @@ if __name__ == "__main__":
 		crystal.setHpr(h,p,r)
 		crystal.setScale(s)
 		crystal.reparentTo(render)
+	
+	
+	
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
 	p = GrassEngine(grassNp, 100, 100)
+	
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
 	
 	base.accept("escape", sys.exit)
-	base.camLens.setNearFar(1.0, 5000)
+	base.camLens.setNearFar(1.0, 2000)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
@@ -1131,6 +1131,8 @@ if __name__ == "__main__":
 	render.setFog(expfog)
 	base.setBackgroundColor(color)
 	'''
+	color = (0,0,0,1)
+	base.setBackgroundColor(color)
 	#render.setAntialias(AntialiasAttrib.MMultisample)
 	#render.setAntialias(AntialiasAttrib.MAuto)
 	

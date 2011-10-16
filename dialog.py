@@ -15,8 +15,9 @@ from guiDialog import *
 class Dialog:
 	def __init__(self, gm, name):
 		self.gm = gm # MapManager
-		self.playerData = gm.playerData
-		print "Initialising script for NPC %s, playerData = %s" % (name, self.playerData)
+		self.playerState = gm.playerState
+		self.gameState = gm.gameState
+		print "Initialising script for NPC %s, playerState.questDic = %s" % (name, self.playerState.questDic)
 		self.name = name # the name of the NPC running this dialog with the player
 		#self.gui = DialogGui(name) # replaced by self.gm.gui.dialogGui
 		self.intro()
@@ -24,8 +25,8 @@ class Dialog:
 	def destroy(self, args=[]):
 		self.gm.gui.dialogGui.destroy()
 		self.gm.dialog = None
-		if self.name in self.gm.NPC:
-			self.gm.NPC[self.name].resetTimer()
+		if self.name in self.gm.NPCAI:
+			self.gm.NPCAI[self.name].resetTimer()
 		
 	def setMainText(self, text):
 		self.gm.gui.dialogGui.setMainText(text)
@@ -33,11 +34,12 @@ class Dialog:
 	def setMenu(self, menu):
 		self.gm.gui.dialogGui.setMenu(menu)
 		
-	def getQuestValue(self):
-		if self.name not in self.playerData:
+	def getQuestValue(self, questName = "main"):
+		if self.name not in self.playerState.questDic:
 			return 0
-		else:
-			return self.playerData[self.name]
+		elif questName not in self.playerState.questDic[self.name]:
+			return 0
+		return self.playerState.questDic[self.name][questName]
 		
 	def intro(self):
 		msg = "You are talking to " + self.name
@@ -57,7 +59,7 @@ class Dialog:
 		return 1
 		
 	def l_hello(self, args=[]):
-		msg1 = "Hi there, " + self.playerData["name"] + "..."
+		msg1 = "Hi there, " + self.playerState.name + "..."
 		self.setMainText(msg1)
 		self.l_close()
 		return 1
@@ -79,7 +81,7 @@ class DialogCamilla(Dialog):
 		
 	def intro(self):
 		if self.getQuestValue()>1:
-			msg = "Camilla is looking at you suspiciously...\n\nCarmilla : 'What is it you want now, " + self.playerData["name"] + "?'"
+			msg = "Camilla is looking at you suspiciously...\n\nCarmilla : 'What is it you want now, " + self.playerState.name + "?'"
 		else:
 			msg = "Camilla looks kindly at you."
 			
@@ -97,11 +99,11 @@ class DialogCamilla(Dialog):
 		
 	def l_hello(self, args=[]):
 		if self.getQuestValue()>0:
-			msg = "Camilla : '... hello again, " + self.playerData["name"] + "...'"
+			msg = "Camilla : '... hello again, " + self.playerState.name + "...'"
 		else:
-			msg = "Camilla : 'Oh hello there, young " + self.playerData["name"] + ".'"
-			self.playerData[self.name] = 1
-			print "current playerdata : %s" % (self.playerData)
+			msg = "Camilla : 'Oh hello there, young " + self.playerState.name + ".'"
+			self.playerState.setQuest(self.name, "main", 1)
+			print "current playerdata : %s" % (self.playerState.questDic)
 			
 		self.setMainText(msg)
 		self.l_close()
@@ -114,7 +116,7 @@ class DialogCamilla(Dialog):
 			self.l_close()
 		else:
 			msg = "Camilla : 'A lot of stuff? what do you mean by that?'"
-			self.playerData[self.name] = 1
+			self.playerState.setQuest(self.name, "main", 1)
 			self.setMainText(msg)
 			menu = [
 				["'Come on, you know *exactly* what i mean...'", self.l_insist, []],
@@ -128,7 +130,7 @@ class DialogCamilla(Dialog):
 		
 	def l_insist(self, args=[]):
 		msg = "Camilla : 'No, really, i have no idea what you're talking about!'"
-		self.playerData[self.name] = 2
+		self.playerState.setQuest(self.name, "main", 2)
 		self.setMainText(msg)
 		self.l_close();
 		return 1
