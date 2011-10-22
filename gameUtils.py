@@ -5,6 +5,9 @@ from direct.fsm.FSM import FSM
 
 import random
 import cPickle as pickle
+from time import localtime, gmtime, strftime
+
+
 
 from pathFind import *
 
@@ -48,79 +51,28 @@ itemDB["stick"] = makeItemEquip("stick", "img/items/weapons/stick.png", 1, "hand
 itemDB["katana"] = makeItemEquip("katana", "img/items/weapons/katana.png", 1, "hand")
 itemDB["shotgunShells"] = makeItemGeneric("shotgunShells", "img/items/weapons/shotgunShells.png", 1)
 
-'''
-class ItemContainer:
-	def __init__(self, genre = "generic"):
-		self.item = None
-		self.nb = 0
-		
-	def setItem(self, item, nb=1):
-		#if item
-		self.item = item
-		self.nb = int(nb)
-		
-	def addItem(self, item, nb=1):
-		if self.item == item and item.stackable:
-			self.nb += nb
-		elif self.item is None:
-			self.item = item
-			self.nb = int(nb)
-		else:
-			print("Error : can't stack %s with %s" % (item.name, self.item.name))
-		
-class Inventory:
-	def __init__(self, slots = 25, room = 50.0):
-		self.slots = {}
-		self.nbSlots = slots
-		for i in range(self.nbSlots):
-			self.slots[i] = None
-		self.room = room
-		
-		self.equipSlots = {}
-		for key in ["head", "torso", "legs", "feet", "left-hand", "right-hand"]:
-			self.equipSlots[key] = None
-		
-	def hasRoom(self):
-		if len(self.slots)<self.nbSlots:
-			return True
-		return False
-	
-	def addItem(self, item, nb):
-		pass
-'''		
-		
 class CreatureState:
 	def __init__(self, name):
 		self.name = name
+		self.stat = {}
+		self.statMax = {}
+		for stat in ["healthPoints", "stunPoints", "foodPoints", "waterPoints", "heatPoints"]:
+			self.initStat(stat, 10)
 		
-	def initHp(self, hp=10, hpMax=10):
-		self.hp = hp # health points, when 0 -> death, game over
-		self.hpMax = hpMax # stun points, when 0 -> messenger.send("player-faint") etc.
+	def initStat(self, stat, nb):
+		self.stat[stat] = nb
+		self.statMax[stat] = nb
 	
-	def initSp(self, sp=10, spMax=10):
-		self.sp = sp# stun points, when 0 -> messenger.send("player-faint") etc.
-		self.spMax = spMax 
-		
-	def checkHp(self):
-		self.hp = max(0, min(self.maxHp, self.hp))
+	def checkStat(self, stat):
+		self.stat[stat] = max(0, min(self.statMax[stat], self.stat[stat]))
 	
-	def addHp(self, n):
-		self.hp += n
-		self.checkHp()
+	def addToStat(self, stat, n):
+		self.stat[stat] += n
+		self.checkStat(stat)
 		
-	def remHp(self, n):
-		self.addHp(-n)
-	
-	def checkSp(self):
-		self.sp = max(0, min(self.maxSp, self.sp))	
-		
-	def addSp(self, n):
-		self.sp += n
-		self.checkSp()
-		
-	def remSp(self, n):
-		self.addSp(-n)
-		
+	def remFromStat(self, stat, n):
+		self.addToStat(stat, -n)
+
 	def initCarac(self):
 		self.carac = {}
 		self.carac["STR"] = 1 # strength
@@ -143,8 +95,9 @@ class CreatureState:
 		
 class CharacterState(CreatureState):
 	def __init__(self, name= None):
-		if name is None: self.name = "Red Shirt"
-		else: self.name = str(name)
+		if name is None: name = "Red Shirt"
+		else: name = str(name)
+		CreatureState.__init__(self, name)
 		
 	def initSex(self, sex):# yeah, yeah :p
 		self.sex = sex
@@ -159,9 +112,7 @@ class CharacterState(CreatureState):
 		
 class PlayerState(CharacterState):
 	def __init__(self, name=None):
-		#CharacterState.__init__(self, name)
-		if name is None: self.name = "Galya"
-		else: self.name = str(name)
+		CharacterState.__init__(self, name)
 		self.questDic = {} # NPCname : {quest1 : value1, quest2, value2...}
 		
 	def onDie(self):
@@ -177,8 +128,6 @@ class PlayerState(CharacterState):
 def makePlayerState(name="Galya", sex="female", hp=10, sp=10):
 	p = PlayerState(name)
 	p.initSex(sex)
-	p.initHp(hp)
-	p.initSp(sp)
 	p.setMap("maps/interior2.txt")
 	return p
 
@@ -203,7 +152,14 @@ class GameState:
 		f.close()
 		self.playerState = data["playerState"]
 		self.NPCTracker = data["NPCTracker"]
-		#self.questDic = data["questDic"]
+		
+		if "time" in data and "timeDisplay" in data:
+			pass
+		else:
+			data["timeDisplay"] = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+			data["time"] = localtime()
+		self.time = [data["time"], data["timeDisplay"]]
+		
 		print "game loaded, data was %s" % data
 		
 	def save(self):
@@ -220,9 +176,17 @@ class GameState:
 		data = {}
 		data["playerState"] = self.playerState
 		data["NPCTracker"] = self.NPCTracker
+		data["timeDisplay"] = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+		data["time"] = localtime()
 		#data["questDic"] = self.questDic
 		return data
-
+		
+	def __repr__(self):
+		msg = ""
+		msg = msg + "Player name : " + self.playerState.name + "\n"
+		msg = msg + "stats : " + str(self.playerState.stat)
+		return msg
+		
 class CreatureAI(FSM):
 	def __init__(self, gm, name = "CreatureAI"):
 		FSM.__init__(self, name)

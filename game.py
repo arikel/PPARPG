@@ -957,7 +957,7 @@ class Game(FSM, DirectObject):
 		if self.map:
 			self.mapManager.removeAllNPC()
 			self.map.destroy()
-			del self.map
+			#del self.map
 			
 		self.map = Map(filename)
 		if self.map.collisionGrid:
@@ -1079,7 +1079,7 @@ if __name__ == "__main__":
 	game = Game("save/sonia.txt")
 	game.map.setSky("hipshot2")
 	#game.map.setSky(None)
-	
+	#game.map.mapObjectRoot.flattenStrong()
 	#print "hp = ", game.playerState.hp
 	
 	size = 100

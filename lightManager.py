@@ -37,7 +37,7 @@ class LightManager:
 		#self.spotlight.setHpr(0,-45,0)
 		
 		self.spotlight.node().setShadowCaster(True)
-		#render.setLight(self.spotlight)
+		render.setLight(self.spotlight)
 		#render.setShaderInput("slight0", self.spotlight)
 		
 		'''

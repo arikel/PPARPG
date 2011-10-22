@@ -183,7 +183,7 @@ class MainMenuButton(DirectButton):
 			#geom = None
 			text_mayChange = True,
 		)
-		self.initialiseoptions(MainButton)
+		self.initialiseoptions(MainMenuButton)
 		
 		self.bind(DGG.ENTER, command=self.onHover, extraArgs=[self])
 		self.bind(DGG.EXIT, command=self.onOut, extraArgs=[self])
@@ -196,23 +196,39 @@ class MainMenuButton(DirectButton):
 		self["text_fg"] = (0.8,0.8,0.8,1)
 		#self["text_shadow"] = (0.0,0.5,0.95,1)
 
-
+#-------------------------------------------------------------------------------
+# Entry
+#-------------------------------------------------------------------------------
+class Entry(DirectEntry):
+	def __init__(self, x=0, y=0, name="entrie"):
+		DirectEntry.__init__(self,
+			text="",
+			initialText = "hahaha",
+			entryFont = FONT,
+			#scale = (FONT_SCALE[0], 1, FONT_SCALE[1]),
+			scale=0.04,
+			color = (0,0,0,1),
+			text_fg = (1,1,1,1),
+			width = 25,
+		)
+		self.initialiseoptions(Entry)
+		#print pdir(self)
+		self.enterText("ok test")
+		self.setText()
+		
+	def setCommand(self, command, extraArgs=[]):# do NOT overload the "bind" method!
+		print "call to setCommand for %s, extra = %s" % (command, extraArgs)
+		self["command"] = command
+		self["extraArgs"] = extraArgs
+		
 if __name__=="__main__":
-	from pandac.PandaModules import TextNode
-
-	font = loader.loadFont('fonts/cour.ttf')
-	font.setPointSize(72) # a value of 73 or more crashes Panda/Python
-	font.setSpaceAdvance(2) # decrease as point size is decrease
-	font.setLineHeight(5) # decrease as point size is decrease
-
-	text = TextNode('aTextNode')
-	text.setText("This is a test")
-	text.setFont(font)
-	text.setWordwrap(200.0) # decrease as point size is decrease
-
-	textNodePath = aspect2d.attachNewNode(text)
-	textNodePath.setScale(0.008) # -increase- as point size -decrease-
-	textNodePath.setPos(-1.0,0,0)
-	textNodePath.setAntialias(AntialiasAttrib.MMultisample)
-	text2 = makeMsg(-1,-0.15, "this is a test too")
+	e = Entry()
+	def aff(text, extraArgs = []):
+		print "text = ", text, "extraArgs = ", extraArgs
+		print "enter"
+	e.setCommand(aff, ["text0"])
+	
+	b = MainMenuButton(0,0,"NEW GAME")
+	
+	base.accept("escape", sys.exit)
 	run()
