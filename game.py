@@ -924,12 +924,32 @@ class Game(FSM, DirectObject):
 		self.map = None
 		self.mapManager = None
 		self.editor = None
+		
+		self.cursor = MouseCursor()
+		
+		
+		self.mainMenu = MainMenu()
+		self.mainMenu.buttons[0].bind(DGG.B1PRESS, self.request, ["Game"])
+		self.mainMenu.buttons[3].bind(DGG.B1PRESS, self.quit)
+		self.mainMenu.hide()
+		
+		self.mainMenuImg = makeImg(0,0,"img/bg/title1.jpg", (RATIO, 0,1))
+		self.mainMenuImg.setBin("fixed", -150)
+		self.request("MainMenu")
+		
+	def initGame(self, gamefilename=None):
+		if gamefilename is None:
+			gamefilename = self.gamefilename
+		self.gameState = GameState()
+		self.gameState.load(gamefilename)
+		self.playerState = self.gameState.playerState
+		
 		self.loadGameMap(self.gameState.playerState.map)
 		
 		# editor camera handler
 		self.editorCam = EditorCamHandler()
 		
-		self.cursor = MouseCursor()
+		
 		
 		self.playerData = {}
 		self.playerData["name"] = "Galya"
@@ -955,13 +975,6 @@ class Game(FSM, DirectObject):
 			self.light.lightCenter.reparentTo(self.mapManager.player.model)
 		
 		self.accept(OPEN_EDITOR, self.toggle)
-		
-		self.mainMenu = MainMenu()
-		self.mainMenu.buttons[0].bind(DGG.B1PRESS, self.request, ["Game"])
-		self.mainMenu.buttons[3].bind(DGG.B1PRESS, self.quit)
-		self.mainMenu.hide()
-		
-		self.request("MainMenu")
 		
 	def quit(self, sentArgs=[]):
 		sys.exit()
@@ -1008,10 +1021,12 @@ class Game(FSM, DirectObject):
 	
 	def enterMainMenu(self, sentArgs=[]):
 		self.mainMenu.show()
+		self.mainMenuImg.show()
 		self.accept("escape", self.request, ["Game"])
 		
 	def exitMainMenu(self):
 		self.mainMenu.hide()
+		self.mainMenuImg.hide()
 		
 	def enterLoadMode(self, sentArgs=[]):
 		print "Game : Entering load mode"
@@ -1022,6 +1037,9 @@ class Game(FSM, DirectObject):
 		
 	
 	def enterGame(self, sentArgs=[]):
+		if not self.map:
+			self.initGame()
+			
 		self.setMode("game")
 		self.accept("escape", self.request, ["MainMenu"])
 		self.mapManager.start()
@@ -1091,7 +1109,7 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("save/sonia.txt")
+	game = Game("save/default.txt")
 	#game.map.setSize(250,180)
 	#game.map.setGroundTexture("img/textures/ice01.jpg")
 	#game.map.clearWalls()
@@ -1103,6 +1121,7 @@ if __name__ == "__main__":
 	#game.map.mapObjectRoot.flattenStrong()
 	#print "hp = ", game.playerState.hp
 	
+	'''
 	#size = 100
 	#w0 = WaterPlane(-size, -size, size, size)
 	#w0.destroy()
@@ -1165,7 +1184,7 @@ if __name__ == "__main__":
 	rockNp.flattenStrong()
 	
 	
-	'''	
+	
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
@@ -1177,17 +1196,17 @@ if __name__ == "__main__":
 	base.win.requestProperties(props)
 	
 	#base.accept("escape", sys.exit)
-	base.camLens.setNearFar(1.0, 2000)
+	base.camLens.setNearFar(1.0, 100)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
 	
 	
-	#color = (0,0,0,1)
-	color = (1,1,1,1)
+	color = (0,0,0,1)
+	#color = (1,1,1,1)
 	expfog = Fog("Scene-wide exponential Fog object")
 	expfog.setColor(color)
-	expfog.setExpDensity(0.01)
+	expfog.setExpDensity(0.02)
 	#render.setFog(expfog)
 	base.setBackgroundColor(color)
 	

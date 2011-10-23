@@ -22,7 +22,7 @@ class SkyBox:
 		if name is None:return
 		path = "models/skies/" + str(name) + "/generic_skybox"
 		model = loader.loadModel(path)
-		model.setScale(1024)
+		model.setScale(10)
 		model.setBin('background', 1)
 		model.setDepthWrite(0)
 		model.setLightOff()

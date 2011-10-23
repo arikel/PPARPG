@@ -346,8 +346,8 @@ class ActionSubMenu:
 class MainMenu:
 	def __init__(self):
 		self.buttons = []
-		startX = 0
-		startY = 0.4
+		startX = -0.6
+		startY = 0.8
 		step = -0.2
 		
 		for i, label in enumerate(["NEW GAME", "LOAD GAME", "OPTIONS", "QUIT"]):
