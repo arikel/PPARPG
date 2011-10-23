@@ -68,6 +68,7 @@ class Map:
 		mapData["Y"] = self.y
 		mapData["collision"] = self.collisionGrid.data
 		mapData["groundTex"] = self.groundTex
+		print "Map saving : groundTex = %s" % (self.groundTex)
 		mapData["groundTexScale"] = self.groundTexScale
 		
 		if self.collisionGrid.hasGeoMip:
@@ -97,6 +98,21 @@ class Map:
 		f.close()
 		print "map data saved as %s" % (filename)
 		
+	def clearWalls(self):
+		for wall in self.walls:
+			wall.destroy()
+		self.walls = []
+		
+	def clearInnerWall(self):
+		if self.innerWall:
+			self.innerWall.destroy()
+			self.innerWall = None
+		
+	def setGroundTexture(self, texPath):
+		if self.collisionGrid.ground:
+			self.collisionGrid.ground.setTexture(texPath)
+			self.groundTex = texPath
+			
 	def destroy(self):
 		#print "Map : Map %s destroyed" % (self.name)
 		if self.innerWall:
@@ -113,8 +129,12 @@ class Map:
 			
 		if self.sky:
 			self.sky.destroy()
-		for wall in self.walls:
-			wall.destroy()
+		
+		self.clearWalls()
+		self.clearInnerWall()
+		
+		#for wall in self.walls:
+		#	wall.destroy()
 		
 	def load(self, filename=None):
 		if filename is None:

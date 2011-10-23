@@ -50,6 +50,8 @@ class SkyBox:
 			self.currentModel = self.models[name]
 			#self.currentModel.reparentTo(render)
 			self.currentModel.reparentTo(base.camera)
+			self.currentModel.setDepthWrite(False)
+			self.currentModel.setBin('background', 1)
 			self.currentModel.setCompass()
 			
 			#self.start()

@@ -340,6 +340,9 @@ class ActionSubMenu:
 		for b in self.buttons:
 			b.destroy()
 
+#-------------------------------------------------------------------------------
+# MainMenu (title screen)
+#-------------------------------------------------------------------------------
 class MainMenu:
 	def __init__(self):
 		self.buttons = []

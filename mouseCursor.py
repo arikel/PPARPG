@@ -27,7 +27,7 @@ class MouseCursor:
 		self.crosshair.setBin("gui-popup", 100)
 		self.mode = None
 		
-		self.msg = makeMsg(0,0,"cursor info")
+		self.msg = makeMsg(0,0,"")
 		self.msg.setPos(0.05,0.05)
 		self.msg.setBin("gui-popup", 101)
 		self.msg.reparentTo(self.dummyNP)

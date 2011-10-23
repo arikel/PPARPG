@@ -301,6 +301,7 @@ class WaterPlane():
 		
 	def destroy(self):
 		taskMgr.remove(self.task)
+		self.waterNP.remove()
 		
 if __name__ == "__main__":
 	base.setFrameRateMeter(True)

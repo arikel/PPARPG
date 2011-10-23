@@ -9,7 +9,7 @@ from pandac.PandaModules import *
 class LightManager:
 	def __init__(self, np=render):
 		self.lightCenter = np.attachNewNode(PandaNode("center"))
-		
+		self.lightCenter.setCompass()
 		# Create Ambient Light
 		self.ambientLight1 = AmbientLight('ambientLight')
 		self.ambientLight1.setColor(Vec4(0.2,0.2,0.2, 1))

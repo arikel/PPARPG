@@ -391,6 +391,7 @@ class GameGui:
 		self.bagImg.hide()
 		
 		self.hpBar.hide()
+		self.spBar.hide()
 		
 		self.visible = False
 		
@@ -403,7 +404,7 @@ class GameGui:
 		#self.objectMenu.show()
 		
 		self.hpBar.show()
-		
+		self.spBar.show()
 		self.visible = True
 		
 	def setInfo(self, info):

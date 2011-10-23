@@ -438,7 +438,11 @@ class FlatGround:
 		self.y = y
 		self.makeGround()
 		#self.card.setScale(self.x,1,self.y)
-
+	def setTexture(self, tex):
+		self.tex = loader.loadTexture(tex)
+		self.texPath = tex
+		self.card.setTexture(self.tex)
+		
 class TerrainGround:
 	def __init__(self,
 			map,

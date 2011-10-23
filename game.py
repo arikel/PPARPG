@@ -52,6 +52,7 @@ from mouseCursor import *
 #from guiDialog import *
 from guiEditor import EditorGui
 from guiGame import GameGui
+from guiMenu import MainMenu
 
 from dialog import *
 from mapObject import *
@@ -217,7 +218,7 @@ class MapManager(MapManagerBase):
 		self.dialog = None # current dialog
 		
 		self.gui = GameGui(self)
-		
+		self.gui.hide()
 		self.map.collisionHide()
 		#for obj in self.map.mapObjects.values():
 		#	print "map manager init says : %s is at %s" % (obj.name, obj.getPos())
@@ -402,11 +403,16 @@ class MapManager(MapManagerBase):
 		if self.getPlayerDistToNPC(name)< 4.0:
 			self.openDialog(name)
 		else:
-			x, y = self.map.getClosestOpenTile(self.NPC[name].getTilePos()[0], self.NPC[name].getTilePos()[1])
-			self.playerGoto(x, y)
-			self.player.sequence.append(Func(self.onTalkTo, name))
-			self.player.sequence.resume() # ?
-			#print "Appended talkTo %s to sequence %s" % (name, self.player.sequence)
+			tile = self.map.getClosestOpenTile(self.NPC[name].getTilePos()[0], self.NPC[name].getTilePos()[1])
+			if tile:
+				x, y = tile
+				self.playerGoto(x, y)
+				self.player.sequence.append(Func(self.onTalkTo, name))
+				self.player.sequence.resume() # ?
+				#print "Appended talkTo %s to sequence %s" % (name, self.player.sequence)
+			else:
+				print "%s can't be reached." % (name)
+				
 		self.gm.cursor.setMode()
 		
 		
@@ -914,7 +920,7 @@ class Game(FSM, DirectObject):
 		if gamefilename is not None:
 			self.gameState.load(gamefilename)
 			self.playerState = self.gameState.playerState
-			
+		self.gamefilename = gamefilename
 		self.map = None
 		self.mapManager = None
 		self.editor = None
@@ -949,8 +955,16 @@ class Game(FSM, DirectObject):
 			self.light.lightCenter.reparentTo(self.mapManager.player.model)
 		
 		self.accept(OPEN_EDITOR, self.toggle)
-			
-		self.request("Game")
+		
+		self.mainMenu = MainMenu()
+		self.mainMenu.buttons[0].bind(DGG.B1PRESS, self.request, ["Game"])
+		self.mainMenu.buttons[3].bind(DGG.B1PRESS, self.quit)
+		self.mainMenu.hide()
+		
+		self.request("MainMenu")
+		
+	def quit(self, sentArgs=[]):
+		sys.exit()
 			
 	def loadGameMap(self, filename):
 		print "Game : load game map %s" % (filename)
@@ -992,13 +1006,14 @@ class Game(FSM, DirectObject):
 		elif self.state == "Editor":
 			self.request("Game")
 	
-	def enterMainMenu(self):
-		self.mainMenu = MainMenuGui()
-	
+	def enterMainMenu(self, sentArgs=[]):
+		self.mainMenu.show()
+		self.accept("escape", self.request, ["Game"])
+		
 	def exitMainMenu(self):
-		self.mainMenu.destroy()
-	
-	def enterLoadMode(self):
+		self.mainMenu.hide()
+		
+	def enterLoadMode(self, sentArgs=[]):
 		print "Game : Entering load mode"
 		
 		
@@ -1006,15 +1021,15 @@ class Game(FSM, DirectObject):
 		print "Game : Exiting load mode"
 		
 	
-	def enterGame(self):
+	def enterGame(self, sentArgs=[]):
 		self.setMode("game")
+		self.accept("escape", self.request, ["MainMenu"])
 		self.mapManager.start()
 		
-			
 	def exitGame(self):
 		self.mapManager.stop()
 		
-	def enterEditor(self):
+	def enterEditor(self, sentArgs=[]):
 		self.setMode("edit")
 		self.editor.start()
 		
@@ -1077,15 +1092,21 @@ if __name__ == "__main__":
 	'''
 	
 	game = Game("save/sonia.txt")
-	game.map.setSky("hipshot2")
+	#game.map.setSize(250,180)
+	#game.map.setGroundTexture("img/textures/ice01.jpg")
+	#game.map.clearWalls()
+	#game.map.clearInnerWall()
+	
+	
+	#game.map.setSky("hipshot2")
 	#game.map.setSky(None)
 	#game.map.mapObjectRoot.flattenStrong()
 	#print "hp = ", game.playerState.hp
 	
-	size = 100
-	w0 = WaterPlane(-size, -size, size, size)
+	#size = 100
+	#w0 = WaterPlane(-size, -size, size, size)
 	#w0.destroy()
-	
+	w0 = WaterPlane(-20, -20, game.map.x+20, game.map.y+20)
 	
 	for i in range(5):
 		crystal = loader.loadModel("models/props/crystal2")
@@ -1105,37 +1126,84 @@ if __name__ == "__main__":
 		crystal.reparentTo(render)
 	
 	
+	baseScale = 0.95
+	rndScale = 0.95
+	step = 2.5
+	rockNp = NodePath("rocks")
+	rockNp.reparentTo(render)
 	
+	i = 0
+	while i < game.map.x:
+		rock = loader.loadModel("models/props/rock2")
+		rock.reparentTo(rockNp)
+		rock.setPos(i,0,0)
+		rock.setScale(baseScale+random.random()*rndScale)
+		rock.setH(random.random()*180)
+		
+		rock = loader.loadModel("models/props/rock2")
+		rock.reparentTo(rockNp)
+		rock.setPos(i,game.map.y,0)
+		rock.setScale(baseScale+random.random()*rndScale)
+		rock.setH(random.random()*180)
+		i = i + step
+	
+	i = 0
+	while i < game.map.y:
+		rock = loader.loadModel("models/props/rock2")
+		rock.reparentTo(rockNp)
+		rock.setPos(0,i,0)
+		rock.setScale(baseScale+random.random()*rndScale)
+		rock.setH(random.random()*180)
+		
+		rock = loader.loadModel("models/props/rock2")
+		rock.reparentTo(rockNp)
+		rock.setPos(game.map.x,i,0)
+		rock.setScale(baseScale+random.random()*rndScale)
+		rock.setH(random.random()*180)
+		
+		i = i + step
+	rockNp.flattenStrong()
+	
+	
+	'''	
 	grassNp = NodePath("grass")
 	grassNp.setPos(0,100,0)
 	grassNp.reparentTo(base.camera)
 	p = GrassEngine(grassNp, 100, 100)
-	
+	'''
 	
 	props = WindowProperties()
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
 	
-	base.accept("escape", sys.exit)
+	#base.accept("escape", sys.exit)
 	base.camLens.setNearFar(1.0, 2000)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
 	
-	'''
-	color = (0,0,0,1)
-	#color = (1,1,1,1)
+	
+	#color = (0,0,0,1)
+	color = (1,1,1,1)
 	expfog = Fog("Scene-wide exponential Fog object")
 	expfog.setColor(color)
 	expfog.setExpDensity(0.01)
-	render.setFog(expfog)
+	#render.setFog(expfog)
 	base.setBackgroundColor(color)
-	'''
-	color = (0,0,0,1)
-	base.setBackgroundColor(color)
-	#render.setAntialias(AntialiasAttrib.MMultisample)
-	#render.setAntialias(AntialiasAttrib.MAuto)
 	
+	render.setAntialias(AntialiasAttrib.MMultisample)
+	#render.setAntialias(AntialiasAttrib.MAuto)
+	#render.setAttrib(LightRampAttrib.makeHdr0())
+	#render.setAttrib(LightRampAttrib.makeHdr1())
+	render.setAttrib(LightRampAttrib.makeHdr1())
+	#render.setAttrib(LightRampAttrib.makeSingleThreshold(0.1, 0.1))
+	#render.setAttrib(LightRampAttrib.makeDoubleThreshold(0.5, 0.5, 0.5, 0.5))
+	
+	filters = CommonFilters(base.win, base.cam)
+	#filters.setCartoonInk(separation=0.5)
+	#filters.setViewGlow()
+	#filters.setVolumetricLighting(caster=game.mapManager.player.model)
+	filters.setBloom()
 	#PStatClient.connect()
 	#loadPrcFileData('setup', 'dump-generated-shaders #t')
 	
