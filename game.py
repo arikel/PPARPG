@@ -1119,8 +1119,8 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	#game = Game("save/default.txt")
-	game = Game()
+	game = Game("save/default.txt")
+	#game = Game()
 	#game.map.setSize(250,180)
 	#game.map.setGroundTexture("img/textures/ice01.jpg")
 	#game.map.clearWalls()
