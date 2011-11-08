@@ -8,6 +8,7 @@ from direct.actor.Actor import Actor
 from direct.task import Task
 
 from guiBase import FONT, FONT_SCALE
+from pathFind import *
 
 import math, random
 
@@ -32,9 +33,17 @@ mapObjectDB["bed"] = ["models/props/bed", "models/props/bed.jpg", (0,0,0.5,0.8)]
 
 #mapObjectDB["main_gate"] = ["models/buildings/main_gate", "models/buildings/house.jpg", (0,0,0.5,1.5)]
 
-class MapObject:
+class MapObjectBase(NodePath):
+	def __init__(self, name):
+		NodePath.__init__(self, name)
+		self.name = name
+		#print "Initiated MapObjectBase : %s" % (name)
+		
+		
+class MapObject(MapObjectBase):
 	"""MapObject can't move or change map in game"""
 	def __init__(self, map, genre, name):
+		MapObjectBase.__init__(self, name)
 		self.map = map # reference to the Map the object belongs to
 		self.genre = genre # NPC, building, decor, item, warp...
 		self.name = name
@@ -253,6 +262,9 @@ class MapNPC(MapObject):
 		self.texPath = texPath
 		self.loadActor(self.modelPath, self.animDic, self.texPath)
 		
+		# path drawer
+		self.pathDrawer = Drawer()
+		
 		# collision
 		self.addCollision()
 		
@@ -304,13 +316,13 @@ class MapNPC(MapObject):
 		self.colNodepath = CollisionNode(self.name)
 		self.colNode = self.model.attachNewNode(self.colNodepath)
 		self.colNode.node().addSolid(self.colSphere)
-		
+	'''	
 	def reparentToNPC(self, npc):
 		#print "%s is reparenting itself to parent : %s" % (self.name, npc.name)
 		self.model.reparentTo(npc.model)
 		self.parentName = npc.name
 		self.model.setTexture(self.tex)
-		
+	'''
 	def addEquipment(self, modelPath, texPath):
 		item = EquippedObject(self, modelPath, texPath)
 		self.equipped.append(item)
@@ -401,6 +413,10 @@ class MapNPC(MapObject):
 		self.sequence.append(f)
 		#print "Setting path for %s" % (self.name)
 		self.sequence.start()
+		
+		# path drawer update
+		self.pathDrawer.setPath(path)
+		
 		# return the time it will take, used by NPCAI
 		return self.speed * len(path)
 		
@@ -478,6 +494,7 @@ class MapNPC(MapObject):
 			taskMgr.remove(self.task)
 		self.model.cleanup()
 		self.model.remove()
+		self.pathDrawer.destroy()
 		
 class EquippedObject(MapObject):
 	def __init__(self, npc, modelPath, texturePath=None):

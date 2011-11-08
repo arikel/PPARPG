@@ -25,6 +25,8 @@ fullscreen %s
 #audio-library-name null
 text-minfilter linear_mipmap_nearest
 text-flatten 0
+framebuffer-multisample 1
+multisamples 2
 """ % (CONFIG_W, CONFIG_H, fullscreen))
 
 
@@ -41,11 +43,7 @@ import cPickle as pickle
 
 
 from camHandler import EditorCamHandler, GameCamHandler
-from pathFind import *
-
-
 from lightManager import LightManager
-
 from mouseCursor import *
 
 #from gui import *
@@ -183,6 +181,7 @@ class MapManager(MapManagerBase):
 		self.player.toggleLabel()
 		
 		
+		
 		# NPCs
 		self.NPC = {}
 		self.NPCAI = {}
@@ -195,15 +194,6 @@ class MapManager(MapManagerBase):
 			else:
 				self.addNPC(name, "models/characters/neoMale", "models/characters/neoMale.jpg", x,y)
 		
-		# monsters
-		self.mobs = {}
-		
-		# drops
-		self.drops = {}
-		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,0,0.25))
-		self.addDrop("machin", 5, self.player.getPos()+Vec3(0,2,0.25))
-		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,2,0.25))
-		
 		self.NPC["Camilla"].addEquipment("models/characters/female_hair", "models/characters/female_hair2.jpg")
 		self.NPC["Camilla"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
@@ -213,13 +203,24 @@ class MapManager(MapManagerBase):
 		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
 		
+		# monsters
+		self.mobs = {}
+		
+		# drops
+		self.drops = {}
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,0,0.25))
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(0,2,0.25))
+		self.addDrop("machin", 5, self.player.getPos()+Vec3(4,2,0.25))
+		
+		
+		
 		
 		
 		self.dialog = None # current dialog
 		
 		self.gui = GameGui(self)
 		self.gui.hide()
-		self.map.collisionHide()
+		#self.map.collisionHide()
 		#for obj in self.map.mapObjects.values():
 		#	print "map manager init says : %s is at %s" % (obj.name, obj.getPos())
 			
@@ -233,6 +234,8 @@ class MapManager(MapManagerBase):
 			#self.map.bgMusic.setVolume(0.4)
 		if self.map.bgSound:
 			self.map.bgSound.play()
+		for NPCAI in self.NPCAI:
+			self.NPCAI[NPCAI].request("Wander")
 			
 	def stop(self):
 		self.gui.hide()
@@ -243,7 +246,8 @@ class MapManager(MapManagerBase):
 			#self.map.bgMusic.setVolume(0.4)
 		if self.map.bgSound:
 			self.map.bgSound.stop()
-			
+		for NPCAI in self.NPCAI:
+			self.NPCAI[NPCAI].request("Pause")
 		
 	def startAccept(self):
 		for key in [
@@ -605,14 +609,18 @@ class MapEditor(MapManagerBase):
 		self.task = taskMgr.add(self.update, "MapEditorTask")
 		#if self.map.bgMusic:
 		#	self.map.bgMusic.stop()
-		self.map.collisionShow()
+		#self.map.collisionShow()
+		self.map.collisionGrid.rebuild()
+		print "rebuilding grid"
 		
 	def stop(self):
 		#print "Stopping editor"
 		self.gui.hide()
 		taskMgr.remove(self.task)
 		self.ignoreAll()
-		self.map.collisionHide()
+		#self.map.collisionHide()
+		self.map.collisionGrid.np.flattenStrong()
+		print "flattening grid"
 		self.camHandler.stop()
 		
 	def startAccept(self):
@@ -917,16 +925,18 @@ class Game(FSM, DirectObject):
 	def __init__(self, gamefilename=None):
 		FSM.__init__(self, 'Game')
 		self.gameState = GameState()
-		if gamefilename is not None:
-			self.gameState.load(gamefilename)
-			self.playerState = self.gameState.playerState
+		if gamefilename is None:
+			gamefilename = "save/default.txt"
+		
+		self.gameState.load(gamefilename)
+		self.playerState = self.gameState.playerState
 		self.gamefilename = gamefilename
 		self.map = None
 		self.mapManager = None
 		self.editor = None
+		self.prevMode = None # previous mode
 		
 		self.cursor = MouseCursor()
-		
 		
 		self.mainMenu = MainMenu()
 		self.mainMenu.buttons[0].bind(DGG.B1PRESS, self.request, ["Game"])
@@ -1109,7 +1119,8 @@ if __name__ == "__main__":
 	render.node().setFinal(1)
 	'''
 	
-	game = Game("save/default.txt")
+	#game = Game("save/default.txt")
+	game = Game()
 	#game.map.setSize(250,180)
 	#game.map.setGroundTexture("img/textures/ice01.jpg")
 	#game.map.clearWalls()
@@ -1145,43 +1156,7 @@ if __name__ == "__main__":
 		crystal.reparentTo(render)
 	
 	
-	baseScale = 0.95
-	rndScale = 0.95
-	step = 2.5
-	rockNp = NodePath("rocks")
-	rockNp.reparentTo(render)
 	
-	i = 0
-	while i < game.map.x:
-		rock = loader.loadModel("models/props/rock2")
-		rock.reparentTo(rockNp)
-		rock.setPos(i,0,0)
-		rock.setScale(baseScale+random.random()*rndScale)
-		rock.setH(random.random()*180)
-		
-		rock = loader.loadModel("models/props/rock2")
-		rock.reparentTo(rockNp)
-		rock.setPos(i,game.map.y,0)
-		rock.setScale(baseScale+random.random()*rndScale)
-		rock.setH(random.random()*180)
-		i = i + step
-	
-	i = 0
-	while i < game.map.y:
-		rock = loader.loadModel("models/props/rock2")
-		rock.reparentTo(rockNp)
-		rock.setPos(0,i,0)
-		rock.setScale(baseScale+random.random()*rndScale)
-		rock.setH(random.random()*180)
-		
-		rock = loader.loadModel("models/props/rock2")
-		rock.reparentTo(rockNp)
-		rock.setPos(game.map.x,i,0)
-		rock.setScale(baseScale+random.random()*rndScale)
-		rock.setH(random.random()*180)
-		
-		i = i + step
-	rockNp.flattenStrong()
 	
 	
 	
@@ -1196,7 +1171,7 @@ if __name__ == "__main__":
 	base.win.requestProperties(props)
 	
 	#base.accept("escape", sys.exit)
-	base.camLens.setNearFar(1.0, 100)
+	base.camLens.setNearFar(1.0, 2000)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
 	
@@ -1210,19 +1185,19 @@ if __name__ == "__main__":
 	#render.setFog(expfog)
 	base.setBackgroundColor(color)
 	
-	render.setAntialias(AntialiasAttrib.MMultisample)
-	#render.setAntialias(AntialiasAttrib.MAuto)
+	#render.setAntialias(AntialiasAttrib.MMultisample)
+	render.setAntialias(AntialiasAttrib.MAuto)
 	#render.setAttrib(LightRampAttrib.makeHdr0())
-	#render.setAttrib(LightRampAttrib.makeHdr1())
 	render.setAttrib(LightRampAttrib.makeHdr1())
-	#render.setAttrib(LightRampAttrib.makeSingleThreshold(0.1, 0.1))
+	#render.setAttrib(LightRampAttrib.makeHdr2())
+	#render.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.5))
 	#render.setAttrib(LightRampAttrib.makeDoubleThreshold(0.5, 0.5, 0.5, 0.5))
 	
-	filters = CommonFilters(base.win, base.cam)
+	#filters = CommonFilters(base.win, base.cam)
 	#filters.setCartoonInk(separation=0.5)
 	#filters.setViewGlow()
 	#filters.setVolumetricLighting(caster=game.mapManager.player.model)
-	filters.setBloom()
+	#filters.setBloom()
 	#PStatClient.connect()
 	#loadPrcFileData('setup', 'dump-generated-shaders #t')
 	

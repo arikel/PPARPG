@@ -8,6 +8,7 @@ import cPickle as pickle
 from skyBox import SkyBox
 from mapObject import *
 from mapUtils import *
+from wallBuilder import *
 
 #-----------------------------------------------------------------------
 # Map
@@ -20,7 +21,7 @@ class Map:
 		self.x = 0
 		self.y = 0
 		
-		self.NPCroot = NodePath("root")
+		self.NPCroot = NodePath("NPCroot")
 		self.NPCroot.reparentTo(render)
 		
 		self.mapObjectRoot = NodePath("mapObjectRoot")
@@ -216,7 +217,7 @@ class Map:
 		self.collisionGrid.data = mapData["collision"]
 		self.collisionGrid.rebuild()
 		
-		print "models in use : %s" % (mapData["mapObjects"])
+		#print "models in use : %s" % (mapData["mapObjects"])
 		for data in mapData["mapObjects"]:
 			name = data[0]
 			genre = data[1]
@@ -233,7 +234,11 @@ class Map:
 				#(hpr.getX(), hpr.getY(), hpr.getZ()),
 				#(scale.getX(), scale.getY(), scale.getZ())
 				)
-			
+		
+		#self.rock = RockWallBuilder(self.mapObjectRoot, [Point3(0,0,0), Point3(self.x, 0,0), Point3(self.x, self.y,0), Point3(0,self.y,0), Point3(0,0,0)])
+		#self.rock = ModelWallBuilder(self.mapObjectRoot, "models/props/rock1", ["img/textures/block01c.jpg", "img/textures/block01d.jpg"], 1.0, 1.5, 4.0, 180.0, [Point3(0,0,0), Point3(self.x, 0,0), Point3(self.x, self.y,0), Point3(0,self.y,0), Point3(0,0,0)])
+		#self.rock.removeLastPoint()
+		
 	def setBgMusic(self, musicPath):
 		#if self.bgMusic:
 		#	self.bgMusic.stop()
@@ -295,15 +300,15 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 		map.collision.append(tmp)
 	map.groundTex = groundTex
 	map.groundTexScale = groundTexScale
-	map.collisionGrid = CollisionGrid(map, map.x, map.y, map.name, map.groundTex, None, map.groundTexScale)
+	map.collisionGrid = CollisionGrid(map, map.name, map.groundTex, None, map.groundTexScale)
 	map.collisionGrid.data = map.collision
 	map.collisionGrid.rebuild()
 	
-	map.innerWall = InnerWall(map, 4.0, "img/textures/wood03.jpg", 5.0)
+	#map.innerWall = InnerWall(map, 4.0, "img/textures/wood03.jpg", 5.0)
 	
 	l1 = [Point3(20,0.5,0), Point3(20,15.5,0)]
-	map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(20,0,0), Point3(20,15,0)]))
-	map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(12,0,0), Point3(12,15,0)]))
+	#map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(20,0,0), Point3(20,15,0)]))
+	#map.walls.append(WallBuilder(0.4, 3.0, "img/textures/bborder03.jpg", [Point3(12,0,0), Point3(12,15,0)]))
 	
 	map.setSky("daysky0")
 	
@@ -312,6 +317,6 @@ def makeNewMap(name = "map", x=30, y=20, groundTex="img/textures/ice01.jpg", gro
 	return map
 	
 if __name__=="__main__":
-	map = makeNewMap("The Start Village", 34, 20, "img/textures/woodfloor03.jpg", 5.0)
+	map = makeNewMap("Undernil", 50, 30, "img/textures/ice01.jpg", 5.0)
 	#map.setSize(50,30)
-	map.save("maps/interior2.txt")
+	map.save("maps/001-1.txt")

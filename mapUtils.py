@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
-
 import random
-
 from pandac.PandaModules import *
-from wallBuilder import WallBuilder
+from wallBuilder import WallBuilder, RockWallBuilder, ModelWallBuilder
+
 #-----------------------------------------------------------------------
 # Decor building functions and classes
 #-----------------------------------------------------------------------
@@ -88,29 +87,39 @@ class CollisionGrid:
 	def __init__(self, map, name=None, texPath="img/textures/ice01.jpg", mipImg = None, texScale=50.0):
 		self.map = map
 		self.name = name
+		self.plane = Plane(Vec3(0, 0, 1), Point3(0, 0, 0))
 		#print "CollisionGrid : initiating %s, scale = %s" % (name, texScale)
 		
 		self.x = self.map.x
 		self.y = self.map.y
 		self.groundTex = texPath
+		if self.groundTex is not None:
+			self.tex = loader.loadTexture(self.groundTex)
+		self.colTex = loader.loadTexture("img/textures/collision.png")
+		
 		self.mipImg = mipImg
 		self.groundTexScale = texScale
-		
+		self.clearData()
+		'''
 		self.data = [] # [[1,1,1,1,0,1,0,0,...], [1,0,0,...]... ]
 		for y in range(self.y):
 			tmp = []
 			for x in range(self.x):
 				tmp.append(0)
 			self.data.append(tmp)
-				
+		'''
 		
 		self.node = GeomNode("tiledMesh")
 		self.gvd = GeomVertexData('name', GeomVertexFormat.getV3n3c4t2(), Geom.UHStatic)
 		self.geom = Geom(self.gvd)
 		self.prim = GeomTriangles(Geom.UHStatic)
+		self.np = None
+		self.ground = None
 		
 		self.openTiles = []
+		self.rebuild()
 		
+		'''
 		self.update()
 		
 		i = 0
@@ -147,7 +156,8 @@ class CollisionGrid:
 			
 		else:
 			self.hasGeoMip = False
-			self.ground = FlatGround(self.map, self.x, self.y, self.groundTex, self.groundTexScale)
+			self.ground = FlatGround(self.map, self.groundTex, self.groundTexScale)
+		'''
 		
 	def collisionHide(self):
 		self.np.hide()
@@ -160,6 +170,26 @@ class CollisionGrid:
 			return 0
 		else:
 			return self.ground.getTileHeight(x, y)
+		
+	def getMouseTilePos(self, mpos=None):
+		if mpos is None:
+			if base.mouseWatcherNode.hasMouse():
+				mpos = base.mouseWatcherNode.getMouse()
+			else:
+				return None
+			
+		pos3d = Point3()
+		nearPoint = Point3()
+		farPoint = Point3()
+		base.camLens.extrude(mpos, nearPoint, farPoint)
+		if self.plane.intersectsLine(pos3d,
+				render.getRelativePoint(camera, nearPoint),
+				render.getRelativePoint(camera, farPoint)):
+			
+			x = pos3d.getX()
+			y = pos3d.getY()
+			return int(x), int(y)
+		return None
 		
 	def update(self):
 		self.vertex = GeomVertexWriter(self.gvd, 'vertex')
@@ -180,6 +210,7 @@ class CollisionGrid:
 			
 	def rebuild(self):
 		# Needed to update the map after it has been resized
+		#print "Collision grid : rebuilding in progress..."
 		if self.np:
 			self.np.remove()
 		
@@ -229,7 +260,7 @@ class CollisionGrid:
 			
 		else:
 			self.hasGeoMip = False
-			self.ground = FlatGround(self.map, self.x, self.y, self.groundTex, self.groundTexScale)
+			self.ground = FlatGround(self.map, self.groundTex, self.groundTexScale)
 		
 	def addWallTile(self, x, y):
 		
@@ -261,7 +292,28 @@ class CollisionGrid:
 		self.normal.addData3f(norm,norm2,1)
 
 	def addEmptyTile(self, x, y):
+		self.vertex.addData3f(x, y, 0.01)
+		self.texcoord.addData2f(0, 0)
+		self.color.addData4f(1, 1, 1, 1)
+		self.normal.addData3f(0,0,1)
+		
+		self.vertex.addData3f(x, y+1, 0.01)
+		self.texcoord.addData2f(0, 0.01)
+		self.color.addData4f(1, 1, 1, 1)
+		self.normal.addData3f(0,0,1)
+		
+		self.vertex.addData3f(x+1, y+1, 0.01)
+		self.texcoord.addData2f(0.01, 0.01)
+		self.color.addData4f(1, 1, 1, 1)
+		self.normal.addData3f(0,0,1)
+		
+		self.vertex.addData3f(x+1, y, 0.01)
+		self.texcoord.addData2f(0.01, 0)
+		self.color.addData4f(1, 1, 1, 1)
+		self.normal.addData3f(0,0,1)
+		
 		#z = random()/100.0
+		'''
 		z = 0
 		self.vertex.addData3f(x, y, z)
 		self.texcoord.addData2f(0, 0)
@@ -282,7 +334,7 @@ class CollisionGrid:
 		self.texcoord.addData2f(1, 0)
 		self.color.addData4f(1, 1, 1, 1)
 		self.normal.addData3f(0,0,1)
-		
+		'''
 	def hideTile(self, x, y):
 		if (0<=x<self.x) and (0<=y<self.y):
 			if self.data[y][x]!=0:
@@ -402,10 +454,10 @@ class CollisionGrid:
 		self.rebuild()
 
 class FlatGround:
-	def __init__(self, map, x=20,y=20, tex="img/textures/ice01.jpg", scale=50.0):
+	def __init__(self, map, tex="img/textures/ice01.jpg", scale=50.0):
 		self.map = map
-		self.x = x
-		self.y = y
+		self.x = map.x
+		self.y = map.y
 		self.scale = scale
 		self.texPath = tex
 		self.tex = loader.loadTexture(self.texPath)
@@ -442,6 +494,9 @@ class FlatGround:
 		self.tex = loader.loadTexture(tex)
 		self.texPath = tex
 		self.card.setTexture(self.tex)
+		
+	def getTileHeight(self, x, y):
+		return 0
 		
 class TerrainGround:
 	def __init__(self,

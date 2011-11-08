@@ -58,6 +58,7 @@ class CreatureState:
 		self.statMax = {}
 		for stat in ["healthPoints", "stunPoints", "foodPoints", "waterPoints", "heatPoints"]:
 			self.initStat(stat, 10)
+		self.initCarac()
 		
 	def initStat(self, stat, nb):
 		self.stat[stat] = nb
@@ -81,7 +82,7 @@ class CreatureState:
 		self.carac["WIL"] = 1 # willpower
 		self.carac["PER"] = 1 # perception
 		self.carac["TEC"] = 1 # technology
-		#self.carac[""] = 1
+		self.carac["WIT"] = 1 # wits, used in initiative rolls, for reaction speed, etc.
 		#self.carac[""] = 1
 	
 	def initSkill(self):
@@ -128,7 +129,7 @@ class PlayerState(CharacterState):
 def makePlayerState(name="Galya", sex="female", hp=10, sp=10):
 	p = PlayerState(name)
 	p.initSex(sex)
-	p.setMap("maps/interior2.txt")
+	p.setMap("maps/001-1.txt")
 	return p
 
 
@@ -226,7 +227,7 @@ class NPCAI(CreatureAI):
 	def __init__(self, gm, name = "NPCAI"):
 		CreatureAI.__init__(self, gm, name)
 		self.mapChar = self.gm.NPC[name]
-		self.request("Wander")
+		#self.request("Wander")
 		
 	def resetTimer(self):
 		self.timer = random.random() * 10.0 + 5.0
@@ -237,6 +238,12 @@ class NPCAI(CreatureAI):
 		
 	def exitWander(self):
 		self.stop()
+		
+	def enterPause(self):
+		pass
+		
+	def exitPause(self):
+		pass
 		
 	def update(self, task):
 		dt = globalClock.getDt()
@@ -262,3 +269,9 @@ class NPCAI(CreatureAI):
 					if tile is not None:
 						self.goto(tile[0], tile[1])
 		return task.cont
+
+
+if __name__=="__main__":
+	g = GameState(filename="save/default.txt", playerState=makePlayerState())
+	g.save()
+	print "GameState saved as default.txt"

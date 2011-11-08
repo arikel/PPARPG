@@ -90,28 +90,37 @@ class Drawer:
 		self.node = GeomNode("lines")
 		self.np = NodePath(self.node)
 		self.np.reparentTo(render)
+		self.np.setShaderOff()
+		self.np.setLightOff()
 		self.path = []
 		self.start = (0, 0)
 		self.end = (0, 0)
 		self.h = 0.2
+		'''
 		self.startModel = loader.loadModel("frowney")
 		self.endModel = loader.loadModel("smiley")
 		self.startModel.reparentTo(render)
 		self.endModel.reparentTo(render)
-		
+		'''
 	def setStart(self, start):
 		self.start = start
-		self.startModel.setPos(start[0]+0.5, start[1]+0.5, 0)
+		#self.startModel.setPos(start[0]+0.5, start[1]+0.5, 0)
 		
 	def setEnd(self, end):
 		self.end = end
-		self.endModel.setPos(end[0]+0.5, end[1]+0.5, 0)
+		#self.endModel.setPos(end[0]+0.5, end[1]+0.5, 0)
 		
 	def clear(self):
 		self.np.remove()
 		self.node = GeomNode("lines")
 		self.np = NodePath(self.node)
 		self.np.reparentTo(render)
+		self.np.setShaderOff()
+		self.np.setLightOff()
+		
+	def destroy(self):
+		self.np.detachNode()
+		del self.np
 		
 	def drawLine(self, start, end):
 		#print "Draw line : %s, %s" % (str(start), str(end))
