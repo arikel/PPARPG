@@ -391,9 +391,9 @@ class MapNPC(MapObject):
 		y = path[0][1] - b
 		self.lookAt(x, y)
 		
-		f = Func(self.setMode, "walk")
-		self.sequence.append(f)
-		
+		#f = Func(self.setMode, "walk")
+		#self.sequence.append(f)
+		self.setMode("walk")
 		for n, tile in enumerate(path):
 			if n<len(path)-1:
 				x = path[n+1][0] - tile[0]
