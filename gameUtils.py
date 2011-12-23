@@ -177,7 +177,7 @@ class GameState:
 		data = {}
 		data["playerState"] = self.playerState
 		data["NPCTracker"] = self.NPCTracker
-		data["timeDisplay"] = strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+		data["timeDisplay"] = strftime("%a, %d %b %Y %H:%M:%S", localtime())
 		data["time"] = localtime()
 		#data["questDic"] = self.questDic
 		return data

@@ -1065,6 +1065,7 @@ class Game(FSM, DirectObject):
 		self.editor.stop()
 		
 if __name__ == "__main__":
+	PStatClient.connect()
 	render.setShaderAuto()
 	
 	'''
@@ -1186,9 +1187,9 @@ if __name__ == "__main__":
 	base.setBackgroundColor(color)
 	
 	#render.setAntialias(AntialiasAttrib.MMultisample)
-	render.setAntialias(AntialiasAttrib.MAuto)
+	#render.setAntialias(AntialiasAttrib.MAuto)
 	#render.setAttrib(LightRampAttrib.makeHdr0())
-	render.setAttrib(LightRampAttrib.makeHdr1())
+	#render.setAttrib(LightRampAttrib.makeHdr1())
 	#render.setAttrib(LightRampAttrib.makeHdr2())
 	#render.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.5))
 	#render.setAttrib(LightRampAttrib.makeDoubleThreshold(0.5, 0.5, 0.5, 0.5))

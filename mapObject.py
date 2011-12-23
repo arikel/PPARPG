@@ -398,8 +398,9 @@ class MapNPC(MapObject):
 			if n<len(path)-1:
 				x = path[n+1][0] - tile[0]
 				y = path[n+1][1] - tile[1]
-				f = Func(self.lookAt, x, y)
-				self.sequence.append(f)
+				#f = Func(self.lookAt, x, y)
+				#self.sequence.append(f)
+				self.sequence.append(Func(self.lookAt, x, y))
 				
 			i = LerpPosInterval(self.model,
 				self.speed,
@@ -409,8 +410,10 @@ class MapNPC(MapObject):
 			self.timer += self.speed
 			#print "adding tile %s, %s to path for %s" % (tile[0], tile[1], self.name)
 		#print "On NPC start sequence, timer = %s" % (self.timer)
-		f = Func(self.setMode, "idle")
-		self.sequence.append(f)
+		#f = Func(self.setMode, "idle")
+		#self.sequence.append(f)
+		self.sequence.append(Func(self.setMode, "idle"))
+		
 		#print "Setting path for %s" % (self.name)
 		self.sequence.start()
 		
