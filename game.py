@@ -56,9 +56,6 @@ from dialog import *
 from mapObject import *
 from map import Map
 
-from effects import WaterPlane, GrassEngine
-from wallBuilder import WallBuilder
-
 from gameUtils import *
 
 #-----------------------------------------------------------------------
@@ -160,7 +157,7 @@ class MapManager(MapManagerBase):
 		self.mode = "move" # talk, fight
 		
 		MapManagerBase.__init__(self, gm)
-		
+		#self.map.water = True
 		# player
 		self.gameState = self.gm.gameState
 		self.playerState = self.gm.playerState
@@ -185,7 +182,7 @@ class MapManager(MapManagerBase):
 		# NPCs
 		self.NPC = {}
 		self.NPCAI = {}
-		
+		'''
 		for name, sex in [("ula2", "female"), ("Kimmo", "male"), ("Drunkard", "male"), ("Camilla", "female")]:
 			x, y = self.map.collisionGrid.getRandomTile()
 			# yes, we will have to think about something smarter in the long run, i know...
@@ -202,7 +199,7 @@ class MapManager(MapManagerBase):
 		self.NPC["ula2"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
-		
+		'''
 		# monsters
 		self.mobs = {}
 		
@@ -1133,12 +1130,12 @@ if __name__ == "__main__":
 	#game.map.mapObjectRoot.flattenStrong()
 	#print "hp = ", game.playerState.hp
 	
-	'''
+	
 	#size = 100
 	#w0 = WaterPlane(-size, -size, size, size)
 	#w0.destroy()
-	w0 = WaterPlane(-20, -20, game.map.x+20, game.map.y+20)
-	
+	#w0 = WaterPlane(-20, -20, game.map.x+20, game.map.y+20)
+	'''
 	for i in range(5):
 		crystal = loader.loadModel("models/props/crystal2")
 		
@@ -1171,7 +1168,6 @@ if __name__ == "__main__":
 	props.setCursorHidden(True) 
 	base.win.requestProperties(props)
 	
-	#base.accept("escape", sys.exit)
 	base.camLens.setNearFar(1.0, 2000)
 	base.disableMouse()
 	base.setFrameRateMeter(True)
@@ -1194,11 +1190,11 @@ if __name__ == "__main__":
 	#render.setAttrib(LightRampAttrib.makeSingleThreshold(0.5, 0.5))
 	#render.setAttrib(LightRampAttrib.makeDoubleThreshold(0.5, 0.5, 0.5, 0.5))
 	
-	#filters = CommonFilters(base.win, base.cam)
+	filters = CommonFilters(base.win, base.cam)
 	#filters.setCartoonInk(separation=0.5)
 	#filters.setViewGlow()
 	#filters.setVolumetricLighting(caster=game.mapManager.player.model)
-	#filters.setBloom()
+	filters.setBloom()
 	#PStatClient.connect()
 	#loadPrcFileData('setup', 'dump-generated-shaders #t')
 	

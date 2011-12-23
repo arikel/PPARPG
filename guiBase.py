@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 from pandac.PandaModules import *
-import direct.directbase.DirectStart
+#import direct.directbase.DirectStart
 from direct.gui.DirectGui import *
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage

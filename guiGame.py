@@ -340,9 +340,9 @@ class GameGui:
 		self.bagImg = makeImg(0.95*RATIO, -0.92, "img/items/bag.png", 0.08)
 		self.invButton.bind(DGG.B1PRESS, self.inventory.toggle)
 		
-		self.hpBar = Barre(0.12,0.01,-0.95,-0.85,30, color1 = (0.1, 0.4, 0.25, 1.0), color2 = (0.30, 0.85, 0.45, 0.9), text = "HP")
-		self.spBar = Barre(0.12,0.01,-0.95,-0.90,30, color1 = (0.1, 0.25, 0.4, 1.0), color2 = (0.30, 0.45, 0.85, 0.9), text = "SP")
-		self.spBar.setHp(20)
+		#self.hpBar = Barre(0.12,0.01,-0.95,-0.85,30, color1 = (0.1, 0.4, 0.25, 1.0), color2 = (0.30, 0.85, 0.45, 0.9), text = "HP")
+		#self.spBar = Barre(0.12,0.01,-0.95,-0.90,30, color1 = (0.1, 0.25, 0.4, 1.0), color2 = (0.30, 0.45, 0.85, 0.9), text = "SP")
+		#self.spBar.setHp(20)
 		
 	def openDialog(self, name):
 		self.dialogGui = DialogGui(name)
@@ -390,8 +390,8 @@ class GameGui:
 		self.invButton.hide()
 		self.bagImg.hide()
 		
-		self.hpBar.hide()
-		self.spBar.hide()
+		#self.hpBar.hide()
+		#self.spBar.hide()
 		
 		self.visible = False
 		
@@ -403,8 +403,8 @@ class GameGui:
 		#self.inventory.show()
 		#self.objectMenu.show()
 		
-		self.hpBar.show()
-		self.spBar.show()
+		#self.hpBar.show()
+		#self.spBar.show()
 		self.visible = True
 		
 	def setInfo(self, info):

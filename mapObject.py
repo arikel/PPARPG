@@ -97,14 +97,14 @@ class MapObject(MapObjectBase):
 			tex = loader.loadTexture(texturePath)
 			self.texturePath = texturePath
 			self.model.setTexture(tex)
-		
+		self.model.reparentTo(self)
 		
 	def loadActor(self, modelPath, animDic={}, texturePath=None):
 		if self.model is not None:
 			self.model.remove()
 		
 		self.model = Actor(modelPath, animDic)
-		self.model.setTransparency(True)
+		#self.model.setTransparency(True)
 		
 		if texturePath is not None:
 			self.tex = loader.loadTexture(texturePath)
@@ -112,9 +112,10 @@ class MapObject(MapObjectBase):
 			self.model.clearTexture()
 			self.model.setTexture(TextureStage.getDefault(), self.tex)
 		self.currentAnim = None
+		self.model.reparentTo(self)
 		
-	def reparentTo(self, np):
-		self.model.reparentTo(np)
+	#def reparentTo(self, np):
+	#	self.model.reparentTo(np)
 		#if self.genre is not "NPC":
 		#	print "Reparenting %s to %s, pos is now %s" % (self.name, str(np), self.getPos())
 		
@@ -239,6 +240,7 @@ class MapCreature(MapObject):
 
 class MapNPC(MapObject):
 	def __init__(self, gm, name, modelPath="models/characters/male", texPath=None,genre="NPC"):
+		MapObject.__init__(self, gm.map, "NPC", name)
 		self.gm = gm # MapManager
 		self.name = name
 		self.genre = genre

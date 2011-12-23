@@ -9,6 +9,7 @@ from skyBox import SkyBox
 from mapObject import *
 from mapUtils import *
 from wallBuilder import *
+from effects import WaterPlane, GrassEngine
 
 #-----------------------------------------------------------------------
 # Map
@@ -31,6 +32,7 @@ class Map:
 		self.mapObjects = {} # map objects
 		self.walls = [] # dynamic walls, see WallBuilder in wallBuilder.py
 		self.innerWall = None
+		self.water = None
 		
 		self.creatureRoot = NodePath("creatureRoot")
 		self.creatureRoot.reparentTo(render)
@@ -86,6 +88,9 @@ class Map:
 		if self.innerWall:
 			mapData["innerWall"] = self.innerWall.getSaveData()
 		
+		if self.water:
+			mapData["water"] = True
+		
 		if self.sky:
 			mapData["skybox"] = self.sky.name
 		
@@ -133,7 +138,8 @@ class Map:
 		
 		self.clearWalls()
 		self.clearInnerWall()
-		
+		if self.water:
+			self.water.destroy()
 		#for wall in self.walls:
 		#	wall.destroy()
 		
@@ -188,6 +194,9 @@ class Map:
 			self.innerWall = InnerWall(self, mapData["innerWall"][0], mapData["innerWall"][1],mapData["innerWall"][2])
 		else:
 			self.innerWall = None
+		
+		if "water" in mapData:
+			self.water = WaterPlane(-20, -20, self.x+20, self.y+20)
 			
 		if "skybox" in mapData:
 			self.setSky(mapData["skybox"])

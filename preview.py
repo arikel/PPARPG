@@ -14,7 +14,7 @@ import cPickle as pickle
 
 
 from map import *
-
+'''
 class Drawer:
 	def __init__(self):
 		self.node = GeomNode("lines")
@@ -147,7 +147,8 @@ class ColGrid:
 		for x in range(self.x):
 			for y in range(self.y):
 				self.closeTile(x, y)
-		
+'''
+
 map = Map()
 map.name = "hello"
 map.x = 120
@@ -187,14 +188,13 @@ def closetile(extra = []):
 	a = map.collisionGrid.getMouseTilePos()
 	if a is None:return
 	x, y = a[0], a[1]
-	for X, Y in ((x-1,y-1), (x, y-1), (x+1,  y-1)):
+	for X, Y in ((x-1,y-1), (x, y-1), (x+1, y-1), (x-1,y), (x, y), (x+1, y), (x-1,y+1), (x, y+1), (x+1, y+1)):
 		map.collisionGrid.showTile(X, Y)
 
 map.collisionGrid.adding = False
 map.collisionGrid.removing = False
 
 def startAdd(extras = []):
-	print "starting to add"
 	map.collisionGrid.adding = True
 	map.collisionGrid.removing = False
 	
@@ -227,10 +227,10 @@ base.accept("mouse3-up", stopRem)
 base.accept("f", map.collisionGrid.fill)
 
 base.setFrameRateMeter(True)
-#base.camLens.setNearFar(1,500)
-#base.disableMouse()
-#base.camera.setPos(50,5,15)
-#base.camera.lookAt(50,25,0)
+base.camLens.setNearFar(1,500)
+base.disableMouse()
+base.camera.setPos(50,5,15)
+base.camera.lookAt(50,25,0)
 
 taskMgr.add(updateCol, "updateCol")
 
