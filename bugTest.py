@@ -19,7 +19,8 @@ class NPC:
 	def setPath(self):
 		if self.seq.isPlaying():
 			self.seq.pause()
-		self.seq.append(Func(self.lookAt, Point3(0,5,5)))
+		for i in range(5):
+			self.seq.append(Func(self.lookAt, Point3(0,i,i)))
 		self.seq.loop()
 		
 for i in range(5):
