@@ -7,8 +7,10 @@ from direct.interval.IntervalGlobal import *
 from direct.task import Task
 import direct.directbase.DirectStart
 
-class NPC:
-	def __init__(self):
+class NPC(NodePath):
+	def __init__(self, name):
+		NodePath.__init__(self, name)
+		self.name = name
 		self.model = loader.loadModel('smiley')
 		self.model.reparentTo(render)
 		self.seq = Sequence()
@@ -26,7 +28,8 @@ class NPC:
 		self.seq.loop()
 		
 for i in range(5):
-	n = NPC()
+	name = "NPC" + str(i)
+	n = NPC(name)
 	n.setPath()
 	
 run()
