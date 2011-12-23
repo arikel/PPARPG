@@ -12,9 +12,9 @@ class NPC(NodePath):
 		NodePath.__init__(self, name)
 		self.name = name
 		self.model = loader.loadModel('smiley')
-		self.model.reparentTo(render)
+		self.model.reparentTo(self)
 		self.seq = Sequence()
-		
+		self.reparentTo(render)
 	def lookAt(self, x, y):
 		self.model.lookAt(Point3(x, y, 0))
 	
@@ -29,7 +29,7 @@ class NPC(NodePath):
 		self.seq.loop()
 		
 for i in range(5):
-	name = "NPC" + str(i)
+	name = "NPC"
 	n = NPC(name)
 	n.setPath()
 	
