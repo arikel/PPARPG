@@ -21,6 +21,7 @@ class NPC(NodePath):
 	def setPath(self):
 		if self.seq.isPlaying():
 			self.seq.pause()
+		self.seq = Sequence()
 		for i in range(5):
 			self.seq.append(Func(self.lookAt, i, i))
 			pos_i = LerpPosInterval(self.model,	5,(i, -i, 0))
