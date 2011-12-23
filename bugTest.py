@@ -15,14 +15,14 @@ class NPC(NodePath):
 		self.model.reparentTo(render)
 		self.seq = Sequence()
 		
-	def lookAt(self, target):
-		self.model.lookAt(target)
+	def lookAt(self, x, y):
+		self.model.lookAt(Point3(x, y, 0))
 	
 	def setPath(self):
 		if self.seq.isPlaying():
 			self.seq.pause()
 		for i in range(5):
-			self.seq.append(Func(self.lookAt, Point3(0,i,i)))
+			self.seq.append(Func(self.lookAt, i, i))
 			pos_i = LerpPosInterval(self.model,	5,(i, -i, 0))
 			self.seq.append(pos_i)
 		self.seq.loop()
