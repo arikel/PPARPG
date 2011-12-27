@@ -15,6 +15,7 @@ class NPC(NodePath):
 		self.model.reparentTo(self)
 		self.seq = Sequence()
 		self.reparentTo(render)
+		
 	def lookAt(self, x, y):
 		self.model.lookAt(Point3(x, y, 0))
 	

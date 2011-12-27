@@ -182,7 +182,7 @@ class MapManager(MapManagerBase):
 		# NPCs
 		self.NPC = {}
 		self.NPCAI = {}
-		'''
+		
 		for name, sex in [("ula2", "female"), ("Kimmo", "male"), ("Drunkard", "male"), ("Camilla", "female")]:
 			x, y = self.map.collisionGrid.getRandomTile()
 			# yes, we will have to think about something smarter in the long run, i know...
@@ -199,7 +199,7 @@ class MapManager(MapManagerBase):
 		self.NPC["ula2"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Kimmo"].addEquipment("models/equipment/bag", "models/equipment/bag1.jpg")
 		self.NPC["Drunkard"].addEquipment("models/equipment/stick", "models/equipment/stick.jpg")
-		'''
+		
 		# monsters
 		self.mobs = {}
 		
