@@ -3,12 +3,11 @@
 import random
 
 from pandac.PandaModules import *
-from mouseCursor import Clicker
+#from mouseCursor import Clicker
 
 class WallBuilder:
-	def __init__(self, width = 0.5, height = 1.6, texPath="img/textures/collision.png", pointList = []):
-		self.width = width
-		self.height = height
+	def __init__(self, game, texPath="img/rs-metal07.jpg"):
+		self.game = game
 		self.texPath = texPath
 		
 		self.node = GeomNode("tiledMesh")
@@ -19,8 +18,7 @@ class WallBuilder:
 		self.nbVertices = 0
 		self.nbFaces = 0
 		
-		if self.texPath is not None:
-			self.tex = loader.loadTexture(self.texPath)
+		self.tex = self.game.loader.loadTexture(self.texPath)
 		
 		self.np = None
 		
@@ -236,119 +234,8 @@ class WallBuilder:
 		#del self.data
 		del self.gvd
 
-class RockWallBuilder:
-	def __init__(self, np, pointList=[]):
-		print "creating RockWall"
-		self.np = np
-		self.pointList = pointList
-		if len(self.pointList)<2:
-			return
 		
-		self.rocks = []
-		baseScale = 0.95
-		rndScale = 0.95
-		step = 2.5
-		
-		for i in range(len(self.pointList)-1):
-			p1 = self.pointList[i]
-			p2 = self.pointList[i+1]
-			dist = (p2-p1).length()
-			fac = step/dist
-			p0 = p2-p1
-			stepVec = Vec3(p0.getX()*fac,p0.getY()*fac,p0.getZ()*fac)
-			n = 0
-			while (n * step < dist):
-				p = p1 + Vec3(n*stepVec[0],n*stepVec[1],n*stepVec[2])
-				#print "adding rock at %s" % (p)
-				rock = loader.loadModel("models/props/rock2")
-				rock.reparentTo(render)
-				rock.setPos(p)
-				rock.setScale(baseScale+random.random()*rndScale)
-				rock.setH(random.random()*180)
-				self.rocks.append(rock)
-				n = n+1
-	
-	def destroy(self):
-		for rock in self.rocks:
-			rock.remove()
-		
-class ModelWallBuilder:
-	def __init__(self, np, modelPath, texPathList=["img/textures/concrete01.jpg"], baseScale=1.0, rndScale=0.0, step=1.0, tilt=180.0, pointList=[]):
-		
-		self.np = np
-		self.modelPath = modelPath
-		self.texPathList = texPathList
-		
-		self.pointList = pointList
-		
-		if len(self.pointList)<2:
-			return
-		
-		self.baseScale = baseScale
-		self.rndScale = rndScale
-		self.step = step
-		self.tilt = tilt
-		self.rocks = []
-		
-		for i in range(len(self.pointList)-1):
-			p1 = self.pointList[i]
-			p2 = self.pointList[i+1]
-			dist = (p2-p1).length()
-			fac = self.step/dist
-			p0 = p2-p1
-			stepVec = Vec3(p0.getX()*fac,p0.getY()*fac,p0.getZ()*fac)
-			n = 0
-			while (n * self.step < dist):
-				p = p1 + Vec3(n*stepVec[0],n*stepVec[1],n*stepVec[2])
-				#print "adding rock at %s" % (p)
-				rock = loader.loadModel(self.modelPath)
-				rock.setTexture(loader.loadTexture(self.texPathList[random.randint(0,len(self.texPathList)-1)]), 1)
-				
-				rock.reparentTo(render)
-				rock.setPos(p)
-				rock.setScale(self.baseScale+random.random()*self.rndScale)
-				rock.setH(random.random()*self.tilt)
-				self.rocks.append(rock)
-				n = n+1
-	
-	def getRockNbBetween(self, p1, p2):
-		dist = (p2-p1).length()
-		n = 1
-		while (n * self.step < dist):
-			n = n+1
-		return n
-		
-	def removeLastPoint(self):
-		if len(self.pointList)>1:
-			nb = self.getRockNbBetween(self.pointList[-2], self.pointList[-1])
-			for i in range(nb):
-				self.rocks[-i-1].detachNode()
-				#self.rocks.remove(self.rocks[-i-1])
-				#del self.rocks[-i-1]
-			#self.pointList.remove(self.pointList[-1])
-			
-			self.pointList.pop(-1)
-			
-	def destroy(self):
-		for rock in self.rocks:
-			rock.remove()
-		
-	def getSaveData(self):
-		data = []
-		data.append(self.modelPathList)
-		data.append(self.texPathList)
-		data.append(self.baseScale)
-		data.append(self.rndScale)
-		data.append(self.step)
-		data.append(self.tilt)
-		data.append(self.pointList)
-		
-		
-if __name__=="__main__":
-	w = WallBuilder(0.1,2.5, "img/textures/wood_wall.jpg", [Point3(0,0,0),Point3(10,0,0)])
-	import sys
-	base.accept("escape", sys.exit)
-	run()
+
 
 
 
