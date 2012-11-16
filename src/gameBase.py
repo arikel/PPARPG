@@ -7,6 +7,7 @@ from panda3d.bullet import BulletWorld
 
 from keyHandler import KeyHandler
 from bullet import CharacterController
+from camHandler import CamHandler
 
 class GameBase(ShowBase):
 	def __init__(self, KEY_LIST):
@@ -23,7 +24,7 @@ class GameBase(ShowBase):
 		#---------------------------------------------------------------
 		# Bullet
 		self.world = BulletWorld()
-		self.world.setGravity(Vec3(0, 0, -9.81))
+		self.world.setGravity(Vec3(0, 0, -12.81))
 		self.gravityUp = False
 		
 		#---------------------------------------------------------------
@@ -31,24 +32,79 @@ class GameBase(ShowBase):
 		#---------------------------------------------------------------
 		# CharacterController
 		self.player = CharacterController(self)
-		self.player.setActor('models/characters/female262.egg', {
-				'walk' : 'models/characters/female262-walk.egg'
+		self.player.setActor('models/characters/kasia_model', {
+				'walk' : 'models/characters/kasia_idle.egg'
 			},
 			flip = True,
 			pos = (0,0,-1),
-			scale = 1.0)
+			scale = 0.125)
 		self.player.setPos(0, -5, 3)
 		self.player.playerModel.loop("walk")
 		self.playerNp = self.player.np
 		
 		#---------------------------------------------------------------
+		# Camera
+		self.camHandler = CamHandler(self)
+		
+		#---------------------------------------------------------------
 		# task
 		#self.taskMgr.add(self.update, "update")
 	
+	#---------------------------------------------------------------
+	# FPS
+	def toggleFPS(self):
+		if self.frameRateMeter:
+			self.setFrameRateMeter(False)
+		else:
+			self.setFrameRateMeter(True)
+	
+	#---------------------------------------------------------------
+	# Mouse cursor
 	def hideCursor(self):
 		props = WindowProperties()
 		props.setCursorHidden(True) 
 		self.win.requestProperties(props)
+	def showCursor(self):
+		props = WindowProperties()
+		props.setCursorHidden(False)
+		self.win.requestProperties(props)
+	
+	#---------------------------------------------------------------
+	# Fog
+	def setFog(self):
+		myFog = Fog("Fog")
+		myFog.setColor((0,0,0,1))
+		myFog.setExpDensity(0.025)
+		self.render.setFog(myFog)
+		self.fog = True
+		
+	def clearFog(self):
+		self.render.clearFog()
+		self.fog = False
+		
+	def toggleFog(self):
+		if self.fog:
+			self.clearFog()
+		else:
+			self.setFog()
+	
+	
+	#---------------------------------------------------------------
+	# Camera	
+	def setFov(self, x):
+		self.camLens.setFov(x)
+	
+	def getFov(self):
+		return self.camLens.getFov()[0]
+	
+	def setNear(self, n):
+		self.camLens.setNear(n)
+		
+	def setFar(self, n):
+		self.camLens.setFar(n)
+	
+	#---------------------------------------------------------------	
+	# Physics
 	
 	def toggleGravity(self):
 		if self.gravityUp:
@@ -57,12 +113,6 @@ class GameBase(ShowBase):
 		else:
 			self.gravityUp = True
 			self.world.setGravity(Vec3(0,0,9.8))
-		
-	def toggleFPS(self):
-		if self.frameRateMeter:
-			self.setFrameRateMeter(False)
-		else:
-			self.setFrameRateMeter(True)
 		
 	def toggleDebug(self):
 		if self._debug:
@@ -95,5 +145,12 @@ class GameBase(ShowBase):
 		self.player.update(dt)
 		return task.cont
 	
-	def quit(self):
+	def quit(self, extraArgs = []):
 		self.taskMgr.stop()
+	
+	def stop(self, extraArgs = []):
+		self.taskMgr.stop()
+		
+	def start(self):
+		self.taskMgr.run()
+		

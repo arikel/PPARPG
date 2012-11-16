@@ -10,67 +10,8 @@ from panda3d.bullet import BulletDebugNode, BulletHeightfieldShape, BulletConvex
 from panda3d.bullet import ZUp, BulletCapsuleShape
 from panda3d.bullet import BulletConeTwistConstraint, BulletSphericalConstraint, BulletSliderConstraint
 
-from direct.fsm.FSM import FSM
-from direct.actor.Actor import Actor
+from bulletBase import BulletObject
 
-#-----------------------------------------------------------------------
-# Bullet classes
-#-----------------------------------------------------------------------
-class BulletObject(object):
-	slice_able = False
-	# NodePath manipulation
-	
-	#for attrib in ["getPos", "setPos", "getHpr", "setHpr"]
-	
-	def getPos(self):
-		return self.np.getPos()
-	def setPos(self, *args):
-		self.np.setPos(args)
-	def setHpr(self, *args):
-		self.np.setHpr(args)
-	def setH(self, *args):
-		self.np.setH(*args)
-	def setP(self, *args):
-		self.np.setP(*args)
-	def setR(self, *args):
-		self.np.setR(*args)
-	
-	def activate(self):
-		return
-	
-	def destroy(self):
-		#self.np.detachNode()
-		self.np.remove()
-		self.game.world.removeRigidBody(self.node)
-	
-	def getContacts(self):
-		res = []
-		cntTest = self.game.world.contactTest(self.node)
-		cnt = cntTest.getContacts()
-		return cnt
-		
-	# debug
-	def debugOn(self):
-		self.node.setDebugEnabled(True)
-		
-	def debugOff(self):
-		self.node.setDebugEnabled(False)
-		
-	def toggleDebug(self):
-		if self.node.isDebugEnabled():
-			self.debugOff()
-		else:
-			self.debugOn()
-	
-	def onClick(self):
-		return
-		
-	def update(self, dt):
-		return
-		
-	def setTexture(self, tex):
-		self.np.setTexture(tex)
-		
 class DynamicObject(BulletObject):
 	
 	def activate(self):
@@ -108,10 +49,6 @@ class DynamicObject(BulletObject):
 		cntTest = self.game.world.contactTest(self.node)
 		cnt = cntTest.getContacts()
 		
-		
-		
-		
-		
 		for c in cnt:
 			mpoint = c.getManifoldPoint()
 			d = mpoint.getDistance()
@@ -126,8 +63,6 @@ class DynamicObject(BulletObject):
 			
 			nodeName0 = node0.getName()
 			nodeName1 = node1.getName()
-			
-			
 			
 			if nodeName0 != self.name and nodeName0 not in res:
 				res.append(nodeName0)
@@ -175,10 +110,21 @@ class DynamicObject(BulletObject):
 		vec = self.getSpeedVec()
 		return Vec3(vec[0], vec[1], 0)
 	def setSpeedXY(self, speedX, speedY):
-		vec = self.getSpeedVec()
+		#vec = self.getSpeedVec()
 		z = self.getSpeedZ()
 		self.setSpeedVec(Vec3(speedX, speedY, z))
-	
+		
+	def capSpeedXY(self):
+		vec = self.getSpeedXY()
+		hspeed = vec.length()
+		x = vec[0]
+		y = vec[1]
+		if hspeed > self.groundSpeed:
+			x = x*self.groundSpeed / hspeed
+			y = y*self.groundSpeed / hspeed
+			self.setSpeedXY(x, y)
+			#print "speed capped for %s, was %s, is now %s" % (self.name, hspeed, self.getSpeed())
+			
 	def getSpeedH(self):
 		return self.getSpeedXY().length()
 		
@@ -205,7 +151,7 @@ class DynamicObject(BulletObject):
 		return self.node.setFriction(friction)
 
 	
-	
+"""	
 
 #-----------------------------------------------------------------------
 # Box
@@ -322,77 +268,6 @@ class DynamicNp(DynamicObject):
 		self.node.setCcdMotionThreshold(1e-7)
 		self.node.setCcdSweptSphereRadius(0.5)
 		self.slice_able = True
-		
-#-----------------------------------------------------------------------
-# Terrain
-class StaticTerrain(BulletObject):
-	def __init__(self, game, imgPath, height):
-		self.game = game
-		self.img = PNMImage(Filename(imgPath))
-		self.shape = BulletHeightfieldShape(self.img, height, 2)
-		self.node = BulletRigidBodyNode('Ground')
-		self.node.addShape(self.shape)
-		
-		self.np = self.game.render.attachNewNode(self.node)
-		self.np.setPos(0, 0, 0)
-		self.np.setScale(1, 1, 1)
-		self.game.world.attachRigidBody(self.node)
-		
-		self.terrain = GeoMipTerrain('terrain')
-		self.terrain.setHeightfield(self.img)
-		self.terrain.generate()
-		self.terrainNP = self.terrain.getRoot()
-		self.offset = self.img.getXSize() / 2.0 - 0.5
-		self.terrainNP.setSz(height)
-		self.terrainNP.setPos(-self.offset,-self.offset,-height/2.0)
-		#self.terrainNP.flattenStrong()
-		self.terrainNP.reparentTo(self.np)
-		
-		self.terrainNP.show()
-		self.debugOff()
-		self.slice_able = False
-		
-		self.terrain.setBlockSize(32)
-		self.terrain.setNear(100)
-		self.terrain.setFar(400)
-		self.terrain.setFocalPoint(self.game.playerNp)
-	
-	def update(self, dt=0.1):
-		self.terrain.update()
-		
-#-----------------------------------------------------------------------
-# Model
-class StaticModel(BulletObject):
-	def __init__(self, name, modelPath, displayModelPath, game, pos):
-		self.name = name
-		self.modelPath = modelPath
-		self.game = game
-		
-		self.model = self.game.loader.loadModel(self.modelPath)
-		geomNodes = self.model.findAllMatches('**/+GeomNode')
-		self.geomNode = geomNodes.getPath(0).node()
-		self.geom = self.geomNode.getGeom(0)
-		
-		#self.shape = BulletConvexHullShape()
-		#self.shape.addGeom(self.geom)
-		
-		mesh = BulletTriangleMesh()
-		mesh.addGeom(self.geom)
-		self.shape = BulletTriangleMeshShape(mesh, dynamic=False)
-		
-		self.node = BulletRigidBodyNode(self.name)
-		self.node.addShape(self.shape)
-		
-		self.np = self.game.render.attachNewNode(self.node)
-		self.np.setPos(pos)
-		self.game.world.attachRigidBody(self.node)
-		
-		#self.model.reparentTo(self.np)
-		
-		self.displayModel = self.game.loader.loadModel(displayModelPath)
-		self.displayModel.reparentTo(self.np)
-		self.displayModel.setTwoSided(True)
-		self.slice_able = False
 
 class KinematicPlatform(BulletObject):
 	def __init__(self, name, game, x, y, z, pos):
@@ -459,3 +334,4 @@ class DynamicPlatform(DynamicObject):
 		
 	def update(self, dt):
 		return
+"""

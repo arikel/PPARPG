@@ -68,7 +68,7 @@ class CharacterController(DynamicObject, FSM):
 		
 		self.shape = BulletCapsuleShape(w, h - 2 * w, ZUp)
 		self.node = BulletRigidBodyNode('Player')
-		self.node.setMass(1.0)
+		self.node.setMass(2)
 		self.node.addShape(self.shape)
 		self.node.setActive(True, True)
 		self.node.setDeactivationEnabled(False, True)
@@ -77,6 +77,7 @@ class CharacterController(DynamicObject, FSM):
 		#self.node.setFallSpeed(200)
 		self.node.setCcdMotionThreshold(1e-7)
 		self.node.setCcdSweptSphereRadius(0.5)
+		self.node.setAngularFactor(Vec3(0,0,1))
 		
 		self.np = self.game.render.attachNewNode(self.node)
 		self.np.setPos(0, 0, 0)
@@ -152,7 +153,8 @@ class CharacterController(DynamicObject, FSM):
 	#-------------------------------------------------------------------
 	# Acceleration	
 	def doJump(self):
-		self.setSpeedZ(self.getSpeedZ()+self.jumpSpeed)
+		#self.setSpeedZ(self.getSpeedZ()+self.jumpSpeed)
+		self.setSpeedZ(self.jumpSpeed)
 	
 	def setForce(self, force):
 		self.node.applyCentralForce(force)
@@ -166,16 +168,17 @@ class CharacterController(DynamicObject, FSM):
 	
 		
 	def update(self, dt, dx=0, dy=0, jumping=0, crouching=0, dRot=0):
-		self.setR(0)
-		self.setP(0)
+		#self.setR(0)
+		#self.setP(0)
 		
 		self.jumping = jumping
 		self.crouching = crouching
 		self.dx = dx
 		self.dy = dy
 		
-		self.setAngularVelocity(dRot*self.turnSpeed)
-		
+		#self.setAngularVelocity(dRot*self.turnSpeed)
+		#self.setAngularVelocity(0)
+		self.setH(self.game.camHandler.gameNp.getH())
 		speedVec = self.getSpeedVec() - self.platformSpeedVec
 		speed = speedVec.length()
 		localSpeedVec = self.np.getRelativeVector(self.game.render, speedVec)

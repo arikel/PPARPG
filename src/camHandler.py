@@ -20,7 +20,7 @@ class CamHandler(FSM):
 		self.playerNp.setTransparency(TransparencyAttrib.MAlpha)
 		
 		self.gameNp = NodePath("gameCam")
-		self.gameNp.setPos(0,0,-1.25)
+		self.gameNp.setPos(0,0,0)
 		self.gameNp.reparentTo(self.game.render)
 		
 		self.gameNp2 = NodePath("gameCam2")
@@ -81,7 +81,7 @@ class CamHandler(FSM):
 			#self.gameNp.setH(self.gameNp, dx*100.0)
 			self.gameNp.setH(self.gameNp.getH() + dx*100.0)
 			self.gameNp.setP(self.gameNp.getP() - dy*100.0)
-			self.gameNp.setR(0)
+			#self.gameNp.setR(0)
 			if self.gameNp.getP() < self.pMin:
 				self.gameNp.setP(self.pMin)
 			elif self.gameNp.getP() > self.pMax:
