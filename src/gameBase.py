@@ -4,6 +4,7 @@
 from panda3d.core import *
 from direct.showbase.ShowBase import ShowBase
 from panda3d.bullet import BulletWorld
+from panda3d.bullet import BulletDebugNode
 
 from keyHandler import KeyHandler
 from bullet import CharacterController
@@ -27,17 +28,27 @@ class GameBase(ShowBase):
 		self.world.setGravity(Vec3(0, 0, -12.81))
 		self.gravityUp = False
 		
+		self.debugNode = BulletDebugNode('Debug')
+		self.debugNode.showWireframe(True)
+		self.debugNode.showConstraints(True)
+		self.debugNode.showBoundingBoxes(True)
+		self.debugNode.showNormals(True)
+		self.debugNP = self.render.attachNewNode(self.debugNode)
+		#self.debugNP.show()
+		self.world.setDebugNode(self.debugNode)
+		self._debug = False
+		
 		#---------------------------------------------------------------
 		# Player
 		#---------------------------------------------------------------
 		# CharacterController
 		self.player = CharacterController(self)
-		self.player.setActor('models/characters/kasia_model', {
-				'walk' : 'models/characters/kasia_idle.egg'
+		self.player.setActor('models/characters/female', {
+				'walk' : 'models/characters/female-walk.egg'
 			},
 			flip = True,
 			pos = (0,0,-1),
-			scale = 0.125)
+			scale = 1.0)
 		self.player.setPos(0, -5, 3)
 		self.player.playerModel.loop("walk")
 		self.playerNp = self.player.np
@@ -68,6 +79,39 @@ class GameBase(ShowBase):
 		props = WindowProperties()
 		props.setCursorHidden(False)
 		self.win.requestProperties(props)
+	
+	def getObjectHoverName(self):
+		if not self.mouseWatcherNode.hasMouse():
+			return None
+		pMouse = self.mouseWatcherNode.getMouse()
+		pFrom = Point3()
+		pTo = Point3()
+		self.camLens.extrude(pMouse, pFrom, pTo)
+		# Transform to global coordinates
+		pFrom = self.render.getRelativePoint(self.cam, pFrom)
+		pTo = self.render.getRelativePoint(self.cam, pTo)
+		result = self.world.rayTestClosest(pFrom, pTo)
+		if result.hasHit():
+			pos = result.getHitPos()
+			name = result.getNode().getName()
+			return name
+		else:
+			return None
+		
+	def getObjectCenterScreen(self):
+		pFrom = Point3()
+		pTo = Point3()
+		self.camLens.extrude((0,0), pFrom, pTo)
+		# Transform to global coordinates
+		pFrom = self.render.getRelativePoint(self.cam, pFrom)
+		pTo = self.render.getRelativePoint(self.cam, pTo)
+		result = self.world.rayTestClosest(pFrom, pTo)
+		if result.hasHit():
+			pos = result.getHitPos()
+			name = result.getNode().getName()
+			return name
+		else:
+			return None
 	
 	#---------------------------------------------------------------
 	# Fog
@@ -115,6 +159,7 @@ class GameBase(ShowBase):
 			self.world.setGravity(Vec3(0,0,9.8))
 		
 	def toggleDebug(self):
+		#print "Toggle debug, extraArgs = %s" % (extraArgs)
 		if self._debug:
 			self._debug = False
 			self.debugNP.hide()
@@ -145,10 +190,10 @@ class GameBase(ShowBase):
 		self.player.update(dt)
 		return task.cont
 	
-	def quit(self, extraArgs = []):
+	def quit(self):
 		self.taskMgr.stop()
 	
-	def stop(self, extraArgs = []):
+	def stop(self):
 		self.taskMgr.stop()
 		
 	def start(self):
